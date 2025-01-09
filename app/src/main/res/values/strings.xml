@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Wisata Banyumas</string>
+    <string name="category_alam">Alam</string>
+    <string name="category_kuliner">Kuliner</string>
+    <string name="category_keluarga">Keluarga</string>
+    <string name="category_religi">Religi</string>
+    <string name="category_seni">Seni</string>
+    <string name="placeholder_search">Mau kemana hari ini ?</string>
+    <string name="location_Baturraden">Baturraden</string>
+</resources>
