@@ -8,6 +8,7 @@ interface ApiService {
     suspend fun getDetailPlaces(
         @Query("place_id") placeId: String,
         @Query("fields") fields: String = "name,rating,formatted_address,geometry,photos,reviews",
+        @Query("language") language: String = "id",
         @Query("key") key: String
     ): DetailResponse
 }

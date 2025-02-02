@@ -1,25 +1,24 @@
 package com.banyumas.wisata.data.model
 
-
 data class Destination(
     val id: String = "",
-    val googlePlaceId: String = "",
     val name: String = "",
     val address: String = "",
     val latitude: Double? = 0.0,
     val longitude: Double? = 0.0,
     val rating: Float = 0.0f,
     val photos: List<Photo> = emptyList(),
-    val reviews: List<Review> = emptyList(),
+    val reviewsFromGoogle: List<Review> = emptyList(),
+    val reviewsFromLocal: List<Review> = emptyList(),
+    val lastUpdated:Long = 0L
 )
-
 
 data class Review(
     val authorName: String = "",
     val rating: Int = 0,
-    val text: String = ""
+    val text: String = "",
+    val source: String = ""
 )
-
 
 data class Photo(
     val photoUrl: String = ""
@@ -27,6 +26,6 @@ data class Photo(
 
 
 data class UiDestination(
-    val destination: Destination,
+    val destination: Destination = Destination(),
     val isFavorite: Boolean = false
 )

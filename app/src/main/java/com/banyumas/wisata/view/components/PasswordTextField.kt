@@ -19,9 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun PasswordTextField(
@@ -55,13 +53,4 @@ fun PasswordTextField(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     )
-}
-
-
-@Preview(showBackground = true)
-@Composable
-private fun PasswordTextFieldPreview() {
-    WisataBanyumasTheme {
-        PasswordTextField(value = "", onValueChange = {})
-    }
 }

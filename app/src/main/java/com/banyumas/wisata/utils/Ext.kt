@@ -26,38 +26,28 @@ fun getPlaceIdFromJson(context: Context): List<String> {
 
 fun DetailResponse.toDestination(placeId: String, apiKey: String): Destination {
     val result = this.result ?: return Destination()
+
     return Destination(
-        id = "",
+        id = placeId,
         name = result.name.orEmpty(),
         address = result.formattedAddress.orEmpty(),
         latitude = result.geometry?.location?.lat,
         longitude = result.geometry?.location?.lng,
-        rating = (result.rating as? Double)?.toFloat() ?: 0.0f,
-        reviews = result.reviews?.map {
+        rating = result.rating?.toFloat() ?: 0.0f,
+        reviewsFromGoogle = result.reviews?.map { review ->
             Review(
-                authorName = it?.authorName.orEmpty(),
-                rating = it?.rating ?: 0,
-                text = it?.text.orEmpty()
+                authorName = review?.authorName.orEmpty(),
+                rating = review?.rating ?: 0,
+                text = review?.text.orEmpty(),
+                source = "google" // Tambahkan sumber review
             )
         } ?: emptyList(),
-        photos = result.photos?.map {
+        reviewsFromLocal = emptyList(), // Kosongkan karena review lokal hanya berasal dari aplikasi
+        photos = result.photos?.map { photo ->
             Photo(
-                photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${it?.photoReference}&key=$apiKey"
+                photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo?.photoReference}&key=$apiKey"
             )
         } ?: emptyList(),
-        googlePlaceId = placeId
+        lastUpdated = System.currentTimeMillis() // Menandai waktu pembaruan
     )
-}
-
-
-fun mapToUiDestinations(
-    userFavorites: List<String>,
-    destinations: List<Destination>
-): List<UiDestination> {
-    return destinations.map { destination ->
-        UiDestination(
-            destination = destination,
-            isFavorite = destination.id in userFavorites
-        )
-    }
 }

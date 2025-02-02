@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.banyumas.wisata.data.model.Destination
-import com.banyumas.wisata.data.repository.DataRepository
+import com.banyumas.wisata.data.model.Review
+import com.banyumas.wisata.data.repository.DestinationRepository
 import com.banyumas.wisata.utils.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,36 +15,44 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FetchViewModel @Inject constructor(
-    private val repository: DataRepository
+    private val repository: DestinationRepository
 ) : ViewModel() {
 
-    private val _destinations = MutableStateFlow<List<UiState<Destination>>>(emptyList())
-    val destinations: StateFlow<List<UiState<Destination>>> = _destinations
+    private val _destinations = MutableStateFlow<UiState<List<Destination>>>(UiState.Loading)
+    val destinations: StateFlow<UiState<List<Destination>>> = _destinations
 
-    fun uploadData(
-        context: Context,
-        apiKey: String,
-    ) {
+    fun uploadData(context: Context, apiKey: String) {
         viewModelScope.launch {
-            val placeIds = repository.readPlaceFromJson(context)
-            // Set semua destinasi ke Loading
-            _destinations.value = placeIds.map { UiState.Loading }
-
-            val updatedDestinations = placeIds.map { placeId ->
-                try {
-                    println("Fetching place $placeId")
-                    repository.fetchAndSavePlace(placeId, apiKey)
-                    val destination = Destination(
-                        id = placeId, // Isi dengan data yang relevan
-                        name = "Fetched Place $placeId" // Placeholder
-                    )
-                    UiState.Success(destination)
-                } catch (e: Exception) {
-                    println("Error processing place $placeId: ${e.message}")
-                    UiState.Error("Error fetching place $placeId: ${e.message}")
+            _destinations.value = UiState.Loading
+            try {
+                val placeIds = repository.readPlaceFromJson(context)
+                if (placeIds.isEmpty()) {
+                    _destinations.value = UiState.Empty
+                    return@launch
                 }
+                val updatedDestinations = placeIds.map { placeId ->
+                    repository.fetchAndSavePlace(placeId, apiKey)
+                }
+                _destinations.value = if (updatedDestinations.isEmpty()) {
+                    UiState.Empty
+                } else {
+                    UiState.Success(updatedDestinations)
+                }
+            } catch (e: Exception) {
+                _destinations.value = UiState.Error(e.message ?: "Error uploading data")
             }
-            _destinations.value = updatedDestinations
         }
     }
+
+    fun addReview(placeId: String, review: Review) {
+        viewModelScope.launch {
+            try {
+                repository.addLocalReview(placeId, review)
+            } catch (e: Exception) {
+                println("Error adding review for $placeId: ${e.message}")
+            }
+        }
+    }
+
+
 }

@@ -39,7 +39,7 @@ data class AppSize(
     val small: Dp
 )
 
-val LocalAppColorScheme = staticCompositionLocalOf<AppColorScheme> {
+val LocalAppColorScheme = staticCompositionLocalOf {
     AppColorScheme(
         background = Color.Unspecified,
         onBackground = Color.Unspecified,
@@ -50,7 +50,7 @@ val LocalAppColorScheme = staticCompositionLocalOf<AppColorScheme> {
     )
 }
 
-val LocalAppTypography = staticCompositionLocalOf<AppTypography> {
+val LocalAppTypography = staticCompositionLocalOf {
     AppTypography(
         titleLarge = TextStyle.Default,
         titleMedium = TextStyle.Default,
@@ -61,14 +61,14 @@ val LocalAppTypography = staticCompositionLocalOf<AppTypography> {
     )
 }
 
-val LocalAppShape = staticCompositionLocalOf<AppShape> {
+val LocalAppShape = staticCompositionLocalOf {
     AppShape(
         container = RectangleShape,
         button = RectangleShape
     )
 }
 
-val LocalAppSize = staticCompositionLocalOf<AppSize> {
+val LocalAppSize = staticCompositionLocalOf {
     AppSize(
         large = Dp.Unspecified,
         medium = Dp.Unspecified,

@@ -32,33 +32,33 @@ private val lightColorScheme = AppColorScheme(
 
 private val typography = AppTypography(
     titleLarge = TextStyle(
-        fontFamily = Roboto,
+        fontFamily = OpenSansFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-    ),
-    titleMedium = TextStyle(
-        fontFamily = Roboto,
-        fontWeight = FontWeight.SemiBold,
         fontSize = 20.sp,
     ),
+    titleMedium = TextStyle(
+        fontFamily = OpenSansFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp,
+    ),
     body = TextStyle(
-        fontFamily = Roboto,
+        fontFamily = OpenSansFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
     ),
     labelLarge = TextStyle(
-        fontFamily = Roboto,
-        fontWeight = FontWeight.Bold,
+        fontFamily = OpenSansFamily,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
     ),
     labelNormal = TextStyle(
-        fontFamily = Roboto,
+        fontFamily = OpenSansFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 14.sp,
     ),
     labelSmall = TextStyle(
-        fontFamily = Roboto,
-        fontWeight = FontWeight.Bold,
+        fontFamily = OpenSansFamily,
+        fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
     ),
 )
@@ -73,8 +73,7 @@ private val size = AppSize(
     medium = 16.dp,
     normal = 12.dp,
     small = 8.dp,
-
-    )
+)
 
 @Composable
 fun AppTheme(

@@ -17,6 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,22 +26,71 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.R
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.banyumas.wisata.utils.ErrorState
+import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.EmailTextField
 import com.banyumas.wisata.view.components.PasswordTextField
 import com.banyumas.wisata.view.components.UsernameTextField
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.viewmodel.AppViewModel
 
 @Composable
 fun RegisterScreen(
-    onSignInClick: () -> Unit = {},
-    onSignUpCLick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
-    onGoogleSignInClick: () -> Unit = {},
+    onSignInClick: () -> Unit,
+    onRegisterSuccess: () -> Unit,
+    viewModel: AppViewModel = hiltViewModel()
 ) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    val authState by viewModel.authState.collectAsState()
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(authState) {
+        when (authState) {
+            is UiState.Success -> {
+                onRegisterSuccess()
+                viewModel.resetAuthState()
+            }
+
+            is UiState.Error -> {
+                errorMessage = (authState as UiState.Error).message
+            }
+
+            else -> {
+                errorMessage = null
+            }
+        }
+    }
+
+    RegisterContent(
+        email = email,
+        password = password,
+        username = username,
+        onEmailChange = { email = it },
+        onPasswordChange = { password = it },
+        onUsernameChange = { username = it },
+        onSignInClick = onSignInClick,
+        onSignUpClick = { viewModel.registerUser(email, password, username) },
+        errorMessage = errorMessage
+    )
+
+}
+
+@Composable
+private fun RegisterContent(
+    email: String,
+    password: String,
+    username: String,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onUsernameChange: (String) -> Unit,
+    onSignUpClick: () -> Unit,
+    onSignInClick: () -> Unit,
+    errorMessage: String?
+) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -50,7 +101,7 @@ fun RegisterScreen(
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = {}) {
+            IconButton(onClick = onSignInClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back"
@@ -62,10 +113,8 @@ fun RegisterScreen(
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
-
             Text(
                 text = "Sign Up Now",
                 style = MaterialTheme.typography.titleLarge,
@@ -81,35 +130,33 @@ fun RegisterScreen(
 
         // Form
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            var email by remember { mutableStateOf("") }
-            var password by remember { mutableStateOf("") }
-            var username by remember { mutableStateOf("") }
-
-            //Username TextField
             UsernameTextField(
                 value = username,
-                onValueChange = { username = it }
+                onValueChange = onUsernameChange
             )
 
-            // Email TextField
             EmailTextField(
-                value = email,
-                onValueChange = { email = it }
+                email = email,
+                onValueChange = onEmailChange
             )
 
-            // Password TextField
             PasswordTextField(
                 value = password,
-                onValueChange = { password = it }
+                onValueChange = onPasswordChange
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        errorMessage?.let {
+            ErrorState(message = it)
+        }
+
+
         // Buttons and Footer
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Button(
-                onClick = onSignInClick,
+                onClick = onSignUpClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .size(48.dp),
@@ -117,46 +164,15 @@ fun RegisterScreen(
                 Text(text = "Sign Up", color = Color.White)
             }
 
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "Already have an account?")
-                TextButton(onClick = onSignUpCLick) {
+                TextButton(onClick = onSignInClick) {
                     Text(text = "Sign in", color = MaterialTheme.colorScheme.primary)
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Or connect",
-                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Google Sign-In
-            IconButton(onClick = onGoogleSignInClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_google),
-                    contentDescription = "Google Sign-In",
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(48.dp)
-                )
-            }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun RegisterScreenPreview() {
-    WisataBanyumasTheme {
-        RegisterScreen(
-            onSignInClick = {},
-            onSignUpCLick = {},
-            onForgotPasswordClick = {},
-            onGoogleSignInClick = {}
-        )
     }
 }

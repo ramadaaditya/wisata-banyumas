@@ -10,9 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun UsernameTextField(
@@ -22,7 +20,7 @@ fun UsernameTextField(
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = {},
+        onValueChange = onValueChange,
         label = { Text("Username") },
         singleLine = true,
         leadingIcon = {
@@ -32,16 +30,8 @@ fun UsernameTextField(
                 tint = Color.Gray
             )
         },
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun UsernameTextFieldPreview() {
-    WisataBanyumasTheme {
-        UsernameTextField(value = "", onValueChange = {})
-    }
 }

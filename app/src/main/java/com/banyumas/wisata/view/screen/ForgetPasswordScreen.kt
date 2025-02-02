@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.banyumas.wisata.view.components.EmailTextField
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.view.theme.AppTheme
 
 @Composable
 fun ForgotPasswordScreen(
@@ -81,7 +81,7 @@ fun ForgotPasswordScreen(
 
             // Email TextField
             EmailTextField(
-                value = email,
+                email = email,
                 onValueChange = { email = it }
             )
         }
@@ -105,7 +105,7 @@ fun ForgotPasswordScreen(
 @Preview(showBackground = true)
 @Composable
 private fun ForgotPasswordScreenPreview() {
-    WisataBanyumasTheme {
+    AppTheme {
         ForgotPasswordScreen(
             onSignInClick = {},
             onSignUpCLick = {},

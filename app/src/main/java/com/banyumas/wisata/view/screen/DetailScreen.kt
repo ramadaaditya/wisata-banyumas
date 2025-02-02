@@ -1,248 +1,202 @@
 package com.banyumas.wisata.view.screen
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.rememberAsyncImagePainter
 import com.banyumas.wisata.R
-import com.banyumas.wisata.data.model.Destination
 import com.banyumas.wisata.data.model.UiDestination
+import com.banyumas.wisata.utils.EmptyState
 import com.banyumas.wisata.utils.ErrorState
 import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
+import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.PhotoCarousel
 import com.banyumas.wisata.view.components.ReviewsSection
-import com.banyumas.wisata.viewmodel.DetailViewModel
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.viewmodel.DestinationViewModel
 
 @Composable
 fun DetailScreen(
+    userId: String,
     destinationId: String?,
-    onBackClick: () -> Unit = {},
-    viewModel: DetailViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier
+    viewModel: DestinationViewModel = hiltViewModel(),
+    innerPadding: PaddingValues
 ) {
-
     val context = LocalContext.current
-    val uiState by viewModel.destination.collectAsState()
+    val uiState by viewModel.selectedDestination.collectAsStateWithLifecycle()
+
     LaunchedEffect(destinationId) {
-        destinationId?.let {
-            viewModel.fetchDestinationById(destinationId)
-        }
+        destinationId?.let { viewModel.getDestinationById(destinationId, userId) }
     }
 
-    when (uiState) {
-        is UiState.Loading -> {
-            LoadingState(modifier = modifier.fillMaxSize())
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collect {
+            destinationId?.let { viewModel.getDestinationById(it, userId) }
         }
-
+    }
+    when (uiState) {
+        is UiState.Loading -> LoadingState()
         is UiState.Success -> {
             val destination = (uiState as UiState.Success<UiDestination>).data
             DetailContent(
                 destination = destination,
-                onFavoriteClick = {},
                 onMapClick = { lat, long ->
-                    if (lat != null && long != null) {
-                        val gmmIntentUri = Uri.parse("geo:$lat,$long")
-                        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-                        mapIntent.setPackage("com.google.android.apps.maps")
-                        if (mapIntent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(mapIntent)
-                        } else {
-                            Toast.makeText(context, "Google Maps app not found", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                    } else {
-                        Log.e("DetailScreen", "Latitude or Longitude is null")
-                    }
+                    handleMapClick(context, lat, long)
                 },
-                onBackClick = onBackClick,
-                modifier = Modifier.padding(16.dp)
+                innerPadding = innerPadding
             )
         }
 
-        is UiState.Error -> {
-            ErrorState(
-                message = (uiState as UiState.Error).message,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        is UiState.Error -> ErrorState(message = (uiState as UiState.Error).message)
+        UiState.Empty -> EmptyState()
     }
 }
 
+private fun handleMapClick(context: Context, lat: Double?, long: Double?) {
+    if (lat != null && long != null) {
+        val gmmIntentUri = Uri.parse("https://maps.google.com/maps?daddr=$lat,$long")
+        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
+            setPackage("com.google.android.apps.maps")
+        }
+
+        try {
+            context.startActivity(mapIntent)
+        } catch (e: Exception) {
+            Toast.makeText(
+                context,
+                "Google Maps tidak tersedia di perangkat ini.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    } else {
+        Toast.makeText(context, "Koordinat lokasi tidak tersedia.", Toast.LENGTH_SHORT).show()
+    }
+}
 
 @Composable
 fun DetailContent(
     destination: UiDestination,
-    onFavoriteClick: (Boolean) -> Unit = {},
-    onMapClick: (Double?, Double?) -> Unit = { _, _ -> },
-    onBackClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    onMapClick: (Double?, Double?) -> Unit,
+    innerPadding: PaddingValues
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .padding(innerPadding),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .height(250.dp)
-        ) {
-            val imagePainter = if (destination.destination.photos.isNotEmpty()) {
-                rememberAsyncImagePainter(destination.destination.photos.first().photoUrl)
-            } else {
-                painterResource(id = R.drawable.image10)
-            }
-            Image(
-                painter = imagePainter,
-                contentDescription = "Back",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            ) {
-                IconButton(
-                    onClick = onBackClick
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
-                Text(
-                    text = "Detail",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
-                IconButton(
-                    onClick = { onFavoriteClick(true) }
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.FavoriteBorder,
-                        contentDescription = "Toggle Favorite",
-                        tint = Color.White
-                    )
-                }
-            }
-        }
+        DestinationImage(imageUrl = destination.destination.photos.firstOrNull()?.photoUrl)
 
-        // Details
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = destination.destination.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.Default.Star,
-                    contentDescription = null,
-                    tint = Color.Yellow
-                )
-                Text(
-                    text = "${destination.destination.rating} (${destination.destination.reviews.size})",
-                    style = MaterialTheme.typography.bodyLarge
+            item {
+                DetailSection(
+                    name = destination.destination.name,
+                    rating = destination.destination.rating,
+                    reviewCount = destination.destination.reviewsFromGoogle.size + destination.destination.reviewsFromLocal.size,
+                    address = destination.destination.address
                 )
             }
-            Text(
-                text = destination.destination.address,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-        }
-
-        PhotoCarousel(photos = destination.destination.photos)
-
-        ReviewsSection(reviews = destination.destination.reviews)
-
-        // Button
-        Button(
-            onClick = {
-                onMapClick(
-                    destination.destination.latitude,
-                    destination.destination.longitude
+            item {
+                PhotoCarousel(photos = destination.destination.photos)
+            }
+            item {
+                ReviewsSection(reviews = destination.destination.reviewsFromGoogle + destination.destination.reviewsFromLocal)
+            }
+            item {
+                CustomButton(
+                    onClick = {
+                        onMapClick(
+                            destination.destination.latitude,
+                            destination.destination.longitude
+                        )
+                    },
+                    text = "Navigasi Ke Lokasi"
                 )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .height(48.dp),
-            shape = RoundedCornerShape(24.dp),
-        ) {
-            Text(text = "See on map")
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-private fun DetailScreenPreview() {
-    WisataBanyumasTheme {
-        DetailContent(
-            destination = UiDestination(
-                Destination(
-                    id = "1",
-                    name = "Lorem Ipsum",
-                    address = "Jl. Lorem Ipsum",
-                    rating = 4.5f,
-                    reviews = emptyList(),
-                    photos = emptyList(),
-                    latitude = -7.3323,
-                    longitude = 109.1323
-                )
+fun DestinationImage(
+    imageUrl: String?,
+) {
+    val imagePainter = rememberAsyncImagePainter(imageUrl ?: R.drawable.image_placeholder)
+
+    Image(
+        painter = imagePainter,
+        contentDescription = "Destination Image",
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+@Composable
+fun DetailSection(
+    name: String,
+    rating: Float,
+    reviewCount: Int,
+    address: String
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = name,
+                style = AppTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = Color.Yellow
+            )
+            Text(
+                text = "$rating ($reviewCount)",
+                style = AppTheme.typography.body
+            )
+        }
+        Text(
+            text = address,
+            style = AppTheme.typography.body,
+            color = AppTheme.colorScheme.secondary
         )
     }
 }

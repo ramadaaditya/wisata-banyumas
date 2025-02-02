@@ -12,16 +12,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.view.theme.AppTheme
 
 @Composable
 fun EmailTextField(
-    value: String,
+    email: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
-        value = value,
+        value = email,
         onValueChange = onValueChange,
         label = { Text("Email") },
         singleLine = true,
@@ -41,7 +41,7 @@ fun EmailTextField(
 @Preview(showBackground = true)
 @Composable
 private fun EmailTextFieldPreview() {
-    WisataBanyumasTheme {
-        EmailTextField(value = "", onValueChange = {})
+    AppTheme {
+        EmailTextField(email = "", onValueChange = {})
     }
 }
