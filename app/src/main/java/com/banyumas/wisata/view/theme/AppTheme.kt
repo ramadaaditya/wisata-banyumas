@@ -53,7 +53,7 @@ private val typography = AppTypography(
     ),
     labelNormal = TextStyle(
         fontFamily = OpenSansFamily,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
     ),
     labelSmall = TextStyle(

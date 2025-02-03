@@ -1,6 +1,7 @@
 package com.banyumas.wisata.data.repository
 
 import android.util.Log
+import com.banyumas.wisata.data.model.Role
 import com.banyumas.wisata.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -140,5 +141,16 @@ class FirebaseUserRepository @Inject constructor(
         }
         Log.d("FirebaseUserRepository", "Current user ID: ${currentUser.uid}")
         return currentUser.uid
+    }
+
+    suspend fun getUserRole(userId: String): Role {
+        return try {
+            val document = firestore.collection("Users").document(userId).get().await()
+            val role = document.getString("role") ?: "USER"
+            Role.valueOf(role.uppercase()) // 🔹 Konversi dari String ke Enum Role
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error getting user role: ${e.message}")
+            Role.USER // Default ke USER jika gagal
+        }
     }
 }

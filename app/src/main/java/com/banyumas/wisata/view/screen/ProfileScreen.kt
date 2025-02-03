@@ -18,13 +18,17 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.data.model.User
+import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.theme.AppTheme
 import com.banyumas.wisata.viewmodel.AppViewModel
@@ -36,6 +40,16 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     innerPadding: PaddingValues
 ) {
+
+    val authState by viewModel.authState.collectAsStateWithLifecycle()
+
+    // 🔥 Navigasi ke LoginScreen jika authState berubah menjadi Empty
+    LaunchedEffect(authState) {
+        if (authState is UiState.Empty) {
+            onLogout()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()

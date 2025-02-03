@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.banyumas.wisata.BuildConfig
 import com.banyumas.wisata.data.model.Destination
 import com.banyumas.wisata.data.model.Photo
 import com.banyumas.wisata.data.model.UiDestination
@@ -30,7 +31,22 @@ class DestinationViewModel @Inject constructor(
     private val _eventFlow = MutableSharedFlow<Unit>()
     val eventFlow = _eventFlow.asSharedFlow()
 
+    private val _searchResults = MutableStateFlow<UiState<List<UiDestination>>>(UiState.Loading)
+    val searchResults: StateFlow<UiState<List<UiDestination>>> = _searchResults
+
     private var allDestinations: List<UiDestination> = emptyList()
+
+    private val _uploadedPhotos = MutableStateFlow<List<Photo>>(emptyList())
+    val uploadedPhotos: StateFlow<List<Photo>> = _uploadedPhotos
+
+    fun uploadNewPhotos(imageUris: List<Uri>, destinationId: String) {
+        viewModelScope.launch {
+            val photoUrls = repository.uploadPhotos(destinationId, imageUris)
+            if (photoUrls.isNotEmpty()) {
+                _uploadedPhotos.value = photoUrls.map { Photo(photoUrl = it) }
+            }
+        }
+    }
 
     fun loadDestinations(userId: String) {
         if (userId.isBlank()) {
@@ -79,9 +95,17 @@ class DestinationViewModel @Inject constructor(
         viewModelScope.launch {
             _uiDestinations.value = UiState.Loading
             try {
-                repository.addDestination(destination, imageUris)
+                // 🔥 Unggah foto ke Firebase Storage
+                val uploadedPhotoUrls = repository.uploadPhotos(destination.id, imageUris)
 
-                val newDestination = UiDestination(destination = destination, isFavorite = false)
+                // 🔹 Tambahkan destinasi ke Firestore dengan menyertakan foto dari Google Maps API
+                repository.addDestination(destination, uploadedPhotoUrls)
+
+                // 🔹 Gabungkan foto dari Google API dan foto yang diunggah pengguna
+                val allPhotos = destination.photos + uploadedPhotoUrls.map { Photo(it) }
+
+                val newDestination =
+                    UiDestination(destination.copy(photos = allPhotos), isFavorite = false)
                 allDestinations = allDestinations + newDestination
                 _uiDestinations.value = UiState.Success(allDestinations)
                 Log.d("DestinationViewModel", "Berhasil menambahkan destinasi")
@@ -174,6 +198,77 @@ class DestinationViewModel @Inject constructor(
                 _selectedDestination.value = UiState.Error(
                     message = "Failed to toggle favorite: ${e.message}"
                 )
+            }
+        }
+    }
+
+    fun searchDestinationsByName(placeName: String) {
+        viewModelScope.launch {
+            _searchResults.value = UiState.Loading
+
+            try {
+                val destinations =
+                    repository.searchAndFetchPlacesByName(placeName, BuildConfig.ApiKey)
+
+                if (destinations.isNotEmpty()) {
+                    val searchDestinations =
+                        destinations.map { UiDestination(it, isFavorite = false) }
+                    _searchResults.value = UiState.Success(searchDestinations)
+                    Log.d(
+                        "DestinationViewModel",
+                        "Berhasil menemukan ${destinations.size} destinasi untuk '$placeName'"
+                    )
+                } else {
+                    _searchResults.value = UiState.Empty
+                    Log.w("DestinationViewModel", "Tidak ditemukan destinasi untuk '$placeName'")
+                }
+
+                _eventFlow.emit(Unit)
+
+            } catch (e: Exception) {
+                Log.e(
+                    "DestinationViewModel",
+                    "searchDestinationsByName: Error mencari destinasi: ${e.message}",
+                    e
+                )
+                _searchResults.value = UiState.Error(
+                    message = e.message ?: "Gagal mencari destinasi",
+                    throwable = e
+                )
+            }
+        }
+    }
+
+    fun fetchPlaceDetailsFromGoogle(placeId: String) {
+        if (placeId.isBlank()) {
+            Log.e("DestinationViewModel", "fetchPlaceDetailsFromGoogle: placeId kosong!")
+            return
+        }
+
+        viewModelScope.launch {
+            _selectedDestination.value = UiState.Loading
+            try {
+                val destination = repository.fetchPlaceDetails(placeId, BuildConfig.ApiKey)
+                if (destination != null) {
+                    _selectedDestination.value =
+                        UiState.Success(UiDestination(destination, isFavorite = false))
+                    Log.d(
+                        "DestinationViewModel",
+                        "fetchPlaceDetailsFromGoogle: Berhasil mendapatkan detail untuk $placeId"
+                    )
+                } else {
+                    _selectedDestination.value = UiState.Empty
+                    Log.w(
+                        "DestinationViewModel",
+                        "fetchPlaceDetailsFromGoogle: Tidak ditemukan data untuk $placeId"
+                    )
+                }
+            } catch (e: Exception) {
+                _selectedDestination.value = UiState.Error(
+                    message = "Gagal mengambil detail wisata",
+                    throwable = e
+                )
+                Log.e("DestinationViewModel", "fetchPlaceDetailsFromGoogle: ${e.message}", e)
             }
         }
     }

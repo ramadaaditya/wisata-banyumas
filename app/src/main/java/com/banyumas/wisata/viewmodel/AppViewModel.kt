@@ -21,7 +21,23 @@ class AppViewModel @Inject constructor(
     private val _authState = MutableStateFlow<UiState<User>>(UiState.Empty)
     val authState: StateFlow<UiState<User>> = _authState
 
-    var userRole: Role = Role.USER
+    private val _userRoleState = MutableStateFlow<UiState<Role>>(UiState.Loading)
+    val userRoleState: StateFlow<UiState<Role>> = _userRoleState
+
+    fun fetchUserRole(userId: String) {
+        viewModelScope.launch {
+            _userRoleState.value = UiState.Loading
+            try {
+                val role =
+                    userRepository.getUserRole(userId) // 🔹 Ambil role dari Firestore/Database
+                _userRoleState.value = UiState.Success(role)
+                Log.d("AppViewModel", "User role updated: $role")
+            } catch (e: Exception) {
+                _userRoleState.value = UiState.Error(e.message ?: "Gagal mengambil role")
+                Log.e("AppViewModel", "Error fetching user role: ${e.message}")
+            }
+        }
+    }
 
     init {
         checkLoginStatus()
@@ -68,7 +84,7 @@ class AppViewModel @Inject constructor(
                 val user = userRepository.getUserById(firebaseUser.uid)
                 Log.d("AppViewModel", "User fetched: ${user.name}, Role: ${user.role}")
 
-                userRole = user.role
+                _userRoleState.value = UiState.Success(user.role)
                 _authState.value = UiState.Success(user)
                 Log.d("AppViewModel", "Auth state updated to success")
             } catch (e: Exception) {
@@ -84,7 +100,7 @@ class AppViewModel @Inject constructor(
             try {
                 val userId = userRepository.getCurrentUserId()
                 val user = userRepository.getUserById(userId)
-                userRole = user.role
+                _userRoleState.value = UiState.Success(user.role)
                 Log.d("AppViewModel", "User role identified as: ${user.role}")
                 _authState.value = UiState.Success(user)
             } catch (e: Exception) {
@@ -94,7 +110,6 @@ class AppViewModel @Inject constructor(
     }
 
     fun logout() {
-        setLoadingState()
         viewModelScope.launch {
             try {
                 userRepository.logoutUser()

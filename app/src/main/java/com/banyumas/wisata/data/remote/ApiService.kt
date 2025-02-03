@@ -11,4 +11,13 @@ interface ApiService {
         @Query("language") language: String = "id",
         @Query("key") key: String
     ): DetailResponse
+
+    @GET("maps/api/place/findplacefromtext/json")
+    suspend fun searchPlacesByName(
+        @Query("input") query: String, // Nama tempat yang dicari
+        @Query("inputtype") inputType: String = "textquery",
+        @Query("language") language: String = "id",
+        @Query("fields") fields: String = "place_id",
+        @Query("key") key: String
+    ): SearchResponse
 }

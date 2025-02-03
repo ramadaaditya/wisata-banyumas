@@ -106,47 +106,44 @@ fun DetailContent(
     onMapClick: (Double?, Double?) -> Unit,
     innerPadding: PaddingValues
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
+            .padding(horizontal = 16.dp)
             .fillMaxSize()
             .padding(innerPadding),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        DestinationImage(imageUrl = destination.destination.photos.firstOrNull()?.photoUrl)
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
         ) {
-            item {
-                DetailSection(
-                    name = destination.destination.name,
-                    rating = destination.destination.rating,
-                    reviewCount = destination.destination.reviewsFromGoogle.size + destination.destination.reviewsFromLocal.size,
-                    address = destination.destination.address
-                )
-            }
-            item {
-                PhotoCarousel(photos = destination.destination.photos)
-            }
-            item {
-                ReviewsSection(reviews = destination.destination.reviewsFromGoogle + destination.destination.reviewsFromLocal)
-            }
-            item {
-                CustomButton(
-                    onClick = {
-                        onMapClick(
-                            destination.destination.latitude,
-                            destination.destination.longitude
-                        )
-                    },
-                    text = "Navigasi Ke Lokasi"
-                )
-            }
+        item {
+            DestinationImage(imageUrl = destination.destination.photos.firstOrNull()?.photoUrl)
+        }
+        item {
+            DetailSection(
+                name = destination.destination.name,
+                rating = destination.destination.rating,
+                reviewCount = destination.destination.reviewsFromGoogle.size + destination.destination.reviewsFromLocal.size,
+                address = destination.destination.address
+            )
+        }
+        item {
+            PhotoCarousel(photos = destination.destination.photos)
+        }
+        item {
+            ReviewsSection(reviews = destination.destination.reviewsFromGoogle + destination.destination.reviewsFromLocal)
+        }
+        item {
+            CustomButton(
+                onClick = {
+                    onMapClick(
+                        destination.destination.latitude,
+                        destination.destination.longitude
+                    )
+                },
+                text = "Navigasi Ke Lokasi"
+            )
         }
     }
 }
+
 
 @Composable
 fun DestinationImage(
@@ -158,7 +155,7 @@ fun DestinationImage(
         painter = imagePainter,
         contentDescription = "Destination Image",
         contentScale = ContentScale.Crop,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxWidth()
     )
 }
 

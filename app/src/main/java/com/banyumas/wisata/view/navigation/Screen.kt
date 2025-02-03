@@ -5,13 +5,19 @@ sealed class Screen(val route: String) {
     data object LoginScreen : Screen("login")
     data object RegisterScreen : Screen("register")
     data object ForgotPasswordScreen : Screen("forgot-password")
-    data object DashboardScreen : Screen("dashboard")
     data object AddScreen : Screen("add")
 
     data class Home(val userId: String) : Screen("home/{userId}") {
         companion object {
             const val ROUTE = "home/{userId}"
             fun createRoute(userId: String) = "home/$userId"
+        }
+    }
+
+    data class DashboardScreen(val userId: String) : Screen("dashboard/{userId") {
+        companion object {
+            const val ROUTE = "dashboard/{userId}"
+            fun createRoute(userId: String) = "dashboard/$userId"
         }
     }
 

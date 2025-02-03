@@ -1,5 +1,6 @@
 package com.banyumas.wisata.view.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -42,11 +43,8 @@ fun DashboardScreen(
     var query by remember { mutableStateOf("") }
 
     LaunchedEffect(userId) {
-        viewModel.loadDestinations(userId)
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.eventFlow.collect {
+        Log.d("DashboardScreen", "Dashboard created with userId: $userId")
+        if (userId.isNotBlank()) {
             viewModel.loadDestinations(userId)
         }
     }
