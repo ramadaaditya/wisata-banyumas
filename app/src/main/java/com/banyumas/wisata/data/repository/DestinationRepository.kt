@@ -32,14 +32,13 @@ class DestinationRepository @Inject constructor(
         private const val TAG = "DestinationRepository"
     }
 
-    //Fetch data from Google Maps
     fun readPlaceFromJson(context: Context) = getPlaceIdFromJson(context)
 
-    suspend fun fetchAndSavePlace(placeId: String, apiKey: String): Destination {
+    suspend fun savePlaceFromApi(placeId: String, apiKey: String): Destination {
         try {
             val response = apiService.getDetailPlaces(placeId, key = apiKey, language = "id")
             val destination = response.toDestination(placeId, apiKey)
-            saveOrUpdateDestination(destination)
+            saveDestination(destination)
             return destination
         } catch (e: Exception) {
             println("Error fetching/saving place $placeId: ${e.message}")
@@ -47,25 +46,6 @@ class DestinationRepository @Inject constructor(
         }
     }
 
-    //Manage Destinations
-    private suspend fun saveOrUpdateDestination(destination: Destination) {
-        try {
-            firestore.collection("destinations")
-                .document(destination.id)
-                .set(destination.copy(lastUpdated = System.currentTimeMillis()), SetOptions.merge())
-                .await()
-
-            Log.d(
-                TAG,
-                "saveOrUpdateDestination: Data destinasi ${destination.id} berhasil diperbarui"
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "saveOrUpdateDestination: Gagal menyimpan atau memperbarui destinasi", e)
-            throw e
-        }
-    }
-
-    // Save local review separately
     suspend fun addLocalReview(placeId: String, review: Review) {
         val documentRef = firestore.collection("destinations").document(placeId)
 
@@ -87,13 +67,14 @@ class DestinationRepository @Inject constructor(
         }.await()
     }
 
+
     private suspend fun searchPlaceIdsByName(placeName: String, apiKey: String): List<String> {
         return try {
             val response = apiService.searchPlacesByName(query = placeName, key = apiKey)
 
             if (response.status == "OK" && !response.candidates.isNullOrEmpty()) {
                 val placeIds =
-                    response.candidates.mapNotNull { it?.placeId } // 🔹 Mengabaikan `null`
+                    response.candidates.mapNotNull { it?.placeId }
                 Log.d(TAG, "searchPlaceIdsByName: Ditemukan ${placeIds.size} ID untuk '$placeName'")
                 placeIds
             } else {
@@ -122,7 +103,7 @@ class DestinationRepository @Inject constructor(
                         "fetchPlacesDetailsByIds: Gagal mendapatkan detail untuk $placeId",
                         e
                     )
-                    null // 🔹 Jika satu gagal, tetap lanjutkan untuk yang lain
+                    null
                 }
             }
         } catch (e: Exception) {
@@ -156,34 +137,6 @@ class DestinationRepository @Inject constructor(
         }
     }
 
-
-    fun updateDestinationWithPlaceId(
-        oldId: String,
-        newPlaceId: String,
-        updatedDestination: Destination
-    ) {
-        firestore.collection("destinations")
-            .document(oldId)
-            .delete()
-            .addOnSuccessListener {
-                Log.d(
-                    TAG,
-                    "updateDestinationWithPlaceId: Old Document deleted successfully"
-                )
-            }
-            .addOnFailureListener { e ->
-                Log.e(
-                    TAG,
-                    "updateDestinationWithPlaceId: failed to delete document",
-                    e
-                )
-            }
-        firestore.collection("destinations")
-            .document(newPlaceId)
-            .set(updatedDestination.copy(id = newPlaceId))
-    }
-
-
     suspend fun getAllDestination(userId: String): List<UiDestination> {
         if (userId.isBlank()) {
             Log.e("DestinationRepository", "userId is blank, cannot fetch destinations")
@@ -193,33 +146,33 @@ class DestinationRepository @Inject constructor(
         return try {
             Log.d("DestinationRepository", "Fetching destinations for userId: $userId")
 
+            // 🔹 Ambil daftar destinasi favorit user
             val userDoc = firestore.collection("Users").document(userId).get().await()
             val favoriteIds =
                 userDoc.toObject(User::class.java)?.favoriteDestinations ?: emptyList()
 
             Log.d("DestinationRepository", "Favorite IDs: $favoriteIds")
 
-            val query = if (favoriteIds.isNotEmpty()) {
-                firestore.collection("destinations").whereIn(FieldPath.documentId(), favoriteIds)
-            } else {
-                firestore.collection("destinations").orderBy("rating", Query.Direction.DESCENDING)
-            }
+            // 🔹 Ambil semua destinasi
+            val destinationsSnapshot = firestore.collection("destinations")
+                .orderBy("rating", Query.Direction.DESCENDING)
+                .get()
+                .await()
 
-            val destinations = query.get().await().documents.mapNotNull { document ->
+            val destinations = destinationsSnapshot.documents.mapNotNull { document ->
                 val destination = document.toObject(Destination::class.java)
                 destination?.let {
                     UiDestination(destination = it, isFavorite = favoriteIds.contains(document.id))
                 }
             }
 
-            // 🔹 Jika data diambil dengan whereIn(), sorting dilakukan di aplikasi
             val sortedDestinations = destinations.sortedByDescending { it.destination.rating }
 
             Log.d("DestinationRepository", "Fetched ${sortedDestinations.size} destinations")
             sortedDestinations
         } catch (e: Exception) {
             Log.e("DestinationRepository", "getAllDestination: Error fetching destinations", e)
-            emptyList()
+            emptyList() // 🛠️ Pastikan hanya ada satu return di akhir blok try-catch
         }
     }
 
@@ -249,39 +202,42 @@ class DestinationRepository @Inject constructor(
         isFavorite: Boolean
     ) {
         try {
-            // Ambil dokumen pengguna dari Firestore
             val userDoc = firestore.collection("Users").document(userId).get().await()
             val user = userDoc.toObject(User::class.java)
                 ?: throw Exception("User with ID $userId not found")
 
-            // Perbarui daftar destinasi favorit
             val updatedFavorites = if (isFavorite) {
                 (user.favoriteDestinations) + destinationId
             } else {
                 (user.favoriteDestinations) - destinationId
             }
 
-            // Simpan perubahan ke Firestore
             firestore.collection("Users").document(userId)
                 .update("favoriteDestinations", updatedFavorites)
                 .await()
-            // Berikan hasil sukses
         } catch (e: Exception) {
-            // Tangani kesalahan dengan baik
             Log.e("UpdateFavorites", "Error updating favorite destinations: ${e.message}", e)
             throw e
         }
     }
 
-    suspend fun addDestination(destination: Destination, uploadedPhotoUrls: List<String>) {
+    suspend fun saveDestination(destination: Destination, imageUris: List<Uri> = emptyList()) {
         try {
-            Log.d(TAG, "addDestination: Mulai menambahkan destinasi ${destination.name}")
+            Log.d(TAG, "saveDestination: Memproses destinasi ${destination.name}")
 
-            // 🔹 Gunakan Place ID jika ada, jika tidak, buat ID baru
             val generatedId = destination.id.ifBlank { UUID.randomUUID().toString() }
 
+            // 🔥 Langkah 1: Unggah foto dari perangkat admin ke Firebase Storage
+            val uploadedPhotoUrls = if (imageUris.isNotEmpty()) {
+                uploadPhotos(generatedId, imageUris)
+            } else {
+                emptyList()
+            }
+
+            // 🔥 Langkah 2: Gabungkan foto dari API dan yang diunggah
             val allPhotos = destination.photos + uploadedPhotoUrls.map { Photo(photoUrl = it) }
-            // 🔹 Simpan destinasi baru ke Firestore dengan URL foto yang diperbarui
+
+            // 🔥 Langkah 3: Simpan ke Firestore
             val newDestination = destination.copy(
                 id = generatedId,
                 photos = allPhotos,
@@ -293,12 +249,9 @@ class DestinationRepository @Inject constructor(
                 .set(newDestination, SetOptions.merge())
                 .await()
 
-            Log.d(
-                TAG,
-                "addDestination: Berhasil menambahkan destinasi ${destination.name} dengan foto ${uploadedPhotoUrls.size}"
-            )
+            Log.d(TAG, "saveDestination: Berhasil menyimpan destinasi ${destination.name}")
         } catch (e: Exception) {
-            Log.e(TAG, "addDestination: Gagal menambahkan destinasi", e)
+            Log.e(TAG, "saveDestination: Gagal menyimpan destinasi", e)
             throw e
         }
     }
@@ -324,9 +277,10 @@ class DestinationRepository @Inject constructor(
                 }
             }
 
-            uploadTasks.awaitAll().filterNotNull() // 🔥 Tunggu semua unggahan selesai
+            uploadTasks.awaitAll().filterNotNull() // 🔥 Hanya menyimpan URL yang berhasil diunggah
         }
     }
+
 
     suspend fun updateDestination(
         destination: Destination,
@@ -344,17 +298,14 @@ class DestinationRepository @Inject constructor(
 
             val existingDestination = snapshot.toObject(Destination::class.java) ?: return
 
-            // 🔹 Hapus foto lama jika ada dalam daftar deletedPhotos
             coroutineScope {
                 deletedPhotos.forEach { photo ->
                     launch { deletePhoto(photo.photoUrl) }
                 }
             }
 
-            // 🔹 Unggah foto baru ke Firebase Storage
             val uploadedUrls = uploadPhotos(destination.id, newImageUris)
 
-            // 🔥 Simpan foto yang tersisa + foto baru ke Firestore
             val remainingPhotos = existingDestination.photos.filterNot { it in deletedPhotos }
             val updatedPhotos = remainingPhotos + uploadedUrls.map { Photo(photoUrl = it) }
 
@@ -370,7 +321,15 @@ class DestinationRepository @Inject constructor(
         }
     }
 
-    private suspend fun deletePhoto(photoUrl: String) {
+    suspend fun deletePhoto(photoUrl: String) {
+        if (!photoUrl.contains("firebasestorage.googleapis.com")) {
+            Log.w(
+                "FirebaseStorage",
+                "URL bukan dari Firebase Storage, tidak perlu dihapus: $photoUrl"
+            )
+            return
+        }
+
         try {
             val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(photoUrl)
             storageRef.delete().await()
@@ -379,6 +338,7 @@ class DestinationRepository @Inject constructor(
             Log.e("FirebaseStorage", "Gagal menghapus foto: ${e.message}", e)
         }
     }
+
 
     suspend fun getDestinationById(destinationId: String, userId: String): UiDestination? {
         return try {
@@ -394,7 +354,6 @@ class DestinationRepository @Inject constructor(
 
             val destination = documentSnapshot.toObject(Destination::class.java)
             if (destination != null) {
-                // 🔹 Cek apakah destinasi ada di daftar favorit user
                 val isFavorite = isDestinationFavorite(userId, destinationId)
 
                 val uiDestination =
@@ -421,10 +380,40 @@ class DestinationRepository @Inject constructor(
                 .get()
                 .await()
 
-            favoriteSnapshot.exists() // 🔹 Jika dokumen ada, berarti favorit
+            favoriteSnapshot.exists()
         } catch (e: Exception) {
             Log.e(TAG, "isDestinationFavorite: Gagal mengecek favorit $destinationId", e)
             false
+        }
+    }
+
+    suspend fun deleteDestination(destinationId: String) {
+        try {
+            val destinationRef = firestore.collection("destinations").document(destinationId)
+            val snapshot = destinationRef.get().await()
+
+            if (!snapshot.exists()) {
+                Log.w(TAG, "deleteDestination: Destinasi dengan ID $destinationId tidak ditemukan.")
+                throw Exception("Destinasi tidak ditemukan.")
+            }
+
+            val destination = snapshot.toObject(Destination::class.java)
+
+            // 🔥 Periksa apakah foto berasal dari Firebase Storage sebelum dihapus
+            destination?.photos?.forEach { photo ->
+                deletePhoto(photo.photoUrl)
+            }
+
+            // 🔥 Hapus destinasi dari Firestore
+            destinationRef.delete().await()
+            Log.d(
+                TAG,
+                "deleteDestination: Destinasi $destinationId berhasil dihapus dari Firestore."
+            )
+
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteDestination: Gagal menghapus destinasi $destinationId", e)
+            throw e
         }
     }
 }

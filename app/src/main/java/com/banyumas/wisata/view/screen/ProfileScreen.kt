@@ -15,40 +15,77 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.data.model.User
+import com.banyumas.wisata.utils.ErrorState
+import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.theme.AppTheme
-import com.banyumas.wisata.viewmodel.AppViewModel
+import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun ProfileScreen(
-    user: User,
-    viewModel: AppViewModel = hiltViewModel(),
+    viewModel: UserViewModel = hiltViewModel(),
     onLogout: () -> Unit,
     innerPadding: PaddingValues
 ) {
-
     val authState by viewModel.authState.collectAsStateWithLifecycle()
 
-    // 🔥 Navigasi ke LoginScreen jika authState berubah menjadi Empty
     LaunchedEffect(authState) {
         if (authState is UiState.Empty) {
             onLogout()
         }
     }
+    when (val state = authState) {
+        is UiState.Loading -> {
+            LoadingState()
+        }
+
+        is UiState.Error -> {
+            ErrorState("Terjadi kesalahan : ${state.message}")
+        }
+
+        is UiState.Empty -> {}
+
+        is UiState.Success -> {
+            val user = state.data
+            ProfileContent(
+                user = user,
+                onLogout = {
+                    viewModel.logout()
+                    onLogout()
+                },
+                innerPadding = innerPadding
+            )
+        }
+    }
+}
+
+@Composable
+fun ProfileContent(
+    user: User,
+    onLogout: () -> Unit,
+    innerPadding: PaddingValues
+) {
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -56,21 +93,15 @@ fun ProfileScreen(
             .statusBarsPadding()
             .padding(innerPadding)
     ) {
-        // Informasi profil
         ProfileItem(icon = Icons.Default.Person, title = user.name)
         Spacer(modifier = Modifier.height(16.dp))
         ProfileItem(icon = Icons.Default.Email, title = user.email)
 
-        // Spacer fleksibel untuk memindahkan tombol Logout ke bawah
         Spacer(modifier = Modifier.weight(1f))
 
-        // Tombol Logout
         CustomButton(
             text = "Logout",
-            onClick = {
-                viewModel.logout()
-                onLogout()
-            },
+            onClick = { showLogoutDialog = true },
             isCancel = true,
             icon = Icons.AutoMirrored.Filled.ExitToApp,
             iconContentDescription = "Logout",
@@ -78,6 +109,28 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
+        )
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Konfirmasi Logout") },
+            text = { Text("Apakah Anda yakin ingin keluar?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        onLogout()
+                    }) {
+                    Text("Logout")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Batal")
+                }
+            }
         )
     }
 }
@@ -101,6 +154,23 @@ fun ProfileItem(icon: ImageVector, title: String) {
             text = title,
             style = AppTheme.typography.body,
             color = Color.Black
+        )
+    }
+}
+
+@Preview(
+    showBackground = true
+)
+@Composable
+fun ProfileContentPreview() {
+    AppTheme {
+        ProfileContent(
+            user = User(
+                name = "Ramados",
+                email = "Ramados24@gmail.com"
+            ),
+            onLogout = {},
+            innerPadding = PaddingValues()
         )
     }
 }

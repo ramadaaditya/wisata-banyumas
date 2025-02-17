@@ -17,7 +17,8 @@ data class Review(
     val authorName: String = "",
     val rating: Int = 0,
     val text: String = "",
-    val source: String = ""
+    val source: String = "",
+    val timestamp:Long = 0L
 )
 
 data class Photo(

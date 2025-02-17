@@ -6,21 +6,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,85 +26,55 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.banyumas.wisata.data.model.Role
-import com.banyumas.wisata.data.model.UiDestination
 import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.BottomNavigation
 import com.banyumas.wisata.view.components.CustomTopBar
 import com.banyumas.wisata.view.navigation.Screen
 import com.banyumas.wisata.view.theme.AppTheme
-import com.banyumas.wisata.viewmodel.AppViewModel
 import com.banyumas.wisata.viewmodel.DestinationViewModel
+import com.banyumas.wisata.viewmodel.UserViewModel
 
 
 @Composable
 fun AppNavigation(
-    viewModel: AppViewModel = hiltViewModel(),
-    destinationViewModel: DestinationViewModel = hiltViewModel(),
     navController: NavHostController = rememberNavController()
 ) {
-    val authState by viewModel.authState.collectAsStateWithLifecycle()
-    val userRoleState by viewModel.userRoleState.collectAsStateWithLifecycle()
+    val userViewModel: UserViewModel = hiltViewModel()
+    val destinationViewModel: DestinationViewModel = hiltViewModel()
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val authState by userViewModel.authState.collectAsStateWithLifecycle()
     val destinationState by destinationViewModel.selectedDestination.collectAsStateWithLifecycle()
-    val userId = (authState as? UiState.Success)?.data?.id.orEmpty()
-
-    var isAdmin by remember { mutableStateOf(false) }
-    var isSplashFinished by remember { mutableStateOf(false) }
-    var roleUpdated by remember { mutableStateOf(false) }
-
-    // 🔥 Pastikan role diperbarui setelah login
-    LaunchedEffect(authState) {
-        if (authState is UiState.Success) {
-            val user = (authState as UiState.Success).data
-            if (userRoleState !is UiState.Success) {
-                Log.d("AppNavigation", "Fetching user role for userId: ${user.id}")
-                viewModel.fetchUserRole(user.id)
-            }
-        }
-    }
-
-    // 🔥 Pastikan `isAdmin` diperbarui sebelum FAB dirender
-    LaunchedEffect(userRoleState) {
-        if (userRoleState is UiState.Success) {
-            isAdmin = (userRoleState as UiState.Success<Role>).data == Role.ADMIN
-            roleUpdated = true
-            Log.d("AppNavigation", "Updated isAdmin: $isAdmin")
-        }
-    }
-
+    val currentUser = (authState as? UiState.Success)?.data
 
     Scaffold(
         topBar = {
             val currentRoute = navBackStackEntry?.destination?.route
             when (currentRoute) {
                 Screen.DetailScreen.ROUTE -> {
-                    val destinationId =
-                        navBackStackEntry?.arguments?.getString("destinationId") ?: ""
-
-                    CustomTopBar(title = "Detail Wisata",
+                    CustomTopBar(
+                        title = "Detail Wisata",
                         onBackClick = { navController.popBackStack() },
-                        actions = {
-                            if (!isAdmin) {
-                                if (destinationState is UiState.Success) {
-                                    val destination =
-                                        (destinationState as UiState.Success<UiDestination>).data
-                                    val isFavorite = destination.isFavorite
-                                    IconButton(onClick = {
-                                        destinationViewModel.toggleFavorite(
-                                            userId,
-                                            destinationId,
-                                            !isFavorite
-                                        )
-                                    }) {
-                                        Icon(
-                                            imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Default.FavoriteBorder,
-                                            contentDescription = "Toggle Favorite"
-                                        )
-                                    }
-                                }
-                            }
-                        }
+//                        actions = {
+//                            if (destinationState is UiState.Success) {
+//                                val destination =
+//                                    (destinationState as UiState.Success<UiDestination>).data
+//                                val isFavorite = destination.isFavorite
+//                                IconButton(onClick = {
+//                                    destinationViewModel.toggleFavorite(
+//                                        currentUser?.id.orEmpty(),
+//                                        destinationId,
+//                                        !isFavorite
+//                                    )
+//                                }) {
+//                                    Icon(
+//                                        imageVector = if (isFavorite) Icons.Rounded.Favorite else Icons.Default.FavoriteBorder,
+//                                        contentDescription = "Toggle Favorite"
+//                                    )
+//                                }
+//                            }
+//                        }
                     )
                 }
 
@@ -126,61 +89,81 @@ fun AppNavigation(
                 )
             }
         },
-        floatingActionButton = {
+        bottomBar = {
             val currentRoute = navBackStackEntry?.destination?.route
-            Log.d(
-                "AppNavigation",
-                "Checking FAB visibility. Route: $currentRoute, isAdmin: $isAdmin"
-            )
-
-            if (userRoleState is UiState.Loading) {
-                Log.d("AppNavigation", "Waiting for userRoleState to update, skipping FAB")
-                return@Scaffold
+            if (currentRoute == Screen.Home.route ||
+                currentRoute == Screen.ProfileScreen.route ||
+                currentRoute == Screen.FavoriteScreen.route
+            ) {
+                BottomNavigation(navController = navController)
             }
-
+        }, floatingActionButton = {
+            val currentRoute = navBackStackEntry?.destination?.route
             when {
-                currentRoute == Screen.DashboardScreen.ROUTE && isAdmin -> {
-                    Log.d("AppNavigation", "FAB harus muncul di Dashboard")
-                    FloatingActionButton(
-                        onClick = { navController.navigate(Screen.AddScreen.route) },
-                        containerColor = AppTheme.colorScheme.primary,
-                        contentColor = AppTheme.colorScheme.onPrimary,
-                        modifier = Modifier.offset(y = (-32).dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "Tambah Wisata")
-                    }
-                }
-
-                currentRoute == Screen.DetailScreen.ROUTE && isAdmin -> {
-                    val destinationId =
-                        navBackStackEntry?.arguments?.getString("destinationId") ?: ""
+                currentRoute == Screen.DashboardScreen.route && currentUser?.role == Role.ADMIN -> {
                     FloatingActionButton(
                         onClick = {
-                            navController.navigate(
-                                Screen.UpdateScreen.createRoute(
-                                    destinationId
-                                )
-                            )
+                            navController.navigate(Screen.AddScreen.route)
                         },
                         containerColor = AppTheme.colorScheme.primary,
                         contentColor = AppTheme.colorScheme.onPrimary,
                         modifier = Modifier.offset(y = (-32).dp)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Destinasi")
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Tambah Wisata",
+                        )
+                    }
+                }
+
+                currentRoute == Screen.DetailScreen.ROUTE -> {
+                    val destinationId =
+                        navBackStackEntry?.arguments?.getString("destinationId") ?: ""
+                    when (currentUser?.role) {
+                        Role.ADMIN -> {
+                            FloatingActionButton(
+                                onClick = {
+                                    navController.navigate(
+                                        Screen.UpdateScreen.createRoute(
+                                            destinationId
+                                        )
+                                    )
+                                },
+                                containerColor = AppTheme.colorScheme.primary,
+                                contentColor = AppTheme.colorScheme.onPrimary,
+                                modifier = Modifier.offset(y = (-32).dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = "Edit Destinasi",
+                                )
+                            }
+                        }
+
+                        else -> {
+                            FloatingActionButton(
+                                onClick = {
+                                    navController.navigate(
+                                        Screen.AddReviewScreen.createRoute(
+                                            destinationId
+                                        )
+                                    )
+                                },
+                                containerColor = AppTheme.colorScheme.primary,
+                                contentColor = AppTheme.colorScheme.onPrimary,
+                                modifier = Modifier.offset(y = (-32).dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Tambah Review"
+                                )
+                            }
+                        }
+
                     }
                 }
             }
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        bottomBar = {
-            val currentRoute = navBackStackEntry?.destination?.route
-            if (currentRoute?.startsWith(Screen.Home.ROUTE.split("/{")[0]) == true ||
-                currentRoute == Screen.ProfileScreen.route ||
-                currentRoute == Screen.FavoriteScreen.route
-            ) {
-                BottomNavigation(navController = navController, currentUserId = userId)
-            }
-        }
+        }, floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
         NavHost(
             navController = navController,
@@ -188,173 +171,181 @@ fun AppNavigation(
             modifier = Modifier.fillMaxSize()
         ) {
             composable(Screen.SplashScreen.route) {
-                SplashScreen {
-                    isSplashFinished = true
-                    when (authState) {
-                        is UiState.Success -> {
-                            val user = (authState as UiState.Success).data
-                            when (val roleState = userRoleState) {
-                                is UiState.Success -> {
-                                    val targetScreen = if (roleState.data == Role.ADMIN) {
-                                        Screen.DashboardScreen.createRoute(user.id)
-                                    } else {
-                                        Screen.Home.createRoute(user.id)
-                                    }
-                                    navController.navigate(targetScreen) {
-                                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
-                                    }
-                                }
-
-                                is UiState.Loading -> {} // Tunggu hingga role di-load
-                                is UiState.Error, UiState.Empty -> {
-                                    navController.navigate(Screen.LoginScreen.route) {
-                                        popUpTo(Screen.SplashScreen.route) { inclusive = true }
-                                    }
-                                }
+                SplashScreen(
+                    viewModel = userViewModel,
+                    navigateToHome = { user ->
+                        val targetScreen = if (user.role == Role.ADMIN)
+                            Screen.DashboardScreen.route
+                        else Screen.Home.route
+                        navController.navigate(targetScreen) {
+                            popUpTo(Screen.SplashScreen.route) {
+                                inclusive = true
                             }
                         }
-
-                        is UiState.Error, UiState.Empty -> {
-                            navController.navigate(Screen.LoginScreen.route) {
-                                popUpTo(Screen.SplashScreen.route) { inclusive = true }
+                    },
+                    navigateToLogin = {
+                        Log.d("AppNavigation", "Navigating to LoginScreen")
+                        navController.navigate(Screen.LoginScreen.route) {
+                            popUpTo(Screen.SplashScreen.route) {
+                                inclusive = true
                             }
                         }
-
-                        else -> {} // Menunggu authState stabil
                     }
-                }
+                )
             }
 
             composable(Screen.LoginScreen.route) {
-                LoginScreen(navigateToDestination = { destination ->
-                    navController.navigate(destination) {
-                        popUpTo(Screen.LoginScreen.route) { inclusive = true }
-                    }
-                },
-                    onSignupClick = { navController.navigate(Screen.RegisterScreen.route) },
-                    onForgotPasswordClick = { navController.navigate(Screen.ForgotPasswordScreen.route) })
-            }
-
-            // RegisterScreen
-            composable(Screen.RegisterScreen.route) {
-                RegisterScreen(onSignInClick = { navController.navigate(Screen.LoginScreen.route) },
-                    onRegisterSuccess = {
-                        navController.navigate(Screen.Home.ROUTE) {
-                            popUpTo(Screen.RegisterScreen.route) { inclusive = true }
+                LoginScreen(
+                    viewModel = userViewModel,
+                    navigateToDashboard = {
+                        navController.navigate(Screen.DashboardScreen.route) {
+                            popUpTo(Screen.LoginScreen.route) { inclusive = true }
                         }
-                    })
+                    },
+                    navigateToHome = {
+                        navController.navigate(
+                            Screen.Home.route
+                        ) {
+                            popUpTo(Screen.LoginScreen.route) { inclusive = true }
+                        }
+                    },
+                    onSignupClick = { navController.navigate(Screen.RegisterScreen.route) },
+                    onForgotPasswordClick = {
+                        navController.navigate(Screen.ForgotPasswordScreen.route)
+                    }
+                )
             }
 
-            // HomeScreen
-            composable(
-                Screen.Home.ROUTE,
-                arguments = listOf(navArgument("userId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val homeUserId = backStackEntry.arguments?.getString("userId").orEmpty()
-                Log.d("AppNavigation", "HomeScreen created with userId: $homeUserId")
+            composable(Screen.RegisterScreen.route) {
+                RegisterScreen(
+                    onSignInClick = { navController.navigate(Screen.LoginScreen.route) },
+                )
+            }
 
+            composable(Screen.Home.route) {
                 HomeScreen(
-                    userId = homeUserId,
+                    userViewModel = userViewModel,
                     navigateToDetail = { destinationId ->
-                        val route = Screen.DetailScreen.createRoute(destinationId, homeUserId)
+                        val route = Screen.DetailScreen.createRoute(destinationId)
                         Log.d("AppNavigation", "Navigating to DetailScreen: $route")
                         navController.navigate(route)
-                    }
+                    },
                 )
             }
 
-
-            // DashboardScreen
             composable(
-                Screen.DashboardScreen.ROUTE,
-                arguments = listOf(navArgument("userId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val dashboardUserId = backStackEntry.arguments?.getString("userId").orEmpty()
-                Log.d("AppNavigation", "Dashboard created with userId: $dashboardUserId")
+                route = Screen.AddReviewScreen.ROUTE,
+                arguments = listOf(navArgument("destinationId") { type = NavType.StringType })
+            ) {
+                val destinationId = it.arguments?.getString("destinationId") ?: ""
 
-                DashboardScreen(
-                    userId = dashboardUserId,
-                    navigateToDetail = { destinationId ->
-                        val route = Screen.DetailScreen.createRoute(destinationId, dashboardUserId)
-                        Log.d("AppNavigation", "Navigating to DetailScreen: $route")
-                        navController.navigate(route)
-                    }
+                AddReviewScreen(
+                    userViewModel = userViewModel,
+                    viewModel = destinationViewModel,
+                    destinationId = destinationId,
+                    innerPadding = innerPadding,
                 )
             }
-            // DetailScreen
+
+            composable(Screen.DashboardScreen.route) {
+                DashboardScreen(
+                    navigateToDetail = { destinationId ->
+                        val route = Screen.DetailScreen.createRoute(destinationId)
+                        Log.d("AppNavigation", "Navigating to DetailScreen: $route")
+                        navController.navigate(route)
+                    },
+                    onLogout = {
+                        navController.navigate(Screen.LoginScreen.route) {
+                            popUpTo(Screen.DashboardScreen.route) { inclusive = true }
+                        }
+                    },
+                    innerPadding = innerPadding,
+                    userViewModel = userViewModel
+                )
+            }
             composable(
                 route = Screen.DetailScreen.ROUTE,
-                arguments = listOf(navArgument("destinationId") { type = NavType.StringType },
-                    navArgument("userId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val destinationId = backStackEntry.arguments?.getString("destinationId") ?: ""
+                arguments = listOf(
+                    navArgument("destinationId") { type = NavType.StringType }
+                )
+            ) { bacStackEntry ->
+                val destinationId = bacStackEntry.arguments?.getString("destinationId") ?: ""
                 DetailScreen(
-                    destinationId = destinationId, userId = userId, innerPadding = innerPadding
+                    userViewModel = userViewModel,
+                    destinationId = destinationId,
+                    innerPadding = innerPadding,
                 )
             }
-            // FavoriteScreen
             composable(Screen.FavoriteScreen.route) {
-                if (authState is UiState.Success) {
-                    val user = (authState as UiState.Success).data
-                    FavoriteScreen(userId = user.id, navigateToDetail = { destination ->
+                FavoriteScreen(
+                    userViewModel = userViewModel,
+                    navigateToDetail = { destination ->
                         navController.navigate(
                             Screen.DetailScreen.createRoute(
-                                destination.id, user.id
+                                destination.id
                             )
                         )
-                    })
-                }
+                    },
+                    innerPadding = innerPadding
+                )
             }
 
 
-            // ProfileScreen
             composable(Screen.ProfileScreen.route) {
                 ProfileScreen(
-                    user = (authState as UiState.Success).data, onLogout = {
-                        viewModel.logout()
+                    viewModel = userViewModel,
+                    onLogout = {
                         navController.navigate(Screen.LoginScreen.route) {
-                            popUpTo(0) { inclusive = true }
+                            popUpTo(0)
                         }
                     }, innerPadding = innerPadding
                 )
             }
 
             composable(Screen.ForgotPasswordScreen.route) {
-                ForgotPasswordScreen()
+                ResetPasswordScreen(
+                    onSignInClick = {
+                        navController.navigate(Screen.LoginScreen.route) {
+                            popUpTo(Screen.ForgotPasswordScreen.route) { inclusive = true }
+                        }
+                    },
+                    onResetPasswordSuccess = {},
+                    innerPadding = innerPadding
+                )
             }
 
-            // Add Destination Screen
             composable(
                 route = Screen.AddScreen.route
             ) {
                 AddOrUpdateDestinationScreen(
                     isEditing = false,
-//                    onSubmit = { navController.popBackStack() },
-                    innerPadding = innerPadding
+                    innerPadding = innerPadding,
                 )
             }
 
-            // Update Destination Screen
             composable(
                 route = Screen.UpdateScreen.ROUTE,
                 arguments = listOf(navArgument("destinationId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val destinationId = backStackEntry.arguments?.getString("destinationId") ?: ""
-
-                // Pastikan hanya memanggil ini SEKALI dengan LaunchedEffect
-                LaunchedEffect(destinationId) {
-                    destinationViewModel.getDestinationById(destinationId, userId)
+            ) {
+                val destinationId =
+                    navBackStackEntry?.arguments?.getString("destinationId") ?: ""
+                if (destinationId.isNotEmpty()) {
+                    LaunchedEffect(destinationId) {
+                        Log.d("UpdateScreen", "Fetching destination data for ID: $destinationId")
+                        destinationViewModel.getDestinationById(
+                            destinationId,
+                            currentUser?.id.orEmpty()
+                        )
+                    }
                 }
 
-                when (val selectedDestination =
-                    destinationViewModel.selectedDestination.collectAsState().value) {
+                when (val selectedDestination = destinationState) {
                     is UiState.Loading -> LoadingState()
                     is UiState.Success -> {
                         AddOrUpdateDestinationScreen(
                             initialDestination = selectedDestination.data.destination,
                             isEditing = true,
-//                            onSubmit = { navController.popBackStack() },
-                            innerPadding = innerPadding
+                            innerPadding = innerPadding,
                         )
                     }
 
@@ -369,7 +360,6 @@ fun AppNavigation(
                     }
                 }
             }
-
         }
     }
 }

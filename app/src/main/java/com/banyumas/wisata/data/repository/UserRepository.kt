@@ -1,16 +1,16 @@
 package com.banyumas.wisata.data.repository
 
 import android.util.Log
-import com.banyumas.wisata.data.model.Role
 import com.banyumas.wisata.data.model.User
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class FirebaseUserRepository @Inject constructor(
+class UserRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
 
@@ -56,18 +56,18 @@ class FirebaseUserRepository @Inject constructor(
             val firebaseUser = result.user
                 ?: throw IllegalStateException("FirebaseUser is null after login")
 
-            var isUserUpdated = false // Variabel untuk melacak status sinkronisasi
-
+            // 🔥 Pastikan Firebase telah memperbarui currentUser
+            var isUserUpdated = false
             repeat(5) { // Retry hingga 5 kali
                 if (firebaseAuth.currentUser?.uid == firebaseUser.uid) {
-                    isUserUpdated = true // Tandai sebagai berhasil
-                    return@repeat // Keluar dari lambda repeat
+                    isUserUpdated = true
+                    return@repeat
                 }
                 Log.w(TAG, "loginUser: firebaseAuth.currentUser belum diperbarui, mencoba ulang...")
-                delay(200) // Delay 200ms
+                delay(500) // Tunggu 500ms sebelum mencoba lagi
             }
 
-            // Periksa apakah sinkronisasi berhasil
+            // 🔥 Jika masih gagal, lempar error
             if (!isUserUpdated) {
                 throw IllegalStateException("firebaseAuth.currentUser tidak diperbarui setelah login")
             }
@@ -79,7 +79,6 @@ class FirebaseUserRepository @Inject constructor(
             throw e
         }
     }
-
 
 
     private suspend fun addUserToFireStore(user: User) {
@@ -133,24 +132,28 @@ class FirebaseUserRepository @Inject constructor(
         }
     }
 
-    fun getCurrentUserId(): String {
+    fun getCurrentUserId(): String? {
         val currentUser = firebaseAuth.currentUser
         if (currentUser == null) {
-            Log.e(TAG, "getCurrentUserId: No user is currently logged in")
-            throw IllegalStateException("No user is currently logged in")
+            Log.d("FirebaseUserRepository", "GetCurrentUserId : Tidak ada user yang sedang login.")
+            return null
         }
-        Log.d("FirebaseUserRepository", "Current user ID: ${currentUser.uid}")
+        Log.d(TAG, "getCurrentUserId: User saat ini - UID: ${currentUser.uid}")
         return currentUser.uid
     }
 
-    suspend fun getUserRole(userId: String): Role {
+    suspend fun resetPassword(email: String): Boolean {
         return try {
-            val document = firestore.collection("Users").document(userId).get().await()
-            val role = document.getString("role") ?: "USER"
-            Role.valueOf(role.uppercase()) // 🔹 Konversi dari String ke Enum Role
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            Log.d(TAG, "resetPassword: Password reset email sent successfully to $email")
+            true
+        } catch (e: FirebaseAuthInvalidUserException) {
+            Log.e(TAG, "resetPassword: Failed to send password reset email - ${e.message}", e)
+            false
         } catch (e: Exception) {
-            Log.e("UserRepository", "Error getting user role: ${e.message}")
-            Role.USER // Default ke USER jika gagal
+            Log.e(TAG, "resetPassword: Gagal mengirim reset password - ${e.message}", e)
+            throw e
         }
     }
+
 }

@@ -31,7 +31,7 @@ class FetchViewModel @Inject constructor(
                     return@launch
                 }
                 val updatedDestinations = placeIds.map { placeId ->
-                    repository.fetchAndSavePlace(placeId, apiKey)
+                    repository.savePlaceFromApi(placeId, apiKey)
                 }
                 _destinations.value = if (updatedDestinations.isEmpty()) {
                     UiState.Empty
@@ -40,16 +40,6 @@ class FetchViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _destinations.value = UiState.Error(e.message ?: "Error uploading data")
-            }
-        }
-    }
-
-    fun addReview(placeId: String, review: Review) {
-        viewModelScope.launch {
-            try {
-                repository.addLocalReview(placeId, review)
-            } catch (e: Exception) {
-                println("Error adding review for $placeId: ${e.message}")
             }
         }
     }

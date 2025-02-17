@@ -1,35 +1,29 @@
 package com.banyumas.wisata.view.navigation
 
+
 sealed class Screen(val route: String) {
     data object SplashScreen : Screen("splash")
     data object LoginScreen : Screen("login")
     data object RegisterScreen : Screen("register")
-    data object ForgotPasswordScreen : Screen("forgot-password")
+    data object ForgotPasswordScreen : Screen("forgot_password")
     data object AddScreen : Screen("add")
-
-    data class Home(val userId: String) : Screen("home/{userId}") {
-        companion object {
-            const val ROUTE = "home/{userId}"
-            fun createRoute(userId: String) = "home/$userId"
-        }
-    }
-
-    data class DashboardScreen(val userId: String) : Screen("dashboard/{userId") {
-        companion object {
-            const val ROUTE = "dashboard/{userId}"
-            fun createRoute(userId: String) = "dashboard/$userId"
-        }
-    }
-
+    data object Home : Screen("home")
+    data object DashboardScreen : Screen("dashboard")
     data object FavoriteScreen : Screen("favorite")
     data object ProfileScreen : Screen("profile")
-
-    data class DetailScreen(val destinationId: String, val userId: String) :
-        Screen("detail/{destinationId}/{userId}") {
+    data class AddReviewScreen(val destinationId: String) : Screen("add_review/{destinationId}") {
         companion object {
-            const val ROUTE = "detail/{destinationId}/{userId}"
-            fun createRoute(destinationId: String, userId: String) =
-                "detail/$destinationId/$userId"
+            const val ROUTE = "add_review/{destinationId}"
+            fun createRoute(destinationId: String) = "add_review/$destinationId"
+        }
+    }
+
+    data class DetailScreen(val destinationId: String) :
+        Screen("detail/{destinationId}") {
+        companion object {
+            const val ROUTE = "detail/{destinationId}"
+            fun createRoute(destinationId: String) =
+                "detail/$destinationId"
         }
     }
 

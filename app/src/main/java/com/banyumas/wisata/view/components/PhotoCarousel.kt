@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -113,12 +114,12 @@ fun PhotoItem(
 
         // 🔥 Tampilkan ikon hapus hanya jika `showRemoveIcon = true`
         if (showRemoveIcon) {
-            androidx.compose.material3.Icon(
+            Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = "Hapus Foto",
-                tint = MaterialTheme.colorScheme.error,
+                tint = MaterialTheme.colorScheme.background,
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(30.dp)
                     .padding(4.dp)
                     .align(Alignment.TopEnd) // 🔥 Letakkan ikon di pojok kanan atas
                     .clickable { onRemove() } // 🔥 Klik untuk menghapus foto

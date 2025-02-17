@@ -1,7 +1,8 @@
 package com.banyumas.wisata.view.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,23 +31,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.banyumas.wisata.R
-import com.banyumas.wisata.data.model.Destination
-import com.banyumas.wisata.data.model.Photo
 import com.banyumas.wisata.data.model.UiDestination
 import com.banyumas.wisata.view.theme.AppTheme
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DestinationCard(
     destination: UiDestination,
     onFavoriteClick: (Boolean) -> Unit,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    showFavoriteIcon: Boolean = true
+    showFavoriteIcon: Boolean = true,
+    onLongPress: () -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -59,7 +59,10 @@ fun DestinationCard(
         modifier = modifier
             .fillMaxWidth()
             .height(200.dp)
-            .clickable { onClick() }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongPress
+            )
             .padding(8.dp)
     ) {
         Box(
@@ -127,29 +130,5 @@ fun DestinationCard(
                 )
             }
         }
-    }
-}
-
-@Preview
-@Composable
-private fun DestinationItemPreview() {
-    AppTheme {
-        DestinationCard(
-            destination = UiDestination(
-                destination = Destination(
-                    id = "1",
-                    name = "Pantai Ayah",
-                    address = "Kabupaten Kebumen",
-                    photos = listOf(
-                        Photo(
-                            photoUrl = "https://www.banyumaskab.go.id/wp-content/uploads/2019/11/Pantai-Ayah.jpg"
-                        )
-                    )
-                ),
-                isFavorite = false
-            ),
-            onFavoriteClick = {},
-            onClick = {}
-        )
     }
 }

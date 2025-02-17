@@ -18,7 +18,6 @@ class FavoriteViewModel @Inject constructor(
     private val _favoriteDestination = MutableStateFlow<UiState<List<Destination>>>(UiState.Loading)
     val favoriteDestination: StateFlow<UiState<List<Destination>>> = _favoriteDestination
 
-
     fun loadFavoriteDestinations(userId: String) {
         viewModelScope.launch {
             _favoriteDestination.value = UiState.Loading

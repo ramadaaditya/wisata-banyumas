@@ -31,25 +31,28 @@ import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.view.components.Search
 import com.banyumas.wisata.view.theme.AppTheme
 import com.banyumas.wisata.viewmodel.DestinationViewModel
+import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun HomeScreen(
-    userId: String,
     modifier: Modifier = Modifier,
     navigateToDetail: (String) -> Unit,
     viewModel: DestinationViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel(),
+
 ) {
     val uiState by viewModel.uiDestinations.collectAsStateWithLifecycle()
     var query by remember { mutableStateOf("") }
+    val authState by userViewModel.authState.collectAsStateWithLifecycle()
+    val currentUser = (authState as? UiState.Success)?.data
 
-    LaunchedEffect(userId) {
-        Log.d("HomeScreen", "HomeScreen created with userId: $userId")
-        if (userId.isNotBlank()) {
-            Log.d("HomeScreen", "Fetching destinations for userId: $userId")
-            viewModel.loadDestinations(userId)
+    LaunchedEffect(currentUser) {
+        Log.d("HomeScreen", "HomeScreen created with currentUser: $currentUser")
+        if (currentUser != null) {
+            Log.d("HomeScreen", "Fetching destinations for currentUser: $currentUser")
+            viewModel.loadDestinations(currentUser.id)
         }
     }
-
 
     Column(
         modifier = modifier
@@ -86,7 +89,7 @@ fun HomeScreen(
                         navigateToDetail = navigateToDetail,
                         onFavoriteClick = { destination ->
                             viewModel.toggleFavorite(
-                                userId,
+                                currentUser!!.id,
                                 destination.destination.id,
                                 !destination.isFavorite
                             )
@@ -143,7 +146,9 @@ fun DestinationContent(
             DestinationCard(
                 destination = destination,
                 onFavoriteClick = { onFavoriteClick(destination) },
-                onClick = { navigateToDetail(destination.destination.id) }
+                onClick = { navigateToDetail(destination.destination.id) },
+                onLongPress = {}
+
             )
         }
     }

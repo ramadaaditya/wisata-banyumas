@@ -21,7 +21,6 @@ import com.banyumas.wisata.view.theme.AppTheme
 @Composable
 fun BottomNavigation(
     navController: NavHostController,
-    currentUserId: String // ✅ Pastikan userId diteruskan dengan benar
 ) {
     NavigationBar(
         containerColor = AppTheme.colorScheme.background,
@@ -34,7 +33,7 @@ fun BottomNavigation(
             NavigationItem(
                 title = "Home",
                 icon = Icons.Default.Home,
-                screen = Screen.Home.createRoute(currentUserId) // ✅ Fix: Home dengan userId
+                screen = Screen.Home.route
             ),
             NavigationItem(
                 title = "Favorite",
@@ -49,13 +48,8 @@ fun BottomNavigation(
         )
 
         navigationItems.forEach { item ->
-            val isSelected = when {
-                item.screen.startsWith("home") -> currentRoute?.startsWith(Screen.Home.ROUTE.split("/{")[0]) ?: false
-                else -> currentRoute == item.screen
-            }
-
             NavigationBarItem(
-                selected = isSelected, // ✅ Sekarang membandingkan dengan path dinamis
+                selected = currentRoute == item.screen,
                 onClick = {
                     if (currentRoute != item.screen) { // ✅ Cegah navigasi duplikasi
                         navController.navigate(item.screen) {

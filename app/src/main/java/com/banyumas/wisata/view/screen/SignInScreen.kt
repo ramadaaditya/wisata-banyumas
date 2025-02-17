@@ -29,85 +29,60 @@ import com.banyumas.wisata.data.model.Role
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
-import com.banyumas.wisata.view.components.EmailTextField
 import com.banyumas.wisata.view.components.PasswordInputField
-import com.banyumas.wisata.view.components.PasswordTextField
-import com.banyumas.wisata.view.navigation.Screen
-import com.banyumas.wisata.viewmodel.AppViewModel
+import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun LoginScreen(
-    navigateToDestination: (String) -> Unit,
+    navigateToHome: () -> Unit,
+    navigateToDashboard: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     onSignupClick: () -> Unit,
-    viewModel: AppViewModel = hiltViewModel()
+    viewModel: UserViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val authState by viewModel.authState.collectAsState()
-    val userRoleState by viewModel.userRoleState.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var hasAttemptedLogin by remember { mutableStateOf(false) } // 🔹 Tambahkan variabel ini
 
     LaunchedEffect(authState) {
+        Log.d("LoginScreen", "Auth State Changed: $authState") // Tambahkan log ini
+
         when (val state = authState) {
             is UiState.Success -> {
-                val userId = state.data.id
-                if (userId.isNotBlank() && userRoleState !is UiState.Success) {
-                    Log.d("LoginScreen", "AuthState success, userId: $userId")
-                    // 🔥 Hanya panggil fetchUserRole jika belum ada role yang berhasil
-                    viewModel.fetchUserRole(userId)
+                val currentRole = state.data.role
+                Log.d("LoginScreen", "Login berhasil: ${state.data.name}, Role: $currentRole")
+
+                if (currentRole == Role.ADMIN) {
+                    navigateToDashboard()
+                } else {
+                    navigateToHome()
                 }
             }
 
             is UiState.Error -> {
-                if (hasAttemptedLogin) {
-                    isLoading = false
-                    Toast.makeText(context, "Login gagal: ${state.message}", Toast.LENGTH_LONG)
-                        .show()
-                }
+                Log.e("LoginScreen", "Login gagal: ${state.message}")
+                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
             }
 
-            is UiState.Loading -> {
-                isLoading = true
-            }
-
-            UiState.Empty -> {
-                isLoading = false
-            }
+            else -> { /* No action needed */ }
         }
     }
 
-    // 🔥 Tunggu hingga role diperbarui sebelum berpindah halaman
-    LaunchedEffect(userRoleState) {
-        if (userRoleState is UiState.Success && authState is UiState.Success) {
-            val userId = (authState as UiState.Success).data.id
-            val role = (userRoleState as UiState.Success<Role>).data
-            val destination = if (role == Role.ADMIN) {
-                Screen.DashboardScreen.createRoute(userId)
-            } else {
-                Screen.Home.createRoute(userId)
-            }
-            Log.d("LoginScreen", "Navigasi ke $destination dengan role: $role")
-            navigateToDestination(destination)
-        }
-    }
+
 
     LoginContent(
         email = email,
         password = password,
         onEmailChange = { email = it },
         onPasswordChange = { password = it },
-        onSignInClick = {
-            hasAttemptedLogin = true  // 🔹 Set true saat pengguna menekan login
-            viewModel.loginUser(email, password)
-        },
-        isLoading = isLoading,
+        onSignInClick = { viewModel.loginUser(email, password) },
+        isLoading = authState is UiState.Loading,
         onSignupClick = onSignupClick,
         onForgotPasswordClick = onForgotPasswordClick
     )
 }
+
 @Composable
 fun LoginContent(
     email: String,
@@ -137,22 +112,20 @@ fun LoginContent(
             )
             Text(
                 text = "Silakan masuk untuk melanjutkan",
-                style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.6f
+                    )
+                )
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            // TextField Email
             EmailInputField(value = email, onValueChange = onEmailChange)
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            // 🔥 Menggunakan CustomTextField untuk Password
             PasswordInputField(value = password, onValueChange = onPasswordChange)
-
-            // Tombol Lupa Kata Sandi
             TextButton(
                 onClick = onForgotPasswordClick,
                 modifier = Modifier.align(Alignment.End)
@@ -163,7 +136,6 @@ fun LoginContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🔥 Menggunakan CustomButton untuk tombol login
         CustomButton(
             text = if (isLoading) "Sedang masuk..." else "Masuk",
             onClick = onSignInClick,
@@ -172,7 +144,6 @@ fun LoginContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Footer: Daftar Akun
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = "Belum punya akun?")
             TextButton(onClick = onSignupClick) {

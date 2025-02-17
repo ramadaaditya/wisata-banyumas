@@ -2,9 +2,7 @@ package com.banyumas.wisata.view.screen
 
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,12 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.banyumas.wisata.data.model.Destination
 import com.banyumas.wisata.data.model.Photo
-import com.banyumas.wisata.data.model.Role
 import com.banyumas.wisata.data.model.UiDestination
-import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.CustomTextField
+import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.view.components.PhotoCarousel
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 
@@ -52,18 +49,45 @@ fun AddOrUpdateDestinationScreen(
 ) {
     val context = LocalContext.current
     var destination by remember { mutableStateOf(initialDestination ?: Destination()) }
-    var selectedPhotos by rememberSaveable { mutableStateOf<List<Uri>>(emptyList()) }
-    var deletedPhotos by rememberSaveable { mutableStateOf<List<Photo>>(emptyList()) }
-
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var isLoading by rememberSaveable { mutableStateOf(false) }
-
-    val searchState by viewModel.searchResults.collectAsState()
-    val selectedDestinationState by viewModel.selectedDestination.collectAsState()
-
     val latitudeInput = rememberSaveable { mutableStateOf(destination.latitude?.toString() ?: "") }
     val longitudeInput =
         rememberSaveable { mutableStateOf(destination.longitude?.toString() ?: "") }
+    var selectedPhotos by rememberSaveable { mutableStateOf<List<Uri>>(emptyList()) }
+    var deletedPhotos by rememberSaveable { mutableStateOf<List<Photo>>(emptyList()) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // Collect eventFlow untuk menangkap event success & show message
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is DestinationViewModel.DestinationEvent.Success -> {
+                    // Reset form setelah berhasil menambah / memperbarui
+                    destination = Destination()
+                    latitudeInput.value = ""
+                    longitudeInput.value = ""
+                    selectedPhotos = emptyList()
+                    deletedPhotos = emptyList()
+                    searchQuery = ""
+                }
+                is DestinationViewModel.DestinationEvent.ShowMessage -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    val searchState by viewModel.uiDestinations.collectAsState()
+    val selectedDestinationState by viewModel.selectedDestination.collectAsState()
+    LaunchedEffect(selectedDestinationState) {
+        if (!isEditing && selectedDestinationState is UiState.Success) {
+            val fetchedUiDestination =
+                (selectedDestinationState as UiState.Success<UiDestination>).data
+            val fetchedDestination = fetchedUiDestination.destination
+            destination = fetchedDestination
+            latitudeInput.value = fetchedDestination.latitude.toString()
+            longitudeInput.value = fetchedDestination.longitude.toString()
+        }
+    }
 
     val isFormValid by remember {
         derivedStateOf {
@@ -74,204 +98,209 @@ fun AddOrUpdateDestinationScreen(
         }
     }
 
-    LaunchedEffect(selectedDestinationState) {
-        if (selectedDestinationState is UiState.Success) {
-            val selectedDestination =
-                (selectedDestinationState as UiState.Success<UiDestination>).data.destination
-            destination = selectedDestination
-            latitudeInput.value = selectedDestination.latitude.toString()
-            longitudeInput.value = selectedDestination.longitude.toString()
+    fun onSaveDestination() {
+        val latVal = latitudeInput.value.toDoubleOrNull()
+        val longVal = longitudeInput.value.toDoubleOrNull()
+
+        if (latVal == null || longVal == null) {
+            Toast.makeText(context, "Latitude / Longitude tidak valid!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val finalDestination = destination.copy(
+            latitude = latVal,
+            longitude = longVal
+        )
+
+        if (isEditing) {
+            if (finalDestination.id.isBlank()) {
+                Toast.makeText(
+                    context,
+                    "ID destinasi kosong, tidak bisa update!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return
+            }
+            viewModel.updateDestination(
+                destination = finalDestination,
+                newImageUris = selectedPhotos,
+                deletedPhotos = deletedPhotos
+            )
+        } else {
+            val newDestination =
+                finalDestination.copy(id = finalDestination.id.ifBlank { generateNewId() })
+
+            viewModel.saveDestination(
+                destination = newDestination,
+                imageUris = selectedPhotos
+            )
         }
     }
 
-    if (isLoading) {
-        LoadingState()
-    } else {
-        LazyColumn(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxSize()
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (!isEditing) {
-                item {
-                    CustomTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        label = "Nama Wisata",
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search"
-                            )
-                        }
-                    )
-                }
-                item {
-                    CustomButton(
-                        onClick = { viewModel.searchDestinationsByName(searchQuery) },
-                        enabled = searchQuery.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth(),
-                        text = "Cari Wisata",
-                        icon = Icons.Default.Search
-                    )
-                }
+    LazyColumn(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize()
+            .padding(innerPadding),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (!isEditing) {
+            item {
+                CustomTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = "Nama Wisata",
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search"
+                        )
+                    }
+                )
+            }
+            item {
+                CustomButton(
+                    onClick = { viewModel.searchDestinationsByName(searchQuery) },
+                    enabled = searchQuery.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "Cari Wisata",
+                )
             }
 
             when (searchState) {
-                is UiState.Loading -> item {
-                    Text(
-                        "Mencari wisata...",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
+                is UiState.Loading -> {}
 
                 is UiState.Success -> {
                     val destinations = (searchState as UiState.Success<List<UiDestination>>).data
-                    items(destinations) { fetchedDestination ->
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
-                                .clickable {
-                                    viewModel.fetchPlaceDetailsFromGoogle(fetchedDestination.destination.id)
-                                }
-                        ) {
+                    if (destinations.isEmpty()) {
+                        item {
                             Text(
-                                text = fetchedDestination.destination.name,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "ID: ${fetchedDestination.destination.id}",
+                                "Tidak ada destinasi yang cocok.",
                                 style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    } else {
+                        items(destinations) { fetchedDestination ->
+                            DestinationCard(
+                                destination = fetchedDestination,
+                                onFavoriteClick = {},
+                                onClick = {
+                                    viewModel.fetchPlaceDetailsFromGoogle(fetchedDestination.destination.id)
+                                },
+                                onLongPress = {},
+                                showFavoriteIcon = false
                             )
                         }
                     }
                 }
 
-                is UiState.Error -> item {
-                    Text(
-                        "Gagal mencari wisata: ${(searchState as UiState.Error).message}",
-                        color = MaterialTheme.colorScheme.error
-                    )
+                is UiState.Error -> {
+                    item {
+                        Text(
+                            "Gagal mencari wisata: ${(searchState as UiState.Error).message}",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
 
-                is UiState.Empty -> item {
-                    Text(
-                        "Tidak ada wisata ditemukan",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                is UiState.Empty -> {
+                    item {
+                        Text(
+                            "Tidak ada wisata ditemukan",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
-            }
-
-            item {
-                CustomTextField(
-                    value = destination.name,
-                    onValueChange = { destination = destination.copy(name = it) },
-                    label = "Nama Wisata",
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "Place"
-                        )
-                    } // Tambah ikon GPS
-
-                )
-            }
-            item {
-                CustomTextField(
-                    value = destination.address,
-                    onValueChange = { destination = destination.copy(address = it) },
-                    label = "Alamat Wisata",
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Address"
-                        )
-                    } // Tambah ikon GPS
-                )
-            }
-            item {
-                CustomTextField(
-                    value = latitudeInput.value,
-                    onValueChange = { latitudeInput.value = it },
-                    label = "Latitude",
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.GpsFixed,
-                            contentDescription = "GPS"
-                        )
-                    } // Tambah ikon GPS
-                )
-            }
-            item {
-                CustomTextField(
-                    value = longitudeInput.value,
-                    onValueChange = { longitudeInput.value = it },
-                    label = "Longitude",
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.GpsFixed,
-                            contentDescription = "GPS"
-                        )
-                    } // Tambah ikon GPS
-                )
-            }
-
-            item {
-                PhotoCarousel(
-                    photos = destination.photos + selectedPhotos,
-                    onAddPhoto = { uri -> selectedPhotos = selectedPhotos + uri },
-                    onRemovePhoto = { photo ->
-                        when (photo) {
-                            is Photo -> {
-                                deletedPhotos = deletedPhotos + photo // 🔥 Tandai untuk dihapus dari Firestore & Storage
-                                destination = destination.copy(photos = destination.photos - photo) // 🔥 Hapus dari UI
-                            }
-                            is Uri -> {
-                                selectedPhotos = selectedPhotos.filterNot { it == photo } // 🔥 Hapus langsung dari daftar lokal
-                            }
-                        }
-                    },
-                )
-            }
-
-            item {
-                CustomButton(
-                    onClick = {
-//                        viewModel.saveDestination(destination, selectedPhotos, deletedPhotos, isEditing)
-//                        isLoading = true
-//                        viewModel.uploadNewPhotos(selectedPhotos, destination.id)
-//                        val updatedDestination =
-//                            destination.copy(lastUpdated = System.currentTimeMillis())
-//                        try {
-//                            if (isEditing) {
-//                                viewModel.updateDestination(
-//                                    updatedDestination,
-//                                    selectedPhotos,
-//                                    deletedPhotos
-//                                )
-//                            } else {
-//                                viewModel.addDestination(updatedDestination, selectedPhotos)
-//                            }
-//                            isLoading = false
-//                            Toast.makeText(context, "Wisata berhasil disimpan", Toast.LENGTH_SHORT)
-//                                .show()
-//                            isLoading = false
-//                        } catch (e: Exception) {
-//                            Toast.makeText(
-//                                context,
-//                                "Gagal menyimpan wisata",
-//                                Toast.LENGTH_SHORT
-//                            ).show()
-//                        }
-                    },
-                    enabled = isFormValid && !isLoading,
-                    modifier = Modifier.fillMaxWidth(),
-                    text = if (isEditing) "Update Wisata" else "Tambah Wisata"
-                )
             }
         }
+
+        item {
+            CustomTextField(
+                value = destination.name,
+                onValueChange = { destination = destination.copy(name = it) },
+                label = "Nama Wisata",
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "Place"
+                    )
+                }
+            )
+        }
+        item {
+            CustomTextField(
+                value = destination.address,
+                onValueChange = { destination = destination.copy(address = it) },
+                label = "Alamat Wisata",
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Address"
+                    )
+                }
+            )
+        }
+        item {
+            CustomTextField(
+                value = latitudeInput.value,
+                onValueChange = { latitudeInput.value = it },
+                label = "Latitude",
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.GpsFixed,
+                        contentDescription = "GPS"
+                    )
+                }
+            )
+        }
+        item {
+            CustomTextField(
+                value = longitudeInput.value,
+                onValueChange = { longitudeInput.value = it },
+                label = "Longitude",
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.GpsFixed,
+                        contentDescription = "GPS"
+                    )
+                }
+            )
+        }
+
+        item {
+            PhotoCarousel(
+                photos = destination.photos + selectedPhotos,
+                onAddPhoto = { uri -> selectedPhotos = selectedPhotos + uri },
+                onRemovePhoto = { photo ->
+                    when (photo) {
+                        is Photo -> {
+                            deletedPhotos = deletedPhotos + photo
+                            destination = destination.copy(photos = destination.photos - photo)
+                        }
+
+                        is Uri -> {
+                            selectedPhotos = selectedPhotos.filterNot { it == photo }
+                        }
+                    }
+                },
+                showRemoveIcon = true
+            )
+        }
+
+        item {
+            CustomButton(
+                onClick = {
+                    onSaveDestination()
+                },
+                enabled = isFormValid,
+                modifier = Modifier.fillMaxWidth(),
+                text = if (isEditing) "Update Wisata" else "Tambah Wisata"
+            )
+        }
     }
+}
+
+
+fun generateNewId(): String {
+    return System.currentTimeMillis().toString()
 }

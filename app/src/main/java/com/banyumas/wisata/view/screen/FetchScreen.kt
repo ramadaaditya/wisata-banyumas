@@ -135,7 +135,6 @@ fun FetchScreen(viewModel: FetchViewModel = viewModel()) {
                                 rating = reviewRating.toInt(),
                                 text = reviewText
                             )
-                            viewModel.addReview(currentPlaceId, review)
                             currentPlaceId = ""
                             reviewText = ""
                             reviewRating = 3f
