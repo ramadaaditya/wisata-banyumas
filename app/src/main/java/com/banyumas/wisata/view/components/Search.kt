@@ -1,7 +1,6 @@
 package com.banyumas.wisata.view.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.banyumas.wisata.R
-import com.banyumas.wisata.view.theme.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +26,7 @@ fun Search(
     SearchBar(
         query = query,
         colors = SearchBarDefaults.colors(
-            containerColor = AppTheme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.background,
         ),
         shadowElevation = 2.dp,
         onQueryChange = onQueryChange,
@@ -45,11 +43,12 @@ fun Search(
         placeholder = {
             Text(
                 text = stringResource(id = R.string.placeholder_search),
-                style = AppTheme.typography.labelSmall
+                style = MaterialTheme.typography.bodyMedium
             )
         },
-        shape = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.small,
         modifier = modifier
             .fillMaxWidth()
+
     ) {}
 }

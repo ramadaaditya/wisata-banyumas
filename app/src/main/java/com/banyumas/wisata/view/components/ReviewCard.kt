@@ -1,0 +1,117 @@
+package com.banyumas.wisata.view.components
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.banyumas.wisata.model.Review
+import com.banyumas.wisata.view.theme.AppTheme
+
+@Composable
+fun ReviewCard(review: Review) {
+    Card(
+        border = BorderStroke(
+            2.dp, MaterialTheme.colorScheme.primary
+        ),
+        shape = RoundedCornerShape(CornerSize(8.dp)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = review.authorName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                Rating(rating = review.rating)
+            }
+            Text(
+                text = review.text,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+    }
+}
+
+
+@Composable
+fun Rating(rating: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Star,
+            contentDescription = "Rating",
+            modifier = Modifier.size(16.dp)
+        )
+        Text(
+            text = rating.toString(),
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+private fun ReviewCardListPreview() {
+    AppTheme {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(reviews) { review ->
+                ReviewCard(review = review)
+            }
+        }
+    }
+}
+
+private val reviews = listOf(
+    Review(
+        authorName = "Ramados",
+        text = "Lezat",
+        rating = 4,
+        timestamp = 12321,
+        source = "Google"
+    ),
+    Review(
+        authorName = "Dina",
+        text = "Enak sekali!",
+        rating = 5,
+        timestamp = 12322,
+        source = "Instagram"
+    ),
+    Review(
+        authorName = "Tari",
+        text = "Biasa saja",
+        rating = 3,
+        timestamp = 12323,
+        source = "Facebook"
+    )
+)

@@ -2,8 +2,8 @@ package com.banyumas.wisata.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.banyumas.wisata.data.model.Destination
-import com.banyumas.wisata.data.repository.DestinationRepository
+import com.banyumas.wisata.model.Destination
+import com.banyumas.wisata.model.repository.DestinationRepository
 import com.banyumas.wisata.utils.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +17,6 @@ class FavoriteViewModel @Inject constructor(
 ) : ViewModel() {
     private val _favoriteDestination = MutableStateFlow<UiState<List<Destination>>>(UiState.Loading)
     val favoriteDestination: StateFlow<UiState<List<Destination>>> = _favoriteDestination
-
 
     fun loadFavoriteDestinations(userId: String) {
         viewModelScope.launch {

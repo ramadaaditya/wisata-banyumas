@@ -5,59 +5,63 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.banyumas.wisata.view.navigation.NavigationItem
+import androidx.navigation.compose.rememberNavController
 import com.banyumas.wisata.view.navigation.Screen
 import com.banyumas.wisata.view.theme.AppTheme
+
+data class NavigationItem(
+    val icon: ImageVector,
+    val screen: String,
+    val contentDescription: String,
+    val title: String,
+)
+
+private val navigationItems = listOf(
+    NavigationItem(
+        title = "Home",
+        icon = Icons.Default.Home,
+        screen = Screen.Home.route,
+        contentDescription = "Home"
+    ),
+    NavigationItem(
+        title = "Favorite",
+        icon = Icons.Default.Favorite,
+        screen = Screen.FavoriteScreen.route,
+        contentDescription = "Favorite"
+    ),
+    NavigationItem(
+        title = "Profile",
+        icon = Icons.Default.Person,
+        screen = Screen.ProfileScreen.route,
+        contentDescription = "Profile"
+    )
+)
 
 @Composable
 fun BottomNavigation(
     navController: NavHostController,
-    currentUserId: String // ✅ Pastikan userId diteruskan dengan benar
 ) {
-    NavigationBar(
-        containerColor = AppTheme.colorScheme.background,
-        contentColor = AppTheme.colorScheme.onBackground
-    ) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
-
-        val navigationItems = listOf(
-            NavigationItem(
-                title = "Home",
-                icon = Icons.Default.Home,
-                screen = Screen.Home.createRoute(currentUserId) // ✅ Fix: Home dengan userId
-            ),
-            NavigationItem(
-                title = "Favorite",
-                icon = Icons.Default.Favorite,
-                screen = Screen.FavoriteScreen.route
-            ),
-            NavigationItem(
-                title = "Profile",
-                icon = Icons.Default.Person,
-                screen = Screen.ProfileScreen.route
-            )
-        )
-
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    NavigationBar {
         navigationItems.forEach { item ->
-            val isSelected = when {
-                item.screen.startsWith("home") -> currentRoute?.startsWith(Screen.Home.ROUTE.split("/{")[0]) ?: false
-                else -> currentRoute == item.screen
-            }
-
+            val isSelected = currentRoute == item.screen
             NavigationBarItem(
-                selected = isSelected, // ✅ Sekarang membandingkan dengan path dinamis
+                selected = isSelected,
                 onClick = {
-                    if (currentRoute != item.screen) { // ✅ Cegah navigasi duplikasi
+                    if (currentRoute != item.screen) {
                         navController.navigate(item.screen) {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
@@ -70,22 +74,30 @@ fun BottomNavigation(
                 icon = {
                     Icon(
                         imageVector = item.icon,
-                        contentDescription = item.title
+                        contentDescription = item.contentDescription,
                     )
                 },
                 label = {
                     Text(item.title)
                 },
-                colors = NavigationBarItemColors(
-                    selectedIconColor = AppTheme.colorScheme.background,
-                    selectedTextColor = AppTheme.colorScheme.primary,
-                    unselectedIconColor = AppTheme.colorScheme.secondary,
-                    unselectedTextColor = AppTheme.colorScheme.secondary,
-                    selectedIndicatorColor = AppTheme.colorScheme.primary,
-                    disabledIconColor = AppTheme.colorScheme.onBackground,
-                    disabledTextColor = AppTheme.colorScheme.onBackground
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+private fun BottomNavigationPreview() {
+    AppTheme {
+        val navController = rememberNavController()
+        BottomNavigation(navController = navController)
     }
 }

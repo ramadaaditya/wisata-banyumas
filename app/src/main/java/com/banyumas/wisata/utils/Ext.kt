@@ -1,12 +1,13 @@
 package com.banyumas.wisata.utils
 
 import android.content.Context
+import android.content.Intent
+import androidx.core.net.toUri
 import com.banyumas.wisata.R
-import com.banyumas.wisata.data.model.Destination
-import com.banyumas.wisata.data.model.Photo
-import com.banyumas.wisata.data.model.Review
-import com.banyumas.wisata.data.model.UiDestination
-import com.banyumas.wisata.data.remote.DetailResponse
+import com.banyumas.wisata.model.Destination
+import com.banyumas.wisata.model.Photo
+import com.banyumas.wisata.model.Review
+import com.banyumas.wisata.model.api.DetailResponse
 import org.json.JSONObject
 
 fun getPlaceIdFromJson(context: Context): List<String> {
@@ -50,4 +51,18 @@ fun DetailResponse.toDestination(placeId: String, apiKey: String): Destination {
         } ?: emptyList(),
         lastUpdated = System.currentTimeMillis() // Menandai waktu pembaruan
     )
+}
+
+fun generateNewId(): String {
+    return System.currentTimeMillis().toString()
+}
+
+fun openGoogleMaps(context: Context, lat: Double?, long: Double?) {
+    val uri = if (lat != null && long != null) {
+        "geo:$lat,$long?q=$lat,$long".toUri()
+    } else {
+        "https://maps.google.com/".toUri()
+    }
+    val mapIntent = Intent(Intent.ACTION_VIEW, uri)
+    context.startActivity(mapIntent)
 }

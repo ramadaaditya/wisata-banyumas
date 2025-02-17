@@ -1,5 +1,6 @@
 [versions]
 agp = "8.7.2"
+edgeToEdgePreview = "0.3.0"
 roomRuntime = "2.6.1"
 roomCompiler = "2.6.1"
 splash = "1.0.1"
@@ -28,6 +29,7 @@ playServicesAuth = "21.3.0"
 runtimeLivedata = "1.7.6"
 pagingComposeAndroid = "3.3.5"
 transportRuntime = "4.0.0"
+uiTextGoogleFonts = "1.7.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,6 +42,7 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+edge-to-edge-preview = { module = "de.drick.compose:edge-to-edge-preview", version.ref = "edgeToEdgePreview" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 core-splashscreen = {group = "androidx.core", name="core-splashscreen", version.ref="splash"}
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
@@ -70,6 +73,7 @@ androidx-paging-common-android = { group = "androidx.paging", name = "paging-com
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 androidx-paging-compose-android = { group = "androidx.paging", name = "paging-compose-android", version.ref = "pagingComposeAndroid" }
 transport-runtime = { group = "com.google.android.datatransport", name = "transport-runtime", version.ref = "transportRuntime" }
+androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

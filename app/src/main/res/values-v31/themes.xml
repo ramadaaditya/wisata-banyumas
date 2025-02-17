@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.SplashScreenApp" parent="Theme.SplashScreen">
+        <!-- Untuk Android 12+ -->
+        <item name="postSplashScreenTheme">@style/Theme.WisataBanyumas</item>
+        <item name="android:windowSplashScreenBackground">@color/primary</item>
+        <item name="android:windowSplashScreenAnimationDuration">1500</item>
+    </style>
+</resources>
