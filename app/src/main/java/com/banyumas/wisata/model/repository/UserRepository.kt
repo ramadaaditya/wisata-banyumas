@@ -2,16 +2,23 @@ package com.banyumas.wisata.model.repository
 
 import android.util.Log
 import com.banyumas.wisata.model.User
+import com.banyumas.wisata.utils.UiState
+import com.banyumas.wisata.utils.isValidEmail
+import com.banyumas.wisata.utils.isValidPassword
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.delay
+import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class UserRepository @Inject constructor(
-    private val firebaseAuth: FirebaseAuth,
+    private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
 
     ) {
@@ -24,136 +31,110 @@ class UserRepository @Inject constructor(
         email: String,
         password: String,
         name: String,
-    ): User {
+    ): UiState<User> {
+        if (!isValidEmail(email)) {
+            return UiState.Error("Email tidak valid, periksa kembali email anda")
+        }
+        if (!isValidPassword(password)) {
+            return UiState.Error("Password terlalu lemah. Gunakan kombinasi huruf dan angka dan panjang 6 karakter")
+        }
         return try {
-            // Create a user in Firebase Authentication
-            val authResult = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
-            val firebaseUser = authResult.user
-                ?: throw IllegalStateException("Firebase user is null after registration")
-
-            // Create a new User object
+            auth.createUserWithEmailAndPassword(email, password).await()
+            val firebaseUser = auth.currentUser ?: throw Exception("Failed Load User Account")
             val newUser = User(
                 id = firebaseUser.uid,
                 name = name,
                 email = email,
                 hashedPassword = password,
             )
-
-            // Save the user data to Firestore
-            addUserToFireStore(newUser)
+            firestore.collection(USERS_COLLECTION).document(newUser.id).set(newUser).await()
+            firebaseUser.sendEmailVerification().await()
             Log.d(TAG, "registerUser: User registered successfully")
-            newUser
+            UiState.Success(newUser)
         } catch (e: Exception) {
-            Log.e(TAG, "registerUser: Error during registration - ${e.message}", e)
-            throw e // Reth
+            val exceptionMessage = when (e) {
+                is FirebaseAuthWeakPasswordException -> "Tidak ada koneksi internet. Periksa jaringan anda dan coba lagi."
+                is FirebaseAuthUserCollisionException -> "Email sudah digunakan, Silahkan gunakan email lain."
+                is FirebaseAuthInvalidCredentialsException -> "Email tidak valid, Periksa kembali email anda."
+                is FirebaseNetworkException -> "Tidak ada koneksi internet. Periksa jaringan anda dan coba lagi."
+                else -> e.localizedMessage ?: "Terjadi kesalahan, coba lagi nanti"
+            }
+            UiState.Error(exceptionMessage)
         }
     }
 
-    suspend fun loginUser(email: String, password: String): FirebaseUser {
+    suspend fun loginUser(email: String, password: String): UiState<FirebaseUser> {
         return try {
-            Log.d(TAG, "loginUser: Attempting login for email: $email")
-            val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
-            val firebaseUser = result.user
-                ?: throw IllegalStateException("FirebaseUser is null after login")
-
-            // 🔥 Pastikan Firebase telah memperbarui currentUser
-            var isUserUpdated = false
-            repeat(5) { // Retry hingga 5 kali
-                if (firebaseAuth.currentUser?.uid == firebaseUser.uid) {
-                    isUserUpdated = true
-                    return@repeat
-                }
-                Log.w(TAG, "loginUser: firebaseAuth.currentUser belum diperbarui, mencoba ulang...")
-                delay(500) // Tunggu 500ms sebelum mencoba lagi
+            val firebaseUser = auth.currentUser ?: throw Exception("Failed Load User Account")
+            if (firebaseUser.isEmailVerified) {
+                auth.signInWithEmailAndPassword(email, password).await()
             }
-
-            // 🔥 Jika masih gagal, lempar error
-            if (!isUserUpdated) {
-                throw IllegalStateException("firebaseAuth.currentUser tidak diperbarui setelah login")
-            }
-
-            Log.d(TAG, "loginUser: Successfully logged in user with UID: ${firebaseUser.uid}")
-            firebaseUser
+            UiState.Success(firebaseUser)
         } catch (e: Exception) {
-            Log.e(TAG, "loginUser: Error during login - ${e.message}", e)
-            throw e
-        }
-    }
-
-
-    private suspend fun addUserToFireStore(user: User) {
-        try {
-            Log.d(TAG, "Adding user to Firestore: ${user.id}")
-            firestore.collection(USERS_COLLECTION).document(user.id).set(user).await()
-            Log.d(TAG, "User successfully added to Firestore")
-        } catch (e: Exception) {
-            Log.e(TAG, "addUserToFireStore: ${e.message}", e)
-            throw e
-        }
-    }
-
-    suspend fun sendEmailVerification(): Boolean {
-        val user = firebaseAuth.currentUser
-        return if (user != null) {
-            try {
-                user.sendEmailVerification().await()
-                Log.d(TAG, "sendEmailVerification: success")
-                true
-            } catch (e: Exception) {
-                Log.e(TAG, "sendEmailVerification: failure", e)
-                false
+            val exceptionMessage = when (e) {
+                is FirebaseAuthInvalidCredentialsException -> "Email tidak valid, Periksa kembali email anda."
+                is FirebaseNetworkException -> "Tidak ada koneksi internet. Periksa jaringan anda dan coba lagi."
+                else -> e.localizedMessage ?: "Terjadi kesalahan, coba lagi nanti"
             }
-        } else {
-            Log.w(TAG, "sendEmailVerification: User not logged in")
-            false
+            UiState.Error(exceptionMessage)
         }
     }
 
-    fun logoutUser() {
-        firebaseAuth.signOut()
+    fun logoutUser(): UiState<Unit> {
+        return try {
+            auth.signOut()
+            UiState.Empty
+        } catch (e: Exception) {
+            UiState.Error("Logout failed : ${e.localizedMessage}")
+        }
     }
 
     suspend fun getUserById(userId: String): User {
-        try {
-            if (userId.isBlank()) {
-                throw IllegalArgumentException("User ID is invalid")
-            }
-
-            Log.d(TAG, "Fetching user data for userId: $userId")
+        if (userId.isBlank()) {
+            throw IllegalArgumentException("User ID cannot be empty or blank.")
+        }
+        return try {
             val document = firestore.collection(USERS_COLLECTION).document(userId).get().await()
             val user = document.toObject(User::class.java)
-                ?: throw IllegalStateException("User data not found for userId: $userId")
-
-            Log.d(TAG, "User data fetched successfully for userId: $userId")
-            return user
+                ?: throw Exception("Failed to map Firestore document to User Object.")
+            Log.d(TAG, "getUserById: $user")
+            user
+        } catch (e: FirebaseFirestoreException) {
+            throw Exception("Failed to fetch user data from Firestore: ${e.localizedMessage}")
         } catch (e: Exception) {
-            Log.e(TAG, "getUserById failed for userId: $userId, error: ${e.message}", e)
-            throw Exception("Failed to fetch user data: ${e.message}", e)
+            throw Exception("An error occured : ${e.localizedMessage}")
         }
     }
 
     fun getCurrentUserId(): String? {
-        val currentUser = firebaseAuth.currentUser
-        if (currentUser == null) {
-            Log.d("FirebaseUserRepository", "GetCurrentUserId : Tidak ada user yang sedang login.")
-            return null
-        }
-        Log.d(TAG, "getCurrentUserId: User saat ini - UID: ${currentUser.uid}")
-        return currentUser.uid
+        return auth.currentUser?.uid
     }
 
-    suspend fun resetPassword(email: String): Boolean {
+    suspend fun resetPassword(email: String): UiState<Boolean> {
+        if (!isValidEmail(email)) {
+            return UiState.Error("Email tidak valid, periksa kembali email anda")
+        }
         return try {
-            firebaseAuth.sendPasswordResetEmail(email).await()
-            Log.d(TAG, "resetPassword: Password reset email sent successfully to $email")
-            true
-        } catch (e: FirebaseAuthInvalidUserException) {
-            Log.e(TAG, "resetPassword: Failed to send password reset email - ${e.message}", e)
-            false
+            auth.sendPasswordResetEmail(email).await()
+            UiState.Success(true)
         } catch (e: Exception) {
-            Log.e(TAG, "resetPassword: Gagal mengirim reset password - ${e.message}", e)
+            val exceptionMessage = when (e) {
+                is FirebaseNetworkException -> ""
+                is FirebaseAuthInvalidUserException -> ""
+                else -> e.localizedMessage ?: "Terjadi kesalahan. Silahkan coba lagi nanti"
+            }
+            UiState.Error(exceptionMessage)
+        }
+    }
+
+    suspend fun deleteAccount() {
+        try {
+            val user = auth.currentUser ?: throw Exception("User not found")
+            user.delete().await()
+            Log.d(TAG, "deleteAccount: User Account deleted")
+        } catch (e: Exception) {
+            Log.d(TAG, "deleteAccount: Error deleting account")
             throw e
         }
     }
-
 }

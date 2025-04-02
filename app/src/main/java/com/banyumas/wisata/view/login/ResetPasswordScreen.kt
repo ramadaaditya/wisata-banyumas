@@ -68,7 +68,7 @@ fun ResetPasswordScreen(
     ResetPasswordContent(
         email = email,
         onResetClick = {
-            viewModel.requestPasswordReset(email)
+            viewModel.resetPassword(email)
         },
         onSignInClick = onSignInClick,
         onEmailChange = { email = it },
