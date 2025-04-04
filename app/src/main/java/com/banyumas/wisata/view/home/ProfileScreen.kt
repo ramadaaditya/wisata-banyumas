@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.User
+import com.banyumas.wisata.utils.EmptyState
 import com.banyumas.wisata.utils.ErrorState
 import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
@@ -44,35 +46,30 @@ import com.banyumas.wisata.viewmodel.UserViewModel
 fun ProfileScreen(
     viewModel: UserViewModel = hiltViewModel(),
     onLogout: () -> Unit,
+    onDelete: () -> Unit
 ) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
-
     LaunchedEffect(authState) {
-        if (authState is UiState.Empty) {
+        if (authState == UiState.Empty) {
             onLogout()
         }
     }
     when (val state = authState) {
-        is UiState.Loading -> {
-            LoadingState()
-        }
-
-        is UiState.Error -> {
-            ErrorState("Terjadi kesalahan : ${state.message}")
-        }
-
-        is UiState.Empty -> {}
-
+        is UiState.Loading -> LoadingState()
+        is UiState.Error -> ErrorState("Terjadi kesalahan : ${state.message}")
         is UiState.Success -> {
             val user = state.data
             ProfileContent(
                 user = user,
-                onLogout = {
-                    viewModel.logout()
-                    onLogout()
-                },
+                onLogout = { viewModel.logout() },
+                onDeleteClick = {
+                    viewModel.deleteAccount()
+                    onDelete()
+                }
             )
         }
+
+        is UiState.Empty -> EmptyState()
     }
 }
 
@@ -80,8 +77,10 @@ fun ProfileScreen(
 fun ProfileContent(
     user: User,
     onLogout: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -91,7 +90,17 @@ fun ProfileContent(
         ProfileItem(icon = Icons.Default.Person, title = user.name)
         Spacer(modifier = Modifier.height(16.dp))
         ProfileItem(icon = Icons.Default.Email, title = user.email)
+        Spacer(modifier = Modifier.height(16.dp))
 
+        CustomButton(
+            text = "Delete Account",
+            onClick = { showDeleteDialog = true },
+            isCancel = true,
+            iconContentDescription = "Logout",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        )
         Spacer(modifier = Modifier.weight(1f))
 
         CustomButton(
@@ -100,7 +109,6 @@ fun ProfileContent(
             isCancel = true,
             icon = Icons.AutoMirrored.Filled.ExitToApp,
             iconContentDescription = "Logout",
-            border = null,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -123,6 +131,28 @@ fun ProfileContent(
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Batal")
+                }
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Konfirmasi Hapus Akun") },
+            text = { Text("Apakah Anda yakin ingin menghapus akun?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDeleteClick()
+                    }) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Batal")
                 }
             }
@@ -152,18 +182,17 @@ fun ProfileItem(icon: ImageVector, title: String) {
     }
 }
 
-@Preview(
-    showBackground = true
-)
+@Preview(showBackground = true)
 @Composable
 fun ProfileContentPreview() {
-    AppTheme {
+    AppTheme(darkTheme = false, dynamicColor = false) {
         ProfileContent(
             user = User(
                 name = "Ramados",
                 email = "Ramados24@gmail.com"
             ),
             onLogout = {},
+            onDeleteClick = {}
         )
     }
 }

@@ -24,8 +24,8 @@ fun LoadingState(modifier: Modifier = Modifier) {
 
 @Composable
 fun EmptyState(
-    message: String = "Data Kosong",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    message: String = "Data Kosong"
 ) {
     Column(
         modifier = modifier.fillMaxSize(),

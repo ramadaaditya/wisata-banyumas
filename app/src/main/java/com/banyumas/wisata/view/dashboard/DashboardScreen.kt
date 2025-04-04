@@ -1,5 +1,6 @@
 package com.banyumas.wisata.view.dashboard
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,7 +24,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.model.User
+import com.banyumas.wisata.utils.EmptyState
+import com.banyumas.wisata.utils.ErrorState
+import com.banyumas.wisata.utils.LoadingState
+import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.AddIcon
 import com.banyumas.wisata.view.components.CategoryRow
 import com.banyumas.wisata.view.components.ConfirmationDialog
@@ -31,10 +35,6 @@ import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.view.components.LogoutIcon
 import com.banyumas.wisata.view.components.Search
 import com.banyumas.wisata.view.theme.AppTheme
-import com.banyumas.wisata.utils.EmptyState
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
-import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
@@ -53,22 +53,29 @@ fun DashboardScreen(
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var selectedDestinationId by rememberSaveable { mutableStateOf<String?>(null) }
 
+    Log.d("DASHBOARD", "DashboardScreen: Auth state $authState")
+
     LaunchedEffect(authState) {
-        when (authState) {
+        when (val state = authState) {
             is UiState.Success -> {
-                val currentUser = (authState as UiState.Success<User>).data
+                val currentUser = state.data
                 viewModel.loadDestinations(currentUser.id)
             }
 
-            is UiState.Empty -> onLogout()
+            is UiState.Empty -> {
+                Log.d("DASHBOARD", "DashboardScreen: user logout, navigating to login screen")
+                onLogout()
+            }
+
             else -> {}
+
         }
     }
 
-    when (uiState) {
+    when (val state = uiState) {
         is UiState.Loading -> LoadingState()
         is UiState.Success -> {
-            val destinations = (uiState as UiState.Success<List<UiDestination>>).data
+            val destinations = state.data
             if (destinations.isNotEmpty()) {
                 DashboardContent(
                     destinations = destinations,
@@ -88,12 +95,12 @@ fun DashboardScreen(
                     onAddClick = onAddClick
                 )
             } else {
-                EmptyState("Tidak Ada Destinasi yang cocok dengan pencarian")
+                EmptyState(message = "Tidak Ada Destinasi yang cocok dengan pencarian")
             }
         }
 
         is UiState.Error -> ErrorState(message = (uiState as UiState.Error).message)
-        UiState.Empty -> EmptyState()
+        is UiState.Empty -> EmptyState()
     }
 
 

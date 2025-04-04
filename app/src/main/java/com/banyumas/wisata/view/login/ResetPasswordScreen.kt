@@ -26,11 +26,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.BackIcon
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.theme.AppTheme
-import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
@@ -40,7 +40,7 @@ fun ResetPasswordScreen(
 ) {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
-    val resetPasswordState by viewModel.resetPasswordState.collectAsStateWithLifecycle()
+    val resetPasswordState by viewModel.authState.collectAsStateWithLifecycle()
     var isLoading by remember { mutableStateOf(false) }
 
     val isValidEmail = remember(email) {

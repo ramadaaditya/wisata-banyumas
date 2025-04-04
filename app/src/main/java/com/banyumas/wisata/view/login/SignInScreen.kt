@@ -1,6 +1,5 @@
 package com.banyumas.wisata.view.login
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,11 +27,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.banyumas.wisata.model.Role
+import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.components.PasswordInputField
 import com.banyumas.wisata.view.theme.AppTheme
-import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
@@ -47,13 +46,12 @@ fun LoginScreen(
     val authState by viewModel.authState.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val isLoading = authState is UiState.Loading
 
     LaunchedEffect(authState) {
         when (val state = authState) {
             is UiState.Success -> {
                 val currentRole = state.data.role
-                Log.d("LoginScreen", "Login berhasil: ${state.data.name}, Role: $currentRole")
-
                 if (currentRole == Role.ADMIN) {
                     navigateToDashboard()
                 } else {
@@ -62,7 +60,8 @@ fun LoginScreen(
             }
 
             is UiState.Error -> {
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Login Gagal: $state", Toast.LENGTH_SHORT)
+                    .show()
             }
 
             else -> {}
@@ -75,9 +74,9 @@ fun LoginScreen(
         onEmailChange = { email = it },
         onPasswordChange = { password = it },
         onSignInClick = { viewModel.loginUser(email, password) },
-        isLoading = authState is UiState.Loading,
         onSignupClick = onSignupClick,
-        onForgotPasswordClick = onForgotPasswordClick
+        onForgotPasswordClick = onForgotPasswordClick,
+        isLoading = isLoading
     )
 }
 
@@ -136,7 +135,6 @@ fun LoginContent(
             enabled = email.isNotBlank() && password.isNotBlank() && !isLoading,
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(24.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -151,7 +149,7 @@ fun LoginContent(
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 private fun LoginContentPreview() {
-    AppTheme {
+    AppTheme(dynamicColor = false, darkTheme = false) {
         LoginContent(
             onPasswordChange = {},
             onForgotPasswordClick = {},
