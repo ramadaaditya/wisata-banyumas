@@ -8,7 +8,7 @@
     <string name="placeholder_search">Cari Destinasi</string>
     <string name="location_Baturraden">Baturraden</string>
 
-
+    <!--    User Auth Message-->
     <string name="error_register">Gagal registrasi</string>
     <string name="error_login">Gagal login</string>
     <string name="error_user_not_found">Pengguna tidak ditemukan. Silakan login terlebih dahulu.</string>
@@ -32,5 +32,24 @@
     <string name="error_email_not_registered">Email tidak terdaftar. Periksa kembali email Anda.</string>
     <string name="error_account_not_found">Akun tidak ditemukan.</string>
 
+    <!--    Destination Message-->
+
+    <string name="error_user_id_empty">User ID kosong</string>
+    <string name="error_load_destination">Gagal memuat destinasi</string>
+    <string name="error_delete_destination">Gagal menghapus destinasi</string>
+    <string name="success_save_destination">Berhasil menyimpan destinasi!</string>
+    <string name="error_save_destination">Gagal menyimpan destinasi</string>
+    <string name="success_update_destination">Destinasi berhasil diperbarui!</string>
+    <string name="error_update_destination">Gagal memperbarui destinasi</string>
+    <string name="error_fetch_destination">Gagal mengambil destinasi</string>
+    <string name="error_search_destination">Gagal mencari destinasi</string>
+    <string name="error_fetch_place_detail">Gagal mengambil detail wisata</string>
+    <string name="success_add_review">Berhasil menambahkan review!</string>
+    <string name="error_add_review">Gagal menambahkan review</string>
+
+    <!--    Favorite Destinations-->
+    <string name="error_load_favorite">Failed to load favorite destinations</string>
+    <string name="error_toggle_favorite">Failed to load favorite destinations</string>
+    <string name="error_upload_data">Error upload data</string>
 
 </resources>

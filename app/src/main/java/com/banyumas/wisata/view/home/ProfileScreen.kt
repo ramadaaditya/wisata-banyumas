@@ -56,7 +56,7 @@ fun ProfileScreen(
     }
     when (val state = authState) {
         is UiState.Loading -> LoadingState()
-        is UiState.Error -> ErrorState("Terjadi kesalahan : ${state.message}")
+        is UiState.Error -> ErrorState(state.message)
         is UiState.Success -> {
             val user = state.data
             ProfileContent(

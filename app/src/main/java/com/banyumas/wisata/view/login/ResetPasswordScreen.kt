@@ -41,7 +41,7 @@ fun ResetPasswordScreen(
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     val resetPasswordState by viewModel.authState.collectAsStateWithLifecycle()
-    var isLoading by remember { mutableStateOf(false) }
+    var isLoading = resetPasswordState is UiState.Loading
 
     val isValidEmail = remember(email) {
         Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -57,8 +57,6 @@ fun ResetPasswordScreen(
             }
 
             is UiState.Error -> {
-                isLoading = false
-                Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
             }
 
             else -> Unit
@@ -72,8 +70,8 @@ fun ResetPasswordScreen(
         },
         onSignInClick = onSignInClick,
         onEmailChange = { email = it },
-        isValidEmail = isValidEmail,
-        isLoading = isLoading
+        isLoading = isLoading,
+        isValidEmail = isValidEmail
     )
 }
 

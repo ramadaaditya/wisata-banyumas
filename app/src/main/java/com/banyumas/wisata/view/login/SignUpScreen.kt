@@ -26,13 +26,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.BackIcon
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.components.PasswordInputField
 import com.banyumas.wisata.view.components.UsernameInputField
 import com.banyumas.wisata.view.theme.AppTheme
-import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
@@ -41,12 +41,11 @@ fun RegisterScreen(
     viewModel: UserViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val authState by viewModel.authState.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
-    val authState by viewModel.authState.collectAsState()
-    var hasAttemptedSignup by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
+    val isLoading = authState is UiState.Loading
 
     LaunchedEffect(authState) {
         when (val state = authState) {
@@ -59,23 +58,14 @@ fun RegisterScreen(
             }
 
             is UiState.Error -> {
-                if (hasAttemptedSignup) {
-                    isLoading = false
-                    Toast.makeText(
-                        context,
-                        "Registrasi gagal: ${state.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                Toast.makeText(
+                    context,
+                    "Registrasi gagal: ${state.message.asString(context)}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
 
-            is UiState.Empty -> {
-                isLoading = false
-            }
-
-            is UiState.Loading -> {
-                isLoading = true
-            }
+            else -> Unit
         }
     }
 
@@ -84,16 +74,16 @@ fun RegisterScreen(
         password = password,
         username = username,
         onEmailChange = { email = it },
-        isLoading = isLoading,
         onPasswordChange = { password = it },
         onUsernameChange = { username = it },
         onSignInClick = onSignInClick,
+        isLoading = isLoading,
         onSignUpClick = {
-            hasAttemptedSignup = true
             viewModel.registerUser(email, password, username)
         },
     )
 }
+
 
 @Composable
 private fun RegisterContent(
@@ -107,7 +97,6 @@ private fun RegisterContent(
     onSignInClick: () -> Unit,
     isLoading: Boolean
 ) {
-
     Box {
         BackIcon(
             modifier = Modifier
@@ -177,5 +166,4 @@ fun SignupScreenPreview() {
             isLoading = false
         )
     }
-
 }

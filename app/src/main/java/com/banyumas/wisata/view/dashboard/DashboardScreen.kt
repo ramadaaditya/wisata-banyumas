@@ -1,6 +1,5 @@
 package com.banyumas.wisata.view.dashboard
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -53,8 +53,6 @@ fun DashboardScreen(
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var selectedDestinationId by rememberSaveable { mutableStateOf<String?>(null) }
 
-    Log.d("DASHBOARD", "DashboardScreen: Auth state $authState")
-
     LaunchedEffect(authState) {
         when (val state = authState) {
             is UiState.Success -> {
@@ -63,7 +61,6 @@ fun DashboardScreen(
             }
 
             is UiState.Empty -> {
-                Log.d("DASHBOARD", "DashboardScreen: user logout, navigating to login screen")
                 onLogout()
             }
 
@@ -71,7 +68,6 @@ fun DashboardScreen(
 
         }
     }
-
     when (val state = uiState) {
         is UiState.Loading -> LoadingState()
         is UiState.Success -> {
@@ -99,7 +95,7 @@ fun DashboardScreen(
             }
         }
 
-        is UiState.Error -> ErrorState(message = (uiState as UiState.Error).message)
+        is UiState.Error -> ErrorState(message = state.message)
         is UiState.Empty -> EmptyState()
     }
 

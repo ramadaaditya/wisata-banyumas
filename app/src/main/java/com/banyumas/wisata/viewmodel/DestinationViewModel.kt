@@ -5,12 +5,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.banyumas.wisata.BuildConfig
+import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.Photo
 import com.banyumas.wisata.model.Review
 import com.banyumas.wisata.model.UiDestination
 import com.banyumas.wisata.model.repository.DestinationRepository
 import com.banyumas.wisata.utils.UiState
+import com.banyumas.wisata.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,8 +43,8 @@ class DestinationViewModel @Inject constructor(
 
     fun loadDestinations(userId: String) {
         if (userId.isBlank()) {
-            Log.w("DestinationViewModel", "UserId kosong, tidak bisa load destinasi")
-            _uiDestinations.value = UiState.Error("User ID is Empty")
+            _uiDestinations.value =
+                UiState.Error(UiText.StringResource(R.string.error_user_id_empty))
             return
         }
         _uiDestinations.value = UiState.Loading
@@ -53,7 +55,8 @@ class DestinationViewModel @Inject constructor(
                 _uiDestinations.value =
                     if (destinations.isEmpty()) UiState.Empty else UiState.Success(destinations)
             } catch (e: Exception) {
-                _uiDestinations.value = UiState.Error("Gagal memuat destinasi: ${e.message}")
+                _uiDestinations.value =
+                    UiState.Error(UiText.StringResource(R.string.error_load_destination), e)
             }
         }
     }
@@ -67,7 +70,8 @@ class DestinationViewModel @Inject constructor(
                 _uiDestinations.value = UiState.Success(allDestinations)
                 _eventFlow.emit(DestinationEvent.Success)
             } catch (e: Exception) {
-                _uiDestinations.value = UiState.Error("Gagal menghapus destinasi", e)
+                _uiDestinations.value =
+                    UiState.Error(UiText.StringResource(R.string.error_delete_destination), e)
             }
         }
     }
@@ -103,7 +107,8 @@ class DestinationViewModel @Inject constructor(
                 _eventFlow.emit(DestinationEvent.Success)
                 _eventFlow.emit(DestinationEvent.ShowMessage("Berhasil menyimpan destinasi !"))
             } catch (e: Exception) {
-                _uiDestinations.value = UiState.Error("Gagal menyimpan destinasi", e)
+                _uiDestinations.value =
+                    UiState.Error(UiText.StringResource(R.string.error_save_destination), e)
             }
         }
     }
@@ -146,7 +151,8 @@ class DestinationViewModel @Inject constructor(
                 _eventFlow.emit(DestinationEvent.Success)
                 _eventFlow.emit(DestinationEvent.ShowMessage("Destinasi berhasil diperbarui!"))
             } catch (e: Exception) {
-                _uiDestinations.value = UiState.Error("Gagal memperbarui destinasi", e)
+                _uiDestinations.value =
+                    UiState.Error(UiText.StringResource(R.string.error_update_destination), e)
             }
         }
     }
@@ -164,11 +170,8 @@ class DestinationViewModel @Inject constructor(
                     Log.w("DestinationViewModel", "Destination not found: $destinationId")
                 }
             } catch (e: Exception) {
-                _selectedDestination.value = UiState.Error(
-                    message = e.message ?: "Gagal mengambil destinasi",
-                    throwable = e
-                )
-                Log.e("DestinationViewModel", "Error fetching destination: ${e.message}", e)
+                _selectedDestination.value =
+                    UiState.Error(UiText.StringResource(R.string.error_fetch_destination), e)
             }
         }
     }
@@ -209,7 +212,8 @@ class DestinationViewModel @Inject constructor(
                 _uiDestinations.value = newState
 
             } catch (e: Exception) {
-                _uiDestinations.value = UiState.Error("Gagal mencari destinasi", e)
+                _uiDestinations.value =
+                    UiState.Error(UiText.StringResource(R.string.error_search_destination), e)
             }
         }
     }
@@ -228,10 +232,8 @@ class DestinationViewModel @Inject constructor(
                     _selectedDestination.value = UiState.Empty
                 }
             } catch (e: Exception) {
-                _selectedDestination.value = UiState.Error(
-                    message = "Gagal mengambil detail wisata: ${e.message}",
-                    throwable = e
-                )
+                _selectedDestination.value =
+                    UiState.Error(UiText.StringResource(R.string.error_fetch_place_detail), e)
             }
         }
     }

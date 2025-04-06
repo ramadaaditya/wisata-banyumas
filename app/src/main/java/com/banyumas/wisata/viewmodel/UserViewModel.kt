@@ -23,32 +23,29 @@ class UserViewModel @Inject constructor(
     private val _authState = MutableStateFlow<UiState<User>>(UiState.Empty)
     val authState: StateFlow<UiState<User>> = _authState
 
-    private val _statusState = MutableStateFlow<UiState<Unit>>(UiState.Empty)
-    val statusState: StateFlow<UiState<Unit>> = _statusState
-
     fun registerUser(email: String, password: String, name: String) {
         if (email.isBlank() || password.isBlank() || name.isBlank()) {
-            _statusState.value =
+            _authState.value =
                 UiState.Error(UiText.StringResource(R.string.error_fields_required))
             return
         }
 
         if (!isValidEmail(email)) {
-            _statusState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
+            _authState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
             return
         }
         if (!isValidPassword(password)) {
-            _statusState.value =
+            _authState.value =
                 UiState.Error(UiText.StringResource(R.string.error_invalid_password))
             return
         }
 
-        _statusState.value = UiState.Loading
+        _authState.value = UiState.Loading
         viewModelScope.launch {
             when (val result = repository.registerUser(email, password, name)) {
-                is UiState.Success -> _statusState.value = result
-                is UiState.Error -> _statusState.value = UiState.Error(result.message)
-                else -> _statusState.value =
+                is UiState.Success -> _authState.value = UiState.Empty
+                is UiState.Error -> _authState.value = UiState.Error(result.message)
+                else -> _authState.value =
                     UiState.Error(UiText.StringResource(R.string.error_else))
             }
         }
@@ -74,7 +71,6 @@ class UserViewModel @Inject constructor(
         }
     }
 
-
     fun loginUser(email: String, password: String) {
         if (!isValidEmail(email)) {
             _authState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
@@ -95,55 +91,46 @@ class UserViewModel @Inject constructor(
     }
 
     fun resetPassword(email: String) {
-        _statusState.value = UiState.Loading
+        _authState.value = UiState.Loading
         if (email.isBlank()) {
-            _statusState.value = UiState.Error(UiText.StringResource(R.string.error_email_empty))
+            _authState.value = UiState.Error(UiText.StringResource(R.string.error_email_empty))
             return
         }
         if (!isValidEmail(email)) {
-            _statusState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
+            _authState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
             return
         }
         viewModelScope.launch {
             when (val result = repository.resetPassword(email)) {
-                is UiState.Success -> _statusState.value = result
-                is UiState.Error -> _statusState.value = UiState.Error(result.message)
-                else -> _statusState.value =
+                is UiState.Success -> _authState.value = UiState.Empty
+                is UiState.Error -> _authState.value = UiState.Error(result.message)
+                else -> _authState.value =
                     UiState.Error(UiText.StringResource(R.string.error_else))
             }
         }
     }
 
     fun logout() {
-        _statusState.value = UiState.Loading
+        _authState.value = UiState.Loading
         viewModelScope.launch {
             when (val result = repository.logoutUser()) {
-                is UiState.Success -> _statusState.value = result
-                is UiState.Error -> _statusState.value = UiState.Error(result.message)
-                else -> _statusState.value =
+                is UiState.Success -> _authState.value = UiState.Empty
+                is UiState.Error -> _authState.value = UiState.Error(result.message)
+                else -> _authState.value =
                     UiState.Error(UiText.StringResource(R.string.error_else))
             }
         }
     }
 
     fun deleteAccount() {
-        _statusState.value = UiState.Loading
+        _authState.value = UiState.Loading
         viewModelScope.launch {
             when (val result = repository.deleteAccount()) {
-                is UiState.Success -> _statusState.value = result
-                is UiState.Error -> _statusState.value = UiState.Error(result.message)
-                else -> _statusState.value =
+                is UiState.Success -> _authState.value = UiState.Empty
+                is UiState.Error -> _authState.value = UiState.Error(result.message)
+                else -> _authState.value =
                     UiState.Error(UiText.StringResource(R.string.error_else))
             }
         }
     }
-
-    fun resetAuthState() {
-        _authState.value = UiState.Empty
-    }
-
-    fun resetStatusState() {
-        _statusState.value = UiState.Empty
-    }
-
 }
