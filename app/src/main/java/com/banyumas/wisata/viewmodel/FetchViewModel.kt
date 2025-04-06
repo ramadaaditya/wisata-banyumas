@@ -3,10 +3,11 @@ package com.banyumas.wisata.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
-import com.banyumas.wisata.model.Review
 import com.banyumas.wisata.model.repository.DestinationRepository
 import com.banyumas.wisata.utils.UiState
+import com.banyumas.wisata.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +40,8 @@ class FetchViewModel @Inject constructor(
                     UiState.Success(updatedDestinations)
                 }
             } catch (e: Exception) {
-                _destinations.value = UiState.Error(e.message ?: "Error uploading data")
+                _destinations.value =
+                    UiState.Error(UiText.StringResource(R.string.error_upload_data))
             }
         }
     }

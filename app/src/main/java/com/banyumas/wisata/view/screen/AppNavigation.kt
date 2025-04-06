@@ -19,6 +19,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.banyumas.wisata.model.Role
+import com.banyumas.wisata.utils.LoadingState
+import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.BottomNavigation
 import com.banyumas.wisata.view.dashboard.DashboardScreen
 import com.banyumas.wisata.view.detail.DetailScreen
@@ -31,8 +33,6 @@ import com.banyumas.wisata.view.login.ResetPasswordScreen
 import com.banyumas.wisata.view.navigation.Screen
 import com.banyumas.wisata.view.review.AddReviewScreen
 import com.banyumas.wisata.view.update.AddOrUpdateDestinationScreen
-import com.banyumas.wisata.utils.LoadingState
-import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
@@ -40,6 +40,8 @@ import com.banyumas.wisata.viewmodel.UserViewModel
 fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
+
+    //TODO Bungkus dengan AppTheme
     val userViewModel: UserViewModel = hiltViewModel()
     val destinationViewModel: DestinationViewModel = hiltViewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -205,6 +207,11 @@ fun AppNavigation(
                 ProfileScreen(
                     viewModel = userViewModel,
                     onLogout = {
+                        navController.navigate(Screen.LoginScreen.route) {
+                            popUpTo(0)
+                        }
+                    },
+                    onDelete = {
                         navController.navigate(Screen.LoginScreen.route) {
                             popUpTo(0)
                         }

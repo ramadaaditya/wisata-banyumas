@@ -2,9 +2,11 @@ package com.banyumas.wisata.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.repository.DestinationRepository
 import com.banyumas.wisata.utils.UiState
+import com.banyumas.wisata.utils.UiText
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,10 +31,8 @@ class FavoriteViewModel @Inject constructor(
                     UiState.Success(favoriteData)
                 }
             } catch (e: Exception) {
-                _favoriteDestination.value = UiState.Error(
-                    message = "Failed to load favorite destinations",
-                    throwable = e
-                )
+                _favoriteDestination.value =
+                    UiState.Error(UiText.StringResource(R.string.error_load_favorite), e)
             }
         }
     }
@@ -44,10 +44,8 @@ class FavoriteViewModel @Inject constructor(
                 repository.updateFavoriteDestinations(userId, destinationId, isFavorite)
                 loadFavoriteDestinations(userId) // Refresh data setelah berhasil diupdate
             } catch (e: Exception) {
-                _favoriteDestination.value = UiState.Error(
-                    message = "Failed to toggle favorite destination",
-                    throwable = e
-                )
+                _favoriteDestination.value =
+                    UiState.Error(UiText.StringResource(R.string.error_toggle_favorite), e)
             }
         }
     }

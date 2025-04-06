@@ -66,3 +66,4 @@ fun openGoogleMaps(context: Context, lat: Double?, long: Double?) {
     val mapIntent = Intent(Intent.ACTION_VIEW, uri)
     context.startActivity(mapIntent)
 }
+
