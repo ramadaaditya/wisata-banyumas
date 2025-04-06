@@ -1,9 +1,10 @@
 package com.banyumas.wisata.model.repository
 
-import android.util.Log
+import com.banyumas.wisata.R
 import com.banyumas.wisata.model.User
+import com.banyumas.wisata.utils.UiState
+import com.banyumas.wisata.utils.UiText
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -12,11 +13,15 @@ class UserRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
 ) {
+    companion object {
+        private const val USERS_COLLECTION = "Users"
+    }
 
-    suspend fun registerUser(email: String, password: String, name: String): Boolean {
+    suspend fun registerUser(email: String, password: String, name: String): UiState<Unit> {
         return try {
             auth.createUserWithEmailAndPassword(email, password).await()
-            val firebaseUser = auth.currentUser ?: throw Exception("Failed Load User Account")
+            val firebaseUser = auth.currentUser
+                ?: return UiState.Error(UiText.StringResource(R.string.error_load_user))
             val newUser = User(
                 id = firebaseUser.uid,
                 name = name,
@@ -25,86 +30,88 @@ class UserRepository @Inject constructor(
             )
             firestore.collection(USERS_COLLECTION).document(newUser.id).set(newUser).await()
             firebaseUser.sendEmailVerification().await()
-            true
+            UiState.Success(Unit)
         } catch (e: Exception) {
-            false
+            handleException(R.string.error_register, e)
         }
     }
 
-    suspend fun loginUser(email: String, password: String): FirebaseUser? {
+    suspend fun loginUser(email: String, password: String): UiState<User> {
         return try {
-            Log.d(TAG, "loginUser: Attempting login for email $email")
             val result = auth.signInWithEmailAndPassword(email, password).await()
-            result.user
-        } catch (e: Exception) {
-            Log.e(TAG, "loginUser: Login failed", e)
-            null
-        }
-    }
-
-    suspend fun getUserById(userId: String): User? {
-        return try {
-            val document = firestore.collection(USERS_COLLECTION).document(userId).get().await()
-            val user = document.toObject(User::class.java)
-            if (user == null) {
-                Log.e(TAG, "getUserById: ")
-                null
+            val firebaseUser = result.user
+            val userId = firebaseUser?.uid
+            if (userId.isNullOrBlank()) {
+                return UiState.Error(UiText.StringResource(R.string.error_user_not_found))
+            }
+            val documentSnapshot =
+                firestore.collection(USERS_COLLECTION)
+                    .document(userId)
+                    .get()
+                    .await()
+            val user = documentSnapshot.toObject(User::class.java)
+            if (user != null) {
+                UiState.Success(user)
             } else {
-                user
+                UiState.Error(UiText.StringResource(R.string.error_user_not_found))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "getUserById: Failed load user for $userId", e)
-            null
+            handleException(R.string.error_login, e)
         }
     }
 
-    fun getCurrentUserId(): String? {
-        return auth.currentUser?.uid
-    }
-
-    fun logoutUser(): Boolean {
+    suspend fun getCurrentUserId(): UiState<User?> {
         return try {
-            if (auth.currentUser != null) {
-                auth.signOut()
-                Log.d(TAG, "logoutUser: Logout Successfully")
-                true
-            } else {
-                false
+            val userId = auth.currentUser?.uid
+            if (userId.isNullOrBlank()) {
+                return UiState.Error(UiText.StringResource(R.string.error_user_not_found))
             }
+            val documentSnapshot =
+                firestore.collection(USERS_COLLECTION).document(userId).get().await()
+            val user = documentSnapshot.toObject(User::class.java)
+            UiState.Success(user)
         } catch (e: Exception) {
-            Log.e("LogoutError", "Gagal logout: ${e.message}")
-            false
+            handleException(R.string.error_get_user_id, e)
         }
     }
 
-    suspend fun resetPassword(email: String): Boolean {
+    fun logoutUser(): UiState<Unit> {
+        return try {
+            auth.signOut()
+            UiState.Success(Unit)
+        } catch (e: Exception) {
+            handleException(R.string.error_logout, e)
+        }
+    }
+
+    suspend fun resetPassword(email: String): UiState<Unit> {
         return try {
             auth.sendPasswordResetEmail(email).await()
-            true
+            UiState.Success(Unit)
         } catch (e: Exception) {
-            Log.e("ResetPassword", "Gagal mengirim email reset password: ${e.message}")
-            false
+            handleException(R.string.error_reset_password, e)
         }
     }
 
-    suspend fun deleteAccount(): Boolean {
+    suspend fun deleteAccount(): UiState<Unit> {
         return try {
-            if (auth.currentUser != null) {
-                val user = auth.currentUser ?: throw Exception("User not found")
+            val user = auth.currentUser
+            if (user != null) {
                 firestore.collection(USERS_COLLECTION).document(user.uid).delete().await()
                 user.delete().await()
-                Log.d(TAG, "deleteAccount: Deleted Account succeffully for $user")
-                true
+                UiState.Success(Unit)
             } else {
-                false
+                UiState.Error(UiText.StringResource(R.string.error_user_not_logged_in))
             }
         } catch (e: Exception) {
-            throw e
+            handleException(R.string.error_delete_account, e)
         }
     }
 
-    companion object {
-        private const val USERS_COLLECTION = "Users"
-        private const val TAG = "UserRepository"
+    private fun handleException(
+        @androidx.annotation.StringRes resId: Int,
+        throwable: Throwable? = null
+    ): UiState.Error {
+        return UiState.Error(UiText.StringResource(resId), throwable)
     }
 }

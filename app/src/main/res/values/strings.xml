@@ -7,4 +7,30 @@
     <string name="category_seni">Seni</string>
     <string name="placeholder_search">Cari Destinasi</string>
     <string name="location_Baturraden">Baturraden</string>
+
+
+    <string name="error_register">Gagal registrasi</string>
+    <string name="error_login">Gagal login</string>
+    <string name="error_user_not_found">Pengguna tidak ditemukan. Silakan login terlebih dahulu.</string>
+    <string name="error_get_user">Gagal mengambil data user</string>
+    <string name="error_get_user_id">Gagal mengambil ID pengguna</string>
+    <string name="error_logout">Terjadi kesalahan saat logout. Silakan coba lagi nanti.</string>
+    <string name="error_reset_password">Terjadi kesalahan saat mengirim email</string>
+    <string name="error_delete_account">Terjadi kesalahan saat menghapus akun</string>
+    <string name="error_user_not_logged_in">Pengguna belum login</string>
+    <string name="error_load_user">Gagal memuat akun pengguna</string>
+    <string name="error_else">Terjadi kesalahan, coba lagi nanti</string>
+    <string name="error_unknown">Terjadi kesalahan. Silakan coba lagi nanti.</string>
+    <string name="error_no_internet">Tidak ada koneksi internet. Periksa jaringan Anda dan coba lagi.</string>
+    <string name="error_email_exists">Email sudah terdaftar. Gunakan email lain atau login.</string>
+    <string name="error_invalid_email">Format email tidak valid. Silakan periksa kembali.</string>
+    <string name="error_invalid_password">Kata sandi harus minimal 6 karakter dan mengandung huruf serta angka.</string>
+    <string name="error_fields_required">Email, kata sandi, dan nama tidak boleh kosong.</string>
+    <string name="error_login_failed">Login gagal. Periksa kembali email dan kata sandi Anda.</string>
+    <string name="error_user_data_not_found">Data pengguna tidak ditemukan setelah login.</string>
+    <string name="error_email_empty">Email tidak boleh kosong.</string>
+    <string name="error_email_not_registered">Email tidak terdaftar. Periksa kembali email Anda.</string>
+    <string name="error_account_not_found">Akun tidak ditemukan.</string>
+
+
 </resources>
