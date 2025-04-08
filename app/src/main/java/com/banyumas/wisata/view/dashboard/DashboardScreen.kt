@@ -17,7 +17,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -117,7 +116,7 @@ fun DashboardScreen(
             title = "Konfirmasi Hapus",
             message = "Apakah Anda yakin ingin menghapus destinasi ini ?",
             onConfirm = {
-                selectedDestinationId?.let { viewModel.deleteDestination(it) }
+                selectedDestinationId?.let { viewModel.deleteDestinationById(it) }
                 showDeleteDialog = false
             },
             onDismiss = { showDeleteDialog = false }

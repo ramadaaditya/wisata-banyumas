@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Star
@@ -59,6 +58,8 @@ import com.banyumas.wisata.utils.openGoogleMaps
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
+
+//TODO Masih perlu penyesuaian berdasarkan viewmodel
 @Composable
 fun DetailScreen(
     destinationId: String?,
@@ -156,7 +157,7 @@ fun DetailContent(
             DetailSection(
                 name = destination.destination.name,
                 rating = destination.destination.rating,
-                reviewCount = destination.destination.reviewsFromGoogle.size +
+                reviewCount = destination.destination.reviews.size +
                         destination.destination.reviewsFromLocal.size,
                 address = destination.destination.address,
             )
@@ -180,7 +181,7 @@ fun DetailContent(
                 }
             }
             LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(destination.destination.reviewsFromGoogle + destination.destination.reviewsFromLocal) { review ->
+                items(destination.destination.reviews + destination.destination.reviewsFromLocal) { review ->
                     ReviewCard(review)
                 }
                 item {
@@ -283,7 +284,7 @@ private fun DetailContentPreview() {
                     destination = Destination(
                         name = "Curug Baturraden",
                         address = "Jl. Baturraden, Purwokerto Utara",
-                        reviewsFromGoogle = listOf(
+                        reviews = listOf(
                             Review(
                                 authorName = "John Doe",
                                 rating = 5,

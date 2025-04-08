@@ -52,4 +52,17 @@
     <string name="error_toggle_favorite">Failed to load favorite destinations</string>
     <string name="error_upload_data">Error upload data</string>
 
+
+    <!-- Destination Errors -->
+    <string name="error_fetch_place">Gagal mengambil data tempat</string>
+    <string name="error_save_place">Gagal menyimpan data tempat</string>
+    <string name="error_no_place_found">Tidak ditemukan tempat untuk nama tersebut</string>
+    <string name="error_fetch_favorites">Gagal mengambil destinasi favorit</string>
+    <string name="error_update_favorites">Gagal memperbarui favorit</string>
+    <string name="error_destination_not_found">Destinasi tidak ditemukan</string>
+    <string name="error_delete_place">Gagal menghapus destinasi</string>
+    <string name="error_update_place">Gagal memperbarui destinasi</string>
+    <string name="error_detail_place">Gagal memperbarui destinasi</string>
+
+
 </resources>

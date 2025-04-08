@@ -1,21 +1,22 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.banyumas.wisata.utils
 
 import android.content.Context
 import android.content.Intent
 import androidx.core.net.toUri
+import com.banyumas.wisata.BuildConfig
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
+import com.banyumas.wisata.model.Facility
 import com.banyumas.wisata.model.Photo
 import com.banyumas.wisata.model.Review
 import com.banyumas.wisata.model.api.DetailResponse
 import org.json.JSONObject
 
 fun getPlaceIdFromJson(context: Context): List<String> {
-    // Baca File Json dari res/raw
     val inputStream = context.resources.openRawResource(R.raw.place_ids)
     val json = inputStream.bufferedReader().use { it.readText() }
-
-    //Parsing JSON
     val jsonObject = JSONObject(json)
     val placeIds = mutableListOf<String>()
     val placeIdsArray = jsonObject.getJSONArray("place_ids")
@@ -25,7 +26,7 @@ fun getPlaceIdFromJson(context: Context): List<String> {
     return placeIds
 }
 
-fun DetailResponse.toDestination(placeId: String, apiKey: String): Destination {
+fun DetailResponse.toDestination(placeId: String): Destination {
     val result = this.result ?: return Destination()
 
     return Destination(
@@ -35,21 +36,18 @@ fun DetailResponse.toDestination(placeId: String, apiKey: String): Destination {
         latitude = result.geometry?.location?.lat,
         longitude = result.geometry?.location?.lng,
         rating = result.rating?.toFloat() ?: 0.0f,
-        reviewsFromGoogle = result.reviews?.map { review ->
+        reviews = result.reviews?.map { review ->
             Review(
                 authorName = review?.authorName.orEmpty(),
                 rating = review?.rating ?: 0,
                 text = review?.text.orEmpty(),
-                source = "google" // Tambahkan sumber review
             )
         } ?: emptyList(),
-        reviewsFromLocal = emptyList(), // Kosongkan karena review lokal hanya berasal dari aplikasi
         photos = result.photos?.map { photo ->
             Photo(
-                photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo?.photoReference}&key=$apiKey"
+                photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo?.photoReference}&key=${BuildConfig.ApiKey}"
             )
         } ?: emptyList(),
-        lastUpdated = System.currentTimeMillis() // Menandai waktu pembaruan
     )
 }
 
@@ -66,4 +64,23 @@ fun openGoogleMaps(context: Context, lat: Double?, long: Double?) {
     val mapIntent = Intent(Intent.ACTION_VIEW, uri)
     context.startActivity(mapIntent)
 }
+
+fun Destination.updateWithFields(fields: Map<String, Any>): Destination {
+    return this.copy(
+        name = fields["name"] as? String ?: name,
+        address = fields["address"] as? String ?: address,
+        category = fields["category"] as? String ?: category,
+        latitude = (fields["latitude"] as? Double) ?: latitude,
+        longitude = (fields["longitude"] as? Double) ?: longitude,
+        rating = (fields["rating"] as? Number)?.toFloat() ?: rating,
+        userRatingsTotal = (fields["userRatingsTotal"] as? Number)?.toInt() ?: userRatingsTotal,
+        photos = fields["photos"] as? List<Photo> ?: photos,
+        openingHours = fields["openingHours"] as? String ?: openingHours,
+        phoneNumber = fields["phoneNumber"] as? String ?: phoneNumber,
+        tags = fields["tags"] as? List<String> ?: tags,
+        reviews = fields["reviews"] as? List<Review> ?: reviews,
+        facilities = fields["facilities"] as? List<Facility> ?: facilities
+    )
+}
+
 

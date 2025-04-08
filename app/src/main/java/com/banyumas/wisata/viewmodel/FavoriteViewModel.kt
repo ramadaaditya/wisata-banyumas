@@ -41,7 +41,7 @@ class FavoriteViewModel @Inject constructor(
         viewModelScope.launch {
             _favoriteDestination.value = UiState.Loading
             try {
-                repository.updateFavoriteDestinations(userId, destinationId, isFavorite)
+                repository.updateFavoriteDestination(userId, destinationId, isFavorite)
                 loadFavoriteDestinations(userId) // Refresh data setelah berhasil diupdate
             } catch (e: Exception) {
                 _favoriteDestination.value =

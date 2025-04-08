@@ -133,7 +133,7 @@ fun AddOrUpdateDestinationScreen(
             val newDestination =
                 finalDestination.copy(id = finalDestination.id.ifBlank { generateNewId() })
 
-            viewModel.saveDestination(
+            viewModel.saveNewDestination(
                 destination = newDestination,
                 imageUris = selectedPhotos
             )

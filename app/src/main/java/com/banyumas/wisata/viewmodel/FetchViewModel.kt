@@ -32,7 +32,7 @@ class FetchViewModel @Inject constructor(
                     return@launch
                 }
                 val updatedDestinations = placeIds.map { placeId ->
-                    repository.savePlaceFromApi(placeId, apiKey)
+                    repository.fetchAndSaveDestination(placeId, apiKey)
                 }
                 _destinations.value = if (updatedDestinations.isEmpty()) {
                     UiState.Empty
