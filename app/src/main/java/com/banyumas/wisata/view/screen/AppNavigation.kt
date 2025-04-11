@@ -31,7 +31,6 @@ import com.banyumas.wisata.view.login.LoginScreen
 import com.banyumas.wisata.view.login.RegisterScreen
 import com.banyumas.wisata.view.login.ResetPasswordScreen
 import com.banyumas.wisata.view.navigation.Screen
-import com.banyumas.wisata.view.review.AddReviewScreen
 import com.banyumas.wisata.view.update.AddOrUpdateDestinationScreen
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
@@ -126,19 +125,6 @@ fun AppNavigation(
                     },
                     userViewModel = userViewModel,
                     destinationViewModel = destinationViewModel,
-                )
-            }
-
-            composable(
-                route = Screen.AddReviewScreen.ROUTE,
-                arguments = listOf(navArgument("destinationId") { type = NavType.StringType })
-            ) {
-                val destinationId = it.arguments?.getString("destinationId") ?: ""
-
-                AddReviewScreen(
-                    userViewModel = userViewModel,
-                    viewModel = destinationViewModel,
-                    destinationId = destinationId,
                 )
             }
 
@@ -246,7 +232,7 @@ fun AppNavigation(
                 if (destinationId.isNotEmpty()) {
                     LaunchedEffect(destinationId) {
                         Log.d("UpdateScreen", "Fetching destination data for ID: $destinationId")
-                        destinationViewModel.getDestinationById(
+                        destinationViewModel.getDetailDestination(
                             destinationId,
                             currentUser?.id.orEmpty()
                         )

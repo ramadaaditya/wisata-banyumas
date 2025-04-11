@@ -45,7 +45,7 @@ fun DashboardScreen(
     viewModel: DestinationViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiDestinations.collectAsStateWithLifecycle()
+    val uiState by viewModel.destinations.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
 
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
@@ -56,7 +56,7 @@ fun DashboardScreen(
         when (val state = authState) {
             is UiState.Success -> {
                 val currentUser = state.data
-                viewModel.loadDestinations(currentUser.id)
+                viewModel.getAllDestinations(currentUser.id)
             }
 
             is UiState.Empty -> {

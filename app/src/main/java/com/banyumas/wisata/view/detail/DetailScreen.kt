@@ -1,7 +1,6 @@
 package com.banyumas.wisata.view.detail
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Star
@@ -43,6 +43,11 @@ import com.banyumas.wisata.model.Photo
 import com.banyumas.wisata.model.Review
 import com.banyumas.wisata.model.Role
 import com.banyumas.wisata.model.UiDestination
+import com.banyumas.wisata.utils.EmptyState
+import com.banyumas.wisata.utils.ErrorState
+import com.banyumas.wisata.utils.LoadingState
+import com.banyumas.wisata.utils.UiState
+import com.banyumas.wisata.utils.openGoogleMaps
 import com.banyumas.wisata.view.components.BackIcon
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EditIcon
@@ -50,11 +55,6 @@ import com.banyumas.wisata.view.components.FavoriteIcon
 import com.banyumas.wisata.view.components.PhotoCarouselViewer
 import com.banyumas.wisata.view.components.ReviewCard
 import com.banyumas.wisata.view.theme.AppTheme
-import com.banyumas.wisata.utils.EmptyState
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.openGoogleMaps
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
@@ -71,16 +71,13 @@ fun DetailScreen(
 ) {
     val uiState by viewModel.selectedDestination.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
-
-    val context = LocalContext.current
     val currentUser = (authState as? UiState.Success)?.data
+    val context = LocalContext.current
     val isAdmin = remember { currentUser?.role == Role.ADMIN }
 
     LaunchedEffect(destinationId) {
-        if (destinationId.isNullOrBlank()) {
-            viewModel.logError("destinationId null atau kosong!")
-        } else {
-            viewModel.getDestinationById(destinationId, currentUser?.id.orEmpty())
+        if (!destinationId.isNullOrBlank()) {
+            viewModel.getDetailDestination(destinationId, currentUser?.id.orEmpty())
         }
     }
 
@@ -124,47 +121,62 @@ fun DetailContent(
     onAddCommentClick: (Destination) -> Unit,
     isAdmin: Boolean
 ) {
-    Column {
-        Box {
-            val firstPhotoUrl = destination.destination.photos.firstOrNull()?.photoUrl
-            DestinationImage(imageUrl = firstPhotoUrl)
-            BackIcon(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp),
-                onClick = onBackClick
-            )
-            if (isAdmin) {
-                EditIcon(
-                    onClick = {
-                        onEditClick(destination.destination)
-                    },
+    LazyColumn {
+        item {
+            Box {
+                val firstPhotoUrl = destination.destination.photos.firstOrNull()?.photoUrl
+                DestinationImage(imageUrl = firstPhotoUrl)
+                BackIcon(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                )
-            } else {
-                FavoriteIcon(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(Alignment.TopStart)
                         .padding(16.dp),
-                    onClick = { onFavoriteClick(destination) },
-                    isFavorite = destination.isFavorite
+                    onClick = onBackClick
+                )
+                if (isAdmin) {
+                    EditIcon(
+                        onClick = { onEditClick(destination.destination) },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                    )
+                } else {
+                    FavoriteIcon(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp),
+                        onClick = { onFavoriteClick(destination) },
+                        isFavorite = destination.isFavorite
+                    )
+                }
+            }
+        }
+
+        item {
+            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                DetailSection(
+                    name = destination.destination.name,
+                    rating = destination.destination.rating,
+                    reviewCount = destination.destination.reviews.size,
+                    address = destination.destination.address,
                 )
             }
         }
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            DetailSection(
-                name = destination.destination.name,
-                rating = destination.destination.rating,
-                reviewCount = destination.destination.reviews.size +
-                        destination.destination.reviewsFromLocal.size,
-                address = destination.destination.address,
-            )
-            if (destination.destination.photos.isNotEmpty()) {
-                PhotoCarouselViewer(photos = destination.destination.photos)
+
+        if (destination.destination.photos.size > 1) {
+            item {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    PhotoCarouselViewer(photos = destination.destination.photos)
+                }
             }
-            Row (verticalAlignment = Alignment.Top){
+        }
+
+        item {
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
                 Text(
                     text = "Ulasan",
                     style = MaterialTheme.typography.titleMedium,
@@ -172,34 +184,40 @@ fun DetailContent(
                 )
                 if (!isAdmin) {
                     CustomButton(
-                        onClick = {onAddCommentClick(destination.destination)},
+                        onClick = { onAddCommentClick(destination.destination) },
                         icon = Icons.Default.Add,
-                        text = "Add",
+                        text = "Tambah",
                         iconSize = Modifier.size(20.dp),
                         textStyle = MaterialTheme.typography.titleSmall,
                     )
                 }
             }
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(destination.destination.reviews + destination.destination.reviewsFromLocal) { review ->
-                    ReviewCard(review)
-                }
-                item {
-                    CustomButton(
-                        onClick = {
-                            onMapClick(
-                                destination.destination.latitude,
-                                destination.destination.longitude
-                            )
-                        },
-                        text = "Navigasi ke Lokasi",
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+        }
+
+        items(destination.destination.reviews) { review ->
+            ReviewCard(review = review)
+        }
+
+        // Navigasi hanya jika ada koordinat
+        if (destination.destination.latitude != null && destination.destination.longitude != null) {
+            item {
+                CustomButton(
+                    onClick = {
+                        onMapClick(
+                            destination.destination.latitude,
+                            destination.destination.longitude
+                        )
+                    },
+                    text = "Navigasi ke Lokasi",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
             }
         }
     }
 }
+
 
 @Composable
 fun DestinationImage(imageUrl: String?, modifier: Modifier = Modifier) {
@@ -289,15 +307,6 @@ private fun DetailContentPreview() {
                                 authorName = "John Doe",
                                 rating = 5,
                                 text = "Great place to visit!",
-                                source = "Google"
-                            )
-                        ),
-                        reviewsFromLocal = listOf(
-                            Review(
-                                authorName = "Jane Doe",
-                                rating = 4,
-                                text = "Nice place!",
-                                source = "local"
                             )
                         ),
                         rating = 4.5f,

@@ -72,12 +72,12 @@ class UserViewModel @Inject constructor(
     }
 
     fun loginUser(email: String, password: String) {
-        if (!isValidEmail(email)) {
-            _authState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
-            return
-        }
         if (email.isBlank() || password.isBlank()) {
             _authState.value = UiState.Error(UiText.StringResource(R.string.error_fields_required))
+            return
+        }
+        if (!isValidEmail(email)) {
+            _authState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
             return
         }
         _authState.value = UiState.Loading
@@ -91,7 +91,6 @@ class UserViewModel @Inject constructor(
     }
 
     fun resetPassword(email: String) {
-        _authState.value = UiState.Loading
         if (email.isBlank()) {
             _authState.value = UiState.Error(UiText.StringResource(R.string.error_email_empty))
             return
@@ -100,6 +99,7 @@ class UserViewModel @Inject constructor(
             _authState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
             return
         }
+        _authState.value = UiState.Loading
         viewModelScope.launch {
             when (val result = repository.resetPassword(email)) {
                 is UiState.Success -> _authState.value = UiState.Empty

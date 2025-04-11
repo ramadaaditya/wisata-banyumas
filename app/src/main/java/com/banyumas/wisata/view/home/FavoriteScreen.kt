@@ -13,18 +13,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.utils.EmptyState
 import com.banyumas.wisata.utils.ErrorState
 import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.viewmodel.FavoriteViewModel
+import com.banyumas.wisata.view.components.DestinationCard
+import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun FavoriteScreen(
     navigateToDetail: (Destination) -> Unit,
-    viewmodel: FavoriteViewModel = hiltViewModel(),
+    viewmodel: DestinationViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel(),
 ) {
     val favoriteState by viewmodel.favoriteDestination.collectAsStateWithLifecycle()

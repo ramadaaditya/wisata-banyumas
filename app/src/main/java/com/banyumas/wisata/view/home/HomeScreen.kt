@@ -44,7 +44,7 @@ fun rememberHomeScreenState(
     viewModel: DestinationViewModel,
     userViewModel: UserViewModel
 ): HomeScreenState {
-    val uiState by viewModel.uiDestinations.collectAsStateWithLifecycle()
+    val uiState by viewModel.destinations.collectAsStateWithLifecycle()
     var query by remember { mutableStateOf("") }
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
     val currentUser = (authState as? UiState.Success)?.data
@@ -53,7 +53,7 @@ fun rememberHomeScreenState(
 
     LaunchedEffect(currentUser) {
         currentUser?.let { user ->
-            viewModel.loadDestinations(user.id)
+            viewModel.getAllDestinations(user.id)
         }
     }
 

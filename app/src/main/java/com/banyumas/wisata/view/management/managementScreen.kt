@@ -40,7 +40,6 @@ fun ManageDestinationScreen(
     var name by rememberSaveable { mutableStateOf(selectedDestination?.name ?: "") }
     var address by rememberSaveable { mutableStateOf(selectedDestination?.address ?: "") }
     var category by rememberSaveable { mutableStateOf(selectedDestination?.category ?: "") }
-    var website by rememberSaveable { mutableStateOf(selectedDestination?.website ?: "") }
     var rating by rememberSaveable { mutableStateOf(selectedDestination?.rating?.toString() ?: "") }
     var tags by rememberSaveable {
         mutableStateOf(
@@ -89,13 +88,6 @@ fun ManageDestinationScreen(
         )
 
         OutlinedTextField(
-            value = website,
-            onValueChange = { website = it },
-            label = { Text("Website") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
             value = tags,
             onValueChange = { tags = it },
             label = { Text("Tags (pisahkan dengan koma)") },
@@ -114,7 +106,6 @@ fun ManageDestinationScreen(
                         address = address,
                         category = category,
                         rating = rating.toFloatOrNull() ?: 0f,
-                        website = website,
                         tags = tags.split(",").map { it.trim() }
                     )
                 )
@@ -191,7 +182,7 @@ fun ManageDestinationScreenPreview_Add() {
 fun ManageDestinationScreenPreview_Update() {
     val dummyImported = emptyList<Destination>()
 
-    AppTheme (dynamicColor = false){
+    AppTheme(dynamicColor = false) {
         ManageDestinationScreen(
             onBack = {},
             onSave = {},

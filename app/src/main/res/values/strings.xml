@@ -62,7 +62,8 @@
     <string name="error_destination_not_found">Destinasi tidak ditemukan</string>
     <string name="error_delete_place">Gagal menghapus destinasi</string>
     <string name="error_update_place">Gagal memperbarui destinasi</string>
-    <string name="error_detail_place">Gagal memperbarui destinasi</string>
+    <string name="error_detail_place">Gagal mendapatkan detail destinasi</string>
+    <string name="error_update_favorite">Gagal memperbarui favorit</string>
 
 
 </resources>
