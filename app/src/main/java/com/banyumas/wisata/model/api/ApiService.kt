@@ -8,7 +8,7 @@ interface ApiService {
     @GET("maps/api/place/details/json")
     suspend fun getDetailPlaces(
         @Query("place_id") placeId: String,
-        @Query("fields") fields: String = "name,rating,formatted_address,geometry,photos,reviews",
+        @Query("fields") fields: String = "name,rating,formatted_address,geometry,photos,reviews,business_status,opening_hours,types,user_ratings_total",
         @Query("language") language: String = "id",
         @Query("key") key: String = BuildConfig.ApiKey
     ): DetailResponse
@@ -18,7 +18,7 @@ interface ApiService {
         @Query("input") query: String,
         @Query("inputtype") inputType: String = "textquery",
         @Query("language") language: String = "id",
-        @Query("fields") fields: String = "place_id",
+        @Query("fields") fields: String = "place_id,name,formatted_address,business_status",
         @Query("key") key: String = BuildConfig.ApiKey
     ): SearchResponse
 }

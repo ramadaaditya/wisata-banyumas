@@ -23,7 +23,6 @@ data class Destination(
     val photos: List<Photo> = emptyList(),
     val openingHours: String? = null,
     val phoneNumber: String? = null,
-    val tags: List<String> = emptyList(),
     val reviews: List<Review> = emptyList(),
     val facilities: List<Facility> = emptyList()
 )

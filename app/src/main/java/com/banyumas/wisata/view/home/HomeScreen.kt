@@ -3,6 +3,7 @@ package com.banyumas.wisata.view.home
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,14 +26,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
 import com.banyumas.wisata.model.User
-import com.banyumas.wisata.view.components.CategoryRow
-import com.banyumas.wisata.view.components.DestinationCard
-import com.banyumas.wisata.view.components.Search
-import com.banyumas.wisata.view.theme.AppTheme
 import com.banyumas.wisata.utils.EmptyState
 import com.banyumas.wisata.utils.ErrorState
 import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
+import com.banyumas.wisata.view.components.CategoryRow
+import com.banyumas.wisata.view.components.DestinationCard
+import com.banyumas.wisata.view.components.Search
+import com.banyumas.wisata.view.theme.AppTheme
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 import de.drick.compose.edgetoedgepreviewlib.CameraCutoutMode
@@ -100,6 +101,7 @@ fun HomeScreen(
     navigateToDetail: (String) -> Unit,
     userViewModel: UserViewModel,
     destinationViewModel: DestinationViewModel,
+    innerPadding: PaddingValues
 ) {
     val state =
         rememberHomeScreenState(viewModel = destinationViewModel, userViewModel = userViewModel)
@@ -114,7 +116,8 @@ fun HomeScreen(
         onCategorySelected = state.onCategorySelected,
         selectedCategory = state.selectedCategory,
         categories = state.categories,
-        currentUser = state.currentUser
+        currentUser = state.currentUser,
+        innerPadding = innerPadding
     )
 }
 
@@ -129,22 +132,23 @@ fun HomeScreenContent(
     uiState: UiState<List<UiDestination>>,
     navigateToDetail: (String) -> Unit,
     onFavoriteClick: (UiDestination) -> Unit,
-    currentUser: User?
+    currentUser: User?,
+    innerPadding: PaddingValues
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = "Hai, ${currentUser?.name ?: "Pengguna"}!",
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.fillMaxWidth()
         )
         Text(
             text = "Temukan Keindahan Alam Banyumas!",
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.fillMaxWidth()
         )
         Search(
             query = query,
@@ -160,7 +164,8 @@ fun HomeScreenContent(
         )
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -223,15 +228,8 @@ fun PreviewHomeScreen() {
             )
         }
         val uiState = UiState.Success(sampleDestinations)
-        EdgeToEdgeTemplate(
-            navMode = NavigationMode.ThreeButton,
-            cameraCutoutMode = CameraCutoutMode.Middle,
-            showInsetsBorder = true,
-            isStatusBarVisible = true,
-            isNavigationBarVisible = true,
-            isInvertedOrientation = false
-        )
-        {
+
+
             HomeScreenContent(
                 modifier = Modifier.fillMaxSize(),
                 query = "",
@@ -244,9 +242,10 @@ fun PreviewHomeScreen() {
                 currentUser = User(
                     name = "Ramados"
                 ),
-                categories = listOf("All", "Alam", "Religi", "Sejarah", "Kuliner", "Keluarga")
+                categories = listOf("All", "Alam", "Religi", "Sejarah", "Kuliner", "Keluarga"),
+                innerPadding = PaddingValues()
             )
 
-        }
+
     }
 }

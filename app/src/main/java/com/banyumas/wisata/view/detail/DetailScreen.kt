@@ -59,7 +59,6 @@ import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 
-//TODO Masih perlu penyesuaian berdasarkan viewmodel
 @Composable
 fun DetailScreen(
     destinationId: String?,
@@ -73,7 +72,7 @@ fun DetailScreen(
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
     val currentUser = (authState as? UiState.Success)?.data
     val context = LocalContext.current
-    val isAdmin = remember { currentUser?.role == Role.ADMIN }
+    val isAdmin = remember(currentUser?.role) { currentUser?.role == Role.ADMIN }
 
     LaunchedEffect(destinationId) {
         if (!destinationId.isNullOrBlank()) {
@@ -90,9 +89,9 @@ fun DetailScreen(
                     openGoogleMaps(context, lat, long)
                 },
                 onFavoriteClick = { uiDestination ->
-                    currentUser?.let {
+                    currentUser?.id?.let {
                         viewModel.toggleFavorite(
-                            userId = currentUser.id,
+                            userId = it,
                             destinationId = uiDestination.destination.id,
                             isFavorite = !uiDestination.isFavorite
                         )
@@ -121,99 +120,67 @@ fun DetailContent(
     onAddCommentClick: (Destination) -> Unit,
     isAdmin: Boolean
 ) {
-    LazyColumn {
-        item {
-            Box {
-                val firstPhotoUrl = destination.destination.photos.firstOrNull()?.photoUrl
-                DestinationImage(imageUrl = firstPhotoUrl)
-                BackIcon(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(16.dp),
-                    onClick = onBackClick
-                )
-                if (isAdmin) {
-                    EditIcon(
-                        onClick = { onEditClick(destination.destination) },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp)
-                    )
-                } else {
-                    FavoriteIcon(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp),
-                        onClick = { onFavoriteClick(destination) },
-                        isFavorite = destination.isFavorite
-                    )
-                }
-            }
-        }
+    Column {
+        DetailTopBar(
+            imageUrl = destination.destination.photos.firstOrNull()?.photoUrl,
+            isAdmin = isAdmin,
+            onBackClick = onBackClick,
+            onEditClick = { onEditClick(destination.destination) },
+            onFavoriteClick = { onFavoriteClick(destination) },
+            isFavorite = destination.isFavorite
+        )
+        DetailSection(
+            name = destination.destination.name,
+            rating = destination.destination.rating,
+            reviewCount = destination.destination.reviews.size,
+            address = destination.destination.address,
+        )
+        PhotoCarouselViewer(photos = destination.destination.photos)
 
-        item {
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                DetailSection(
-                    name = destination.destination.name,
-                    rating = destination.destination.rating,
-                    reviewCount = destination.destination.reviews.size,
-                    address = destination.destination.address,
+        Row(
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Ulasan",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
+            )
+            if (!isAdmin) {
+                CustomButton(
+                    onClick = { onAddCommentClick(destination.destination) },
+                    icon = Icons.Default.Add,
+                    text = "Tambah",
+                    iconSize = Modifier.size(20.dp),
+                    textStyle = MaterialTheme.typography.titleSmall,
                 )
             }
         }
 
-        if (destination.destination.photos.size > 1) {
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    PhotoCarouselViewer(photos = destination.destination.photos)
-                }
+        LazyColumn(
+            modifier = Modifier
+                .weight(2f)
+                .padding(horizontal = 16.dp)
+        ) {
+            items(destination.destination.reviews) { review ->
+                ReviewCard(review = review)
             }
         }
-
-        item {
-            Row(
-                verticalAlignment = Alignment.Top,
+        if (destination.destination.latitude != null && destination.destination.longitude != null) {
+            CustomButton(
+                onClick = {
+                    onMapClick(
+                        destination.destination.latitude,
+                        destination.destination.longitude
+                    )
+                },
+                text = "Navigasi ke Lokasi",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = "Ulasan",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                if (!isAdmin) {
-                    CustomButton(
-                        onClick = { onAddCommentClick(destination.destination) },
-                        icon = Icons.Default.Add,
-                        text = "Tambah",
-                        iconSize = Modifier.size(20.dp),
-                        textStyle = MaterialTheme.typography.titleSmall,
-                    )
-                }
-            }
-        }
-
-        items(destination.destination.reviews) { review ->
-            ReviewCard(review = review)
-        }
-
-        // Navigasi hanya jika ada koordinat
-        if (destination.destination.latitude != null && destination.destination.longitude != null) {
-            item {
-                CustomButton(
-                    onClick = {
-                        onMapClick(
-                            destination.destination.latitude,
-                            destination.destination.longitude
-                        )
-                    },
-                    text = "Navigasi ke Lokasi",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                )
-            }
+                    .padding(16.dp)
+            )
         }
     }
 }
@@ -252,7 +219,9 @@ fun DetailSection(
     address: String,
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -280,7 +249,7 @@ fun DetailSection(
             Spacer(modifier = Modifier.width(6.dp))
 
             Text(
-                text = "$reviewCount Review",
+                text = "($reviewCount)",
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -292,10 +261,46 @@ fun DetailSection(
     }
 }
 
+@Composable
+fun DetailTopBar(
+    imageUrl: String?,
+    isAdmin: Boolean,
+    onBackClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
+    isFavorite: Boolean
+) {
+    Box {
+        DestinationImage(imageUrl = imageUrl)
+        BackIcon(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp),
+            onClick = onBackClick
+        )
+        if (isAdmin) {
+            EditIcon(
+                onClick = onEditClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            )
+        } else {
+            FavoriteIcon(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp),
+                onClick = onFavoriteClick,
+                isFavorite = isFavorite
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 private fun DetailContentPreview() {
-    AppTheme {
+    AppTheme(dynamicColor = false) {
         DetailContent(
             destination =
                 UiDestination(

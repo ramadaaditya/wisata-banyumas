@@ -36,11 +36,9 @@ import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
-fun AppNavigation(
-    navController: NavHostController = rememberNavController()
-) {
+fun AppNavigation(){
 
-    //TODO Bungkus dengan AppTheme
+    val navController = rememberNavController()
     val userViewModel: UserViewModel = hiltViewModel()
     val destinationViewModel: DestinationViewModel = hiltViewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -62,7 +60,6 @@ fun AppNavigation(
         NavHost(
             navController = navController,
             startDestination = Screen.SplashScreen.route,
-            modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.SplashScreen.route) {
                 SplashScreen(
@@ -125,6 +122,7 @@ fun AppNavigation(
                     },
                     userViewModel = userViewModel,
                     destinationViewModel = destinationViewModel,
+                    innerPadding = innerPadding
                 )
             }
 

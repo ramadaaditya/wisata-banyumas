@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,9 +27,9 @@ import com.banyumas.wisata.view.theme.AppTheme
 fun ReviewCard(review: Review) {
     Card(
         border = BorderStroke(
-            2.dp, MaterialTheme.colorScheme.primary
+            1.dp, MaterialTheme.colorScheme.primary
         ),
-        shape = RoundedCornerShape(CornerSize(8.dp)),
+        shape = RoundedCornerShape(CornerSize(6.dp)),
     ) {
         Column(
             modifier = Modifier
@@ -51,7 +49,7 @@ fun ReviewCard(review: Review) {
             }
             Text(
                 text = review.text,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
@@ -73,6 +71,21 @@ fun Rating(rating: Int) {
         Text(
             text = rating.toString(),
             style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ReviewCardPreview() {
+    AppTheme(dynamicColor = false) {
+        ReviewCard(
+            review = Review(
+                text = "Gelo king keren banget wisatanya",
+                rating = 5,
+                timestamp = 123123,
+                authorName = "Bagas"
+            )
         )
     }
 }

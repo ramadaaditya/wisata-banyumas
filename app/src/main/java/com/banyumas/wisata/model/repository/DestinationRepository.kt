@@ -1,15 +1,17 @@
 package com.banyumas.wisata.model.repository
 
 import android.content.Context
+import android.util.Log
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
+import com.banyumas.wisata.model.SearchResultItem
 import com.banyumas.wisata.model.UiDestination
 import com.banyumas.wisata.model.User
 import com.banyumas.wisata.model.api.ApiService
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.utils.UiText
 import com.banyumas.wisata.utils.getPlaceIdFromJson
-import com.banyumas.wisata.utils.toDestination
+import com.banyumas.wisata.utils.toSearchResult
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -28,31 +30,60 @@ class DestinationRepository @Inject constructor(
 
     //START of Initialize firebase
     fun readPlaceFromJson(context: Context) = getPlaceIdFromJson(context)
+//
+//    suspend fun getDestinationById(placeId: String): UiState<Destination?> {
+//        return try {
+//            val response = apiService.getDetailPlaces(placeId)
+//            val destination = response.toDestination(placeId)
+//            UiState.Success(destination)
+//        } catch (e: Exception) {
+//            UiState.Error(UiText.StringResource(R.string.error_save_place), e)
+//        }
+//    }
 
-    suspend fun fetchAndSaveDestination(placeId: String): UiState<Destination> {
+//    suspend fun getAllDestinationFromApi(
+//        placeIds: List<String>,
+//    ): List<Destination> {
+//        return placeIds.mapNotNull { placeId ->
+//            try {
+//                val response = apiService.getDetailPlaces(placeId)
+//                response.toDestination(placeId)
+//            } catch (e: Exception) {
+//                Log.e(
+//                    "REPOSITORY",
+//                    "getAllDestinationFromApi: Terdapat kesalahan dalam mendapatkan destinasi $placeId",
+//                    e
+//                )
+//                null
+//            }
+//        }
+//    }
+
+//    suspend fun getDestinationDetails(placeId: String): UiState<Destination> {
+//        return try {
+//            val result = apiService.getDetailPlaces(placeId).toDestination(placeId)
+//            UiState.Success(result)
+//        } catch (e: Exception) {
+//            UiState.Error(UiText.StringResource(R.string.error_detail_place), e)
+//        }
+//    }
+
+    suspend fun searchDestinationByName(
+        placeName: String,
+    ): UiState<List<SearchResultItem>> {
         return try {
-            val response = apiService.getDetailPlaces(placeId)
-            val destination = response.toDestination(placeId)
-            saveDestination(destination)
-            UiState.Success(destination)
-        } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_save_place), e)
-        }
-    }
-
-    private suspend fun fetchDestinationsByPlaceIds(
-        placeIds: List<String>,
-    ): List<Destination> {
-        return placeIds.mapNotNull { placeId ->
-            try {
-                val response = apiService.getDetailPlaces(placeId)
-                response.toDestination(placeId)
-            } catch (e: Exception) {
-                null
+            val response = apiService.getDestinationByName(query = placeName)
+            val candidates = response.takeIf { it.status == "OK" }?.candidates.orEmpty()
+            if (candidates.isEmpty()) {
+                UiState.Error(UiText.StringResource(R.string.error_no_place_found))
+            } else {
+                val result = response.toSearchResult()
+                UiState.Success(result)
             }
+        } catch (e: Exception) {
+            UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
         }
     }
-
     //END of Initialize database
 
 
@@ -87,39 +118,6 @@ class DestinationRepository @Inject constructor(
             UiState.Success(Unit)
         } catch (e: Exception) {
             UiState.Error(UiText.StringResource(R.string.error_update_place), e)
-        }
-    }
-
-    suspend fun getDestinationDetails(placeId: String): UiState<Destination> {
-        return try {
-            val result = apiService.getDetailPlaces(placeId).toDestination(placeId)
-            UiState.Success(result)
-        } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_detail_place), e)
-        }
-    }
-
-    suspend fun searchAndFetchPlacesByName(
-        placeName: String,
-    ): UiState<List<Destination>> {
-        return try {
-            val response = apiService.getDestinationByName(query = placeName)
-            val placeIds = response
-                .takeIf {
-                    it.status == "OK"
-                }
-                ?.candidates
-                ?.mapNotNull { it?.placeId }
-                .orEmpty()
-
-            if (placeIds.isEmpty()) {
-                UiState.Error(UiText.StringResource(R.string.error_no_place_found))
-            } else {
-                val destinations = fetchDestinationsByPlaceIds(placeIds)
-                UiState.Success(destinations)
-            }
-        } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
         }
     }
 
@@ -185,25 +183,27 @@ class DestinationRepository @Inject constructor(
 
 
     suspend fun getDestinationById(destinationId: String, userId: String): UiState<UiDestination> {
+        if (destinationId.isBlank() || userId.isBlank()) {
+            return UiState.Error(UiText.StringResource(R.string.error_fields_required))
+        }
+
         return try {
-            val snapshot =
-                firestore.collection(DESTINATIONS_COLLECTION).document(destinationId).get().await()
+            val snapshot = firestore.collection(DESTINATIONS_COLLECTION)
+                .document(destinationId).get().await()
+
             val destination = snapshot.toObject(Destination::class.java)
-                ?: return UiState.Error(UiText.StringResource(R.string.error_destination_not_found))
+                ?: return UiState.Empty
 
-            val userSnapshot = firestore.collection(USERS_COLLECTION).document(userId).get().await()
-            val favorites =
-                userSnapshot.toObject(User::class.java)?.favoriteDestinations ?: emptyList()
+            val userSnapshot = firestore.collection(USERS_COLLECTION)
+                .document(userId).get().await()
 
-            UiState.Success(
-                UiDestination(
-                    destination = destination,
-                    isFavorite = favorites.contains(destinationId)
-                )
-            )
+            val isFavorite = userSnapshot.toObject(User::class.java)
+                ?.favoriteDestinations?.contains(destinationId) == true
+
+            UiState.Success(UiDestination(destination, isFavorite))
         } catch (e: Exception) {
+            Log.e("Repository", "Error fetching destination", e)
             UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
-
         }
     }
 

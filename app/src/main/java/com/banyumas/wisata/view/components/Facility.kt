@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Facility
+import com.banyumas.wisata.view.theme.AppTheme
 
 @Composable
 fun FacilityItem(drawableRes: Int, label: String) {
@@ -28,7 +29,7 @@ fun FacilityItem(drawableRes: Int, label: String) {
             modifier = Modifier.padding(4.dp),
             shape = RoundedCornerShape(CornerSize(8.dp)),
             elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
+                defaultElevation = 2.dp
             ),
         ) {
             Image(
@@ -92,5 +93,7 @@ private fun PreviewFacilities() {
         Facility.PARKING,
         Facility.RESTAURANT
     )
-    Facilities(availableFacility = availableFacility)
+    AppTheme(dynamicColor = false) {
+        Facilities(availableFacility = availableFacility)
+    }
 }

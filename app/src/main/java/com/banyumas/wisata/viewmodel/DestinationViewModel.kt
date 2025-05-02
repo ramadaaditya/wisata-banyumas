@@ -46,44 +46,44 @@ class DestinationViewModel @Inject constructor(
         data object Success : DestinationEvent()
     }
 
-    fun uploadData(context: Context) {
-        viewModelScope.launch {
-            _favoriteDestination.value = UiState.Loading
-            try {
-                val placeIds = repository.readPlaceFromJson(context)
-                if (placeIds.isEmpty()) {
-                    _favoriteDestination.value = UiState.Empty
-                    return@launch
-                }
-
-                val updatedDestinations = mutableListOf<Destination>()
-
-                for (placeId in placeIds) {
-                    when (val result = repository.fetchAndSaveDestination(placeId)) {
-                        is UiState.Success -> updatedDestinations.add(result.data)
-                        is UiState.Error -> {
-                            // Optional: log error or collect errors if needed
-                            continue // skip this placeId and continue
-                        }
-
-                        else -> continue
-                    }
-                }
-
-                _favoriteDestination.value = if (updatedDestinations.isEmpty()) {
-                    UiState.Empty
-                } else {
-                    UiState.Success(updatedDestinations)
-                }
-
-            } catch (e: Exception) {
-                _favoriteDestination.value = UiState.Error(
-                    UiText.StringResource(R.string.error_upload_data),
-                    e
-                )
-            }
-        }
-    }
+//    fun uploadData(context: Context) {
+//        viewModelScope.launch {
+//            _favoriteDestination.value = UiState.Loading
+//            try {
+//                val placeIds = repository.readPlaceFromJson(context)
+//                if (placeIds.isEmpty()) {
+//                    _favoriteDestination.value = UiState.Empty
+//                    return@launch
+//                }
+//
+//                val updatedDestinations = mutableListOf<Destination>()
+//
+//                for (placeId in placeIds) {
+//                    when (val result = repository.getDestinationById(placeId)) {
+//                        is UiState.Success -> updatedDestinations.add(result.data)
+//                        is UiState.Error -> {
+//                            // Optional: log error or collect errors if needed
+//                            continue // skip this placeId and continue
+//                        }
+//
+//                        else -> continue
+//                    }
+//                }
+//
+//                _favoriteDestination.value = if (updatedDestinations.isEmpty()) {
+//                    UiState.Empty
+//                } else {
+//                    UiState.Success(updatedDestinations)
+//                }
+//
+//            } catch (e: Exception) {
+//                _favoriteDestination.value = UiState.Error(
+//                    UiText.StringResource(R.string.error_upload_data),
+//                    e
+//                )
+//            }
+//        }
+//    }
 
     fun loadFavoriteDestinations(userId: String) {
         _favoriteDestination.value = UiState.Loading
@@ -124,14 +124,9 @@ class DestinationViewModel @Inject constructor(
     }
 
     fun getDetailDestination(destinationId: String, userId: String) {
-        _selectedDestination.value = UiState.Loading
         viewModelScope.launch {
-            when (val result = repository.getDestinationById(destinationId, userId)) {
-                is UiState.Success -> _selectedDestination.value = result
-                is UiState.Error -> _selectedDestination.value = result
-                else -> _selectedDestination.value =
-                    UiState.Error(UiText.StringResource(R.string.error_else))
-            }
+            _selectedDestination.value = UiState.Loading
+            _selectedDestination.value = repository.getDestinationById(destinationId, userId)
         }
     }
 
@@ -146,7 +141,13 @@ class DestinationViewModel @Inject constructor(
 
                 is UiState.Error -> {
                     _destinations.value = saveResult
-                    _eventFlow.emit(DestinationEvent.ShowMessage(saveResult.message.asString(context)))
+                    _eventFlow.emit(
+                        DestinationEvent.ShowMessage(
+                            saveResult.message.asString(
+                                context
+                            )
+                        )
+                    )
                 }
 
                 else -> {
@@ -213,13 +214,18 @@ class DestinationViewModel @Inject constructor(
     fun searchDestinations(query: String, category: String?) {
         val filtered = allDestinations.filter { destination ->
             val matchesQuery =
-                query.isBlank() || destination.destination.name.contains(query, ignoreCase = true)
-            val matchesCategory = category == null || category.equals("Semua", ignoreCase = true) ||
-                    destination.destination.category.equals(category, ignoreCase = true)
+                query.isBlank() || destination.destination.name.contains(
+                    query,
+                    ignoreCase = true
+                )
+            val matchesCategory =
+                category == null || category.equals("Semua", ignoreCase = true) ||
+                        destination.destination.category.equals(category, ignoreCase = true)
             matchesQuery && matchesCategory
         }
 
-        _destinations.value = if (filtered.isEmpty()) UiState.Empty else UiState.Success(filtered)
+        _destinations.value =
+            if (filtered.isEmpty()) UiState.Empty else UiState.Success(filtered)
     }
 
     fun filterDestinations(category: String?) {

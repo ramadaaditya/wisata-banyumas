@@ -41,11 +41,6 @@ fun ManageDestinationScreen(
     var address by rememberSaveable { mutableStateOf(selectedDestination?.address ?: "") }
     var category by rememberSaveable { mutableStateOf(selectedDestination?.category ?: "") }
     var rating by rememberSaveable { mutableStateOf(selectedDestination?.rating?.toString() ?: "") }
-    var tags by rememberSaveable {
-        mutableStateOf(
-            selectedDestination?.tags?.joinToString(", ") ?: ""
-        )
-    }
 
     Column(
         modifier = Modifier
@@ -87,13 +82,6 @@ fun ManageDestinationScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 
-        OutlinedTextField(
-            value = tags,
-            onValueChange = { tags = it },
-            label = { Text("Tags (pisahkan dengan koma)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -106,7 +94,6 @@ fun ManageDestinationScreen(
                         address = address,
                         category = category,
                         rating = rating.toFloatOrNull() ?: 0f,
-                        tags = tags.split(",").map { it.trim() }
                     )
                 )
             }) {
@@ -119,7 +106,7 @@ fun ManageDestinationScreen(
 
         if (importedDestinations.isNotEmpty()) {
             Text("Preview Wisata dari JSON", style = MaterialTheme.typography.titleSmall)
-            LazyColumn(modifier = Modifier.weight(1f)) {
+            LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 items(importedDestinations) { destination ->
                     Column {
                         Text("- ${destination.name} (${destination.category})")
@@ -177,7 +164,7 @@ fun ManageDestinationScreenPreview_Add() {
     }
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
 fun ManageDestinationScreenPreview_Update() {
     val dummyImported = emptyList<Destination>()

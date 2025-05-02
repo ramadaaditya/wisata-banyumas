@@ -17,6 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -192,10 +193,10 @@ fun DashboardContent(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 fun DashboardContentPreview() {
-    AppTheme {
+    AppTheme(dynamicColor = false) {
         val sampleDestination = List(5) { index ->
             UiDestination(
                 destination = Destination(
