@@ -66,4 +66,9 @@
     <string name="error_update_favorite">Gagal memperbarui favorit</string>
 
 
+    <!--    Navigation-->
+    <string name="home_feed">Home</string>
+    <string name="home_favorite">Favorite</string>
+    <string name="home_profile">Profile</string>
+
 </resources>

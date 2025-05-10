@@ -6,6 +6,6 @@
     <style name="Theme.SplashScreenApp" parent="android:Theme.Material.Light.NoActionBar">
         <!-- Untuk Android 11 ke bawah -->
         <item name="android:windowBackground">@drawable/splash_background</item>
-<!--        <item name="android:statusBarColor">@color/primary</item>-->
+        <item name="android:statusBarColor">@color/primary</item>
     </style>
 </resources>

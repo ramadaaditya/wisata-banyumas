@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun IconAction(
@@ -123,7 +123,7 @@ fun LogoutIcon(
 @Preview
 @Composable
 private fun BackIconPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         BackIcon(onClick = {})
     }
 }
@@ -131,7 +131,7 @@ private fun BackIconPreview() {
 @Preview
 @Composable
 private fun FavoriteIconPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         FavoriteIcon(onClick = {})
     }
 }
@@ -139,7 +139,7 @@ private fun FavoriteIconPreview() {
 @Preview
 @Composable
 private fun AddIconPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         AddIcon(onClick = {})
     }
 }
@@ -147,7 +147,7 @@ private fun AddIconPreview() {
 @Preview
 @Composable
 private fun EditIconPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         EditIcon(onClick = {})
     }
 }

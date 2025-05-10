@@ -37,15 +37,13 @@ fun SplashScreen(
     var isVisible by remember { mutableStateOf(false) }
     val authState by viewModel.authState.collectAsStateWithLifecycle()
 
-    Log.d("SplashScreen", "Auth State saat ini: $authState")
-
     val alphaAnim by animateFloatAsState(
         targetValue = if (isVisible) 1f else 0f,
         animationSpec = tween(durationMillis = 1000),
         label = "Splash Animation"
     )
 
-    LaunchedEffect(authState) {
+    LaunchedEffect(Unit) {
         isVisible = true
         delay(2000)
         viewModel.checkLoginStatus()
@@ -63,7 +61,8 @@ fun SplashScreen(
                 Log.e("SplashScreen", "Error saat login: ${(authState as UiState.Error).message}")
                 navigateToLogin()
             }
-            else ->{}
+
+            else -> {}
         }
     }
 

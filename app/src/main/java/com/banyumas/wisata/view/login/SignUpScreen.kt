@@ -32,7 +32,7 @@ import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.components.PasswordInputField
 import com.banyumas.wisata.view.components.UsernameInputField
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
@@ -153,7 +153,7 @@ private fun RegisterContent(
 @Preview(showBackground = true)
 @Composable
 fun SignupScreenPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         RegisterContent(
             email = "mramadaaditya@gmail.com",
             username = "Ramada",

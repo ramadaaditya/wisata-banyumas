@@ -1,6 +1,5 @@
 package com.banyumas.wisata.model.repository
 
-import android.content.Context
 import android.util.Log
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
@@ -10,7 +9,7 @@ import com.banyumas.wisata.model.User
 import com.banyumas.wisata.model.api.ApiService
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.utils.UiText
-import com.banyumas.wisata.utils.getPlaceIdFromJson
+import com.banyumas.wisata.utils.toDestination
 import com.banyumas.wisata.utils.toSearchResult
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
@@ -28,45 +27,14 @@ class DestinationRepository @Inject constructor(
         private const val USERS_COLLECTION = "users"
     }
 
-    //START of Initialize firebase
-    fun readPlaceFromJson(context: Context) = getPlaceIdFromJson(context)
-//
-//    suspend fun getDestinationById(placeId: String): UiState<Destination?> {
-//        return try {
-//            val response = apiService.getDetailPlaces(placeId)
-//            val destination = response.toDestination(placeId)
-//            UiState.Success(destination)
-//        } catch (e: Exception) {
-//            UiState.Error(UiText.StringResource(R.string.error_save_place), e)
-//        }
-//    }
-
-//    suspend fun getAllDestinationFromApi(
-//        placeIds: List<String>,
-//    ): List<Destination> {
-//        return placeIds.mapNotNull { placeId ->
-//            try {
-//                val response = apiService.getDetailPlaces(placeId)
-//                response.toDestination(placeId)
-//            } catch (e: Exception) {
-//                Log.e(
-//                    "REPOSITORY",
-//                    "getAllDestinationFromApi: Terdapat kesalahan dalam mendapatkan destinasi $placeId",
-//                    e
-//                )
-//                null
-//            }
-//        }
-//    }
-
-//    suspend fun getDestinationDetails(placeId: String): UiState<Destination> {
-//        return try {
-//            val result = apiService.getDetailPlaces(placeId).toDestination(placeId)
-//            UiState.Success(result)
-//        } catch (e: Exception) {
-//            UiState.Error(UiText.StringResource(R.string.error_detail_place), e)
-//        }
-//    }
+    suspend fun getDestinationDetails(placeId: String): UiState<Destination> {
+        return try {
+            val result = apiService.getDetailPlaces(placeId).toDestination(placeId)
+            UiState.Success(result)
+        } catch (e: Exception) {
+            UiState.Error(UiText.StringResource(R.string.error_detail_place), e)
+        }
+    }
 
     suspend fun searchDestinationByName(
         placeName: String,
@@ -84,8 +52,6 @@ class DestinationRepository @Inject constructor(
             UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
         }
     }
-    //END of Initialize database
-
 
     suspend fun getAllDestinations(userId: String): UiState<List<UiDestination>> {
         if (userId.isBlank()) {
@@ -178,6 +144,16 @@ class DestinationRepository @Inject constructor(
             UiState.Success(Unit)
         } catch (e: Exception) {
             UiState.Error(UiText.StringResource(R.string.error_save_place), e)
+        }
+    }
+
+    suspend fun fetchAndSaveDestination(placeId: String): UiState<Destination> {
+        return try {
+            val result = apiService.getDetailPlaces(placeId).toDestination(placeId)
+            saveDestination(result)
+            UiState.Success(result)
+        } catch (e: Exception) {
+            UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
         }
     }
 

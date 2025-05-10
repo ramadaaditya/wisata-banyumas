@@ -20,7 +20,7 @@ import com.banyumas.wisata.R
 fun Search(
     query: String,
     onQueryChange: (String) -> Unit,
-    onSearch: (String) -> Unit,
+    onSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     SearchBar(
@@ -30,7 +30,7 @@ fun Search(
         ),
         shadowElevation = 2.dp,
         onQueryChange = onQueryChange,
-        onSearch = { onSearch(query) },
+        onSearch = { onSearch() },
         active = false,
         onActiveChange = { },
         leadingIcon = {
@@ -49,6 +49,5 @@ fun Search(
         shape = MaterialTheme.shapes.small,
         modifier = modifier
             .fillMaxWidth()
-
     ) {}
 }

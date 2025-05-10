@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.banyumas.wisata.model.Review
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun ReviewCard(review: Review) {
@@ -78,7 +78,7 @@ fun Rating(rating: Int) {
 @Preview
 @Composable
 private fun ReviewCardPreview() {
-    AppTheme(dynamicColor = false) {
+    WisataBanyumasTheme(dynamicColor = false) {
         ReviewCard(
             review = Review(
                 text = "Gelo king keren banget wisatanya",

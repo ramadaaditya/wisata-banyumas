@@ -1,6 +1,5 @@
 package com.banyumas.wisata.view.dashboard
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,7 +33,7 @@ import com.banyumas.wisata.view.components.ConfirmationDialog
 import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.view.components.LogoutIcon
 import com.banyumas.wisata.view.components.Search
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
@@ -46,7 +45,7 @@ fun DashboardScreen(
     viewModel: DestinationViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.destinations.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiDestinations.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
 
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
@@ -59,13 +58,10 @@ fun DashboardScreen(
                 val currentUser = state.data
                 viewModel.getAllDestinations(currentUser.id)
             }
-
             is UiState.Empty -> {
                 onLogout()
             }
-
             else -> {}
-
         }
     }
     when (val state = uiState) {
@@ -144,7 +140,6 @@ fun DashboardContent(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -196,7 +191,7 @@ fun DashboardContent(
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 fun DashboardContentPreview() {
-    AppTheme(dynamicColor = false) {
+    WisataBanyumasTheme(dynamicColor = false) {
         val sampleDestination = List(5) { index ->
             UiDestination(
                 destination = Destination(

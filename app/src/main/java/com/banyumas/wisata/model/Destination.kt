@@ -10,7 +10,6 @@ enum class Facility {
     GOOD_ACCESS
 }
 
-
 data class Destination(
     val id: String = "",
     val name: String = "",

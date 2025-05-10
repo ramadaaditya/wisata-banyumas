@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Facility
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun FacilityItem(drawableRes: Int, label: String) {
@@ -93,7 +93,7 @@ private fun PreviewFacilities() {
         Facility.PARKING,
         Facility.RESTAURANT
     )
-    AppTheme(dynamicColor = false) {
+    WisataBanyumasTheme(dynamicColor = false) {
         Facilities(availableFacility = availableFacility)
     }
 }

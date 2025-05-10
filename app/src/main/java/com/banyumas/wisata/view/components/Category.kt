@@ -10,15 +10,16 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.model.Category
+import com.banyumas.wisata.view.theme.BanyumasTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun CategoryRow(
@@ -28,8 +29,9 @@ fun CategoryRow(
 ) {
     LazyRow(
         modifier = Modifier
+            .padding(16.dp)
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         items(categories) { category ->
             val isSelected = category == selectedCategory
@@ -49,34 +51,36 @@ fun CategoryChip(
     onClick: () -> Unit
 ) {
     val backgroundColor =
-        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+        if (isSelected) BanyumasTheme.colors.primary else BanyumasTheme.colors.surface
     val textColor =
-        if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-
+        if (isSelected) BanyumasTheme.colors.onPrimary else BanyumasTheme.colors.onSurface.copy(
+            alpha = 0.8f
+        )
     Box(
         modifier = Modifier
             .clickable { onClick() }
             .background(backgroundColor, shape = CircleShape)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 8.dp)
             .wrapContentSize(Alignment.Center),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             color = textColor,
-            style = MaterialTheme.typography.bodySmall
+            style = BanyumasTheme.typography.bodySmall
         )
     }
 }
 
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
-fun CategoryScreenPreview() {
-    AppTheme {
+fun CategoryPreview() {
+    WisataBanyumasTheme(dynamicColor = false) {
+        val categories = Category.list
         CategoryRow(
-            categories = listOf("All", "Populer", "Terdekat", "Rekomendasi"),
-            selectedCategory = "Populer",
+            categories = categories,
+            selectedCategory = "All",
             onCategorySelected = {}
         )
     }

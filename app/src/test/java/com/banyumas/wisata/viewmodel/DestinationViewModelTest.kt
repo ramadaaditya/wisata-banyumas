@@ -57,7 +57,7 @@ class DestinationViewModelTest {
         )
         destinationViewModel.getAllDestinations(userId)
         advanceUntilIdle()
-        val result = destinationViewModel.destinations.value
+        val result = destinationViewModel.uiDestinations.value
         assertTrue(result is UiState.Success)
         assertEquals(dummyListUiDestination, (result as UiState.Success).data)
         verify(repository).getAllDestinations(userId)
@@ -68,7 +68,7 @@ class DestinationViewModelTest {
         destinationViewModel.getAllDestinations("")
         advanceUntilIdle()
 
-        val result = destinationViewModel.destinations.value
+        val result = destinationViewModel.uiDestinations.value
         assertTrue(result is UiState.Error)
         assertEquals(
             R.string.error_user_id_empty,
@@ -119,7 +119,7 @@ class DestinationViewModelTest {
         field.isAccessible = true
         field.set(destinationViewModel, dummyListUiDestination)
         destinationViewModel.searchDestinations("Curug", "Alam")
-        val state = destinationViewModel.destinations.value
+        val state = destinationViewModel.uiDestinations.value
         assertTrue(state is UiState.Success)
         val filtered = (state as UiState.Success).data
         println("Filtered: ${filtered.map { it.destination.name + " - " + it.destination.category }}")
