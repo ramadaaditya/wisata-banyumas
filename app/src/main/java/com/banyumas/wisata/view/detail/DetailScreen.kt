@@ -54,19 +54,17 @@ import com.banyumas.wisata.view.components.EditIcon
 import com.banyumas.wisata.view.components.FavoriteIcon
 import com.banyumas.wisata.view.components.PhotoCarouselViewer
 import com.banyumas.wisata.view.components.ReviewCard
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
-
 @Composable
 fun DetailScreen(
-    destinationId: String?,
+    destinationId: String,
     viewModel: DestinationViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onEditClick: (Destination) -> Unit,
-    onAddCommentClick: (Destination) -> Unit
 ) {
     val uiState by viewModel.selectedDestination.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
@@ -75,9 +73,7 @@ fun DetailScreen(
     val isAdmin = remember(currentUser?.role) { currentUser?.role == Role.ADMIN }
 
     LaunchedEffect(destinationId) {
-        if (!destinationId.isNullOrBlank()) {
-            viewModel.getDetailDestination(destinationId, currentUser?.id.orEmpty())
-        }
+        viewModel.getDetailDestination(destinationId, currentUser?.id.orEmpty())
     }
 
     when (val state = uiState) {
@@ -99,7 +95,6 @@ fun DetailScreen(
                 },
                 onBackClick = onBackClick,
                 onEditClick = onEditClick,
-                onAddCommentClick = onAddCommentClick,
                 isAdmin = isAdmin
             )
         }
@@ -117,7 +112,6 @@ fun DetailContent(
     onFavoriteClick: (UiDestination) -> Unit,
     onBackClick: () -> Unit,
     onEditClick: (Destination) -> Unit,
-    onAddCommentClick: (Destination) -> Unit,
     isAdmin: Boolean
 ) {
     Column {
@@ -150,7 +144,7 @@ fun DetailContent(
             )
             if (!isAdmin) {
                 CustomButton(
-                    onClick = { onAddCommentClick(destination.destination) },
+                    onClick = {},
                     icon = Icons.Default.Add,
                     text = "Tambah",
                     iconSize = Modifier.size(20.dp),
@@ -300,7 +294,7 @@ fun DetailTopBar(
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 private fun DetailContentPreview() {
-    AppTheme(dynamicColor = false) {
+    WisataBanyumasTheme(dynamicColor = false) {
         DetailContent(
             destination =
                 UiDestination(
@@ -323,7 +317,6 @@ private fun DetailContentPreview() {
             onBackClick = {},
             isAdmin = false,
             onEditClick = {},
-            onAddCommentClick = {}
         )
     }
 }

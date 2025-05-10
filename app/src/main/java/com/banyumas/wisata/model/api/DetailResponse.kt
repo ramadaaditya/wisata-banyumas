@@ -119,7 +119,7 @@ data class Result(
     val openingHours: OpeningHours? = null,
 
     @field:SerializedName("rating")
-    val rating: Any? = null,
+    val rating: Float? = null,
 
     @field:SerializedName("geometry")
     val geometry: Geometry? = null,
@@ -164,17 +164,17 @@ data class Viewport(
 data class Northeast(
 
     @field:SerializedName("lng")
-    val lng: Any? = null,
+    val lng: Double? = null,
 
     @field:SerializedName("lat")
-    val lat: Any? = null
+    val lat: Double? = null
 )
 
 data class Location(
 
     @field:SerializedName("lng")
-    val lng: Any? = null,
+    val lng: Double? = null,
 
     @field:SerializedName("lat")
-    val lat: Any? = null
+    val lat: Double? = null
 )

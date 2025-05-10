@@ -5,6 +5,7 @@ import com.banyumas.wisata.model.Facility
 import com.banyumas.wisata.model.Photo
 import com.banyumas.wisata.model.Review
 import com.banyumas.wisata.model.SearchResultItem
+import com.banyumas.wisata.model.UiDestination
 
 val dummyDestination = Destination(
     id = "dest001",
@@ -89,4 +90,17 @@ val dummySearchResultItem = listOf(
         address = "Purwokerto Timur, Banyumas",
     )
 )
+
+val dummyUiDestination = UiDestination(
+    dummyDestination,
+    false
+)
+
+val listDummyDestination = dummyDestinations.map { destination ->
+    UiDestination(
+        destination = destination,
+        isFavorite = destination.id == "dest001"
+    )
+}
+
 

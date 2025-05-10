@@ -1,7 +1,8 @@
 package com.banyumas.wisata.view.initial
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,8 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,35 +36,117 @@ import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.utils.dummySearchResultItem
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.Search
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.BanyumasTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun FetchDatabase(
     viewModel: FetchViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val destinationState by viewModel.destination.collectAsStateWithLifecycle()
+    val listDestinationState by viewModel.detailDestinations.collectAsStateWithLifecycle()
+    var query by remember { mutableStateOf("") }
+    val importedIds by viewModel.importedIds.collectAsStateWithLifecycle()
 
-    when (val state = destinationState) {
-        UiState.Empty -> {
-            FetchDatabaseContent(
-                destinations = emptyList(),
-                searchAllByJson = { name -> viewModel.searchDestination(name) }
-            )
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri ->
+            uri?.let {
+                val inputStream = context.contentResolver.openInputStream(it)
+                val json = inputStream?.bufferedReader()?.use { reader -> reader.readText() }
+                if (json != null) {
+                    viewModel.importJsonFromUri(json)
+                }
+            }
+        }
+    )
+    val onImportClicked = {
+        filePickerLauncher.launch(arrayOf("application/json"))
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Search(
+            query = query,
+            onQueryChange = { query = it },
+            onSearch = { viewModel.searchDestination(query) }
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            CustomButton(text = "Import", onClick = onImportClicked)
+            CustomButton(
+                text = "Save All",
+                onClick = { viewModel.fetchAndSaveAllDestination(importedIds) })
         }
 
-        is UiState.Error -> {
-            ErrorState(state.message)
+        Spacer(Modifier.height(4.dp))
+
+        // Prioritaskan tampilan loading/error detailDestinations jika ada
+        when (val state = listDestinationState) {
+            UiState.Loading -> {
+                LoadingState()
+            }
+
+            is UiState.Error -> {
+                ErrorState(state.message)
+            }
+
+            is UiState.Success -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(WindowInsets.navigationBars.asPaddingValues()),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(state.data) { destination ->
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text(destination.name)
+                            Text(destination.address)
+                            HorizontalDivider()
+                        }
+                    }
+                }
+            }
+
+            UiState.Empty -> {
+                // Tampilkan hasil pencarian jika tidak sedang fetch & save all
+                when (val searchState = destinationState) {
+                    UiState.Loading -> LoadingState()
+                    is UiState.Error -> ErrorState(searchState.message)
+                    is UiState.Success -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(WindowInsets.navigationBars.asPaddingValues()),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(searchState.data) { destination ->
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Text(destination.name)
+                                    Text(destination.address)
+                                    HorizontalDivider()
+                                }
+                            }
+                        }
+                    }
+
+                    else -> {
+                        // kosong, tidak tampilkan list
+                    }
+                }
+            }
         }
 
-        UiState.Loading -> {
-            LoadingState()
-        }
-
-        is UiState.Success -> {
-            FetchDatabaseContent(
-                destinations = state.data,
-                searchAllByJson = { name -> viewModel.searchDestination(name) }
-            )
+        if (importedIds.isNotEmpty()) {
+            Text("Hasil Impor JSON :", Modifier.padding(top = 4.dp))
+            importedIds.forEach { id ->
+                Text(id, style = BanyumasTheme.typography.labelMedium)
+            }
         }
     }
 }
@@ -71,49 +154,55 @@ fun FetchDatabase(
 
 @Composable
 fun FetchDatabaseContent(
+    searchQuery: String,
     modifier: Modifier = Modifier,
     destinations: List<SearchResultItem>,
-    searchAllByJson: (String) -> Unit
+    onImportClicked: () -> Unit,
+    onQueryChange: (String) -> Unit,
+    onSearchClicked: () -> Unit,
+    onSearchAllClicked: () -> Unit,
+    importedIds: List<String>
 ) {
-    var query by remember { mutableStateOf("") }
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Search(
-                query = query,
-                onQueryChange = { query = it },
-                onSearch = { searchAllByJson(query) }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                items(destinations) { destination ->
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(destination.name)
-                        Text(destination.address)
-                    }
+        Search(
+            query = searchQuery,
+            onQueryChange = onQueryChange,
+            onSearch = onSearchClicked
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            CustomButton(text = "Import", onClick = onImportClicked)
+            CustomButton(text = "Save All", onClick = onSearchAllClicked)
+        }
+        Spacer(Modifier.height(4.dp))
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(WindowInsets.navigationBars.asPaddingValues()),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            items(destinations) { destination ->
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(destination.name)
+                    Text(destination.address)
                     HorizontalDivider()
                 }
             }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(WindowInsets.navigationBars.asPaddingValues())
-                .align(Alignment.BottomCenter),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CustomButton(text = "Save All", onClick = {})
-            CustomButton(text = "Import", onClick = {})
-            CustomButton(text = "Search", onClick = { searchAllByJson(query) })
+            if (importedIds.isNotEmpty()) {
+                item {
+                    Text("Hasil Impor JSON :", Modifier.padding(top = 4.dp))
+                }
+                items(importedIds) { placeId ->
+                    Text(placeId, style = BanyumasTheme.typography.labelMedium)
+                }
+            }
         }
     }
 }
@@ -122,10 +211,15 @@ fun FetchDatabaseContent(
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 private fun FetchDatabasePreview() {
-    AppTheme {
+    WisataBanyumasTheme(dynamicColor = false) {
         FetchDatabaseContent(
             destinations = dummySearchResultItem,
-            searchAllByJson = {},
+            onImportClicked = {},
+            onQueryChange = {},
+            onSearchClicked = {},
+            onSearchAllClicked = {},
+            searchQuery = "",
+            importedIds = listOf("")
         )
     }
 }

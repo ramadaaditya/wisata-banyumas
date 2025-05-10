@@ -1,7 +1,9 @@
 package com.banyumas.wisata.model.api
 
 import com.banyumas.wisata.BuildConfig
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface ApiService {
@@ -21,4 +23,27 @@ interface ApiService {
         @Query("fields") fields: String = "place_id,name,formatted_address,business_status",
         @Query("key") key: String = BuildConfig.ApiKey
     ): SearchResponse
+}
+
+
+interface BackendService{
+    @POST("login")
+    suspend fun loginUser(
+        @Body loginRequest: LoginRequest
+    ): LoginResponse
+
+    @POST
+    suspend fun registerUser()
+
+    @POST
+    suspend fun registerAdmin()
+
+    @POST
+    suspend fun resetPassword()
+
+    @GET
+    suspend fun getAllDestination()
+
+    @GET
+    suspend fun getDetailDestination()
 }

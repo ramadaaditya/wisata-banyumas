@@ -105,4 +105,8 @@ dependencies {
     testImplementation(libs.androidx.core.testing)
     testImplementation(libs.junit)
 
+    implementation(libs.androidx.datastore.preferences)
+    implementation ("com.auth0.android:jwtdecode:2.0.2")
+
+
 }

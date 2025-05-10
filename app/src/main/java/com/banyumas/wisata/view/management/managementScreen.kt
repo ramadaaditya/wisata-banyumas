@@ -26,7 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.banyumas.wisata.model.Destination
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun ManageDestinationScreen(
@@ -152,7 +152,7 @@ fun ManageDestinationScreenPreview_Add() {
         )
     )
 
-    AppTheme {
+    WisataBanyumasTheme {
         ManageDestinationScreen(
             onBack = {},
             onSave = {},
@@ -169,7 +169,7 @@ fun ManageDestinationScreenPreview_Add() {
 fun ManageDestinationScreenPreview_Update() {
     val dummyImported = emptyList<Destination>()
 
-    AppTheme(dynamicColor = false) {
+    WisataBanyumasTheme(dynamicColor = false) {
         ManageDestinationScreen(
             onBack = {},
             onSave = {},

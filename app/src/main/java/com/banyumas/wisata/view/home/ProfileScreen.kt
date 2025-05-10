@@ -39,7 +39,7 @@ import com.banyumas.wisata.utils.ErrorState
 import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.CustomButton
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
@@ -185,7 +185,7 @@ fun ProfileItem(icon: ImageVector, title: String) {
 @Preview(showBackground = true)
 @Composable
 fun ProfileContentPreview() {
-    AppTheme(darkTheme = false, dynamicColor = false) {
+    WisataBanyumasTheme(darkTheme = false, dynamicColor = false) {
         ProfileContent(
             user = User(
                 name = "Ramados",

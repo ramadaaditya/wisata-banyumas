@@ -30,7 +30,7 @@ import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.BackIcon
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
@@ -125,7 +125,7 @@ fun ResetPasswordContent(
 @Preview(showBackground = true)
 @Composable
 private fun ResetPasswordContentPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         ResetPasswordContent(
             onSignInClick = {},
             onResetClick = {},

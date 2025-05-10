@@ -24,7 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 
 @Composable
@@ -111,7 +111,7 @@ fun UsernameInputField(value: String, onValueChange: (String) -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun EmailPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         EmailInputField(
             onValueChange = {},
             value = "Ramada@gmail.com"
@@ -122,7 +122,7 @@ fun EmailPreview() {
 @Preview(showBackground = true)
 @Composable
 fun PasswordPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         PasswordInputField(
             onValueChange = {},
             value = "Ramada@gmail.com"
@@ -133,7 +133,7 @@ fun PasswordPreview() {
 @Preview(showBackground = true)
 @Composable
 fun UsernamePreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         UsernameInputField(
             onValueChange = {},
             value = "Ramada@gmail.com"

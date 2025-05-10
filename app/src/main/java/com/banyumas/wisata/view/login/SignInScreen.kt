@@ -26,24 +26,23 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.banyumas.wisata.model.Role
+import com.banyumas.wisata.model.User
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.components.PasswordInputField
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun LoginScreen(
     navigateToHome: () -> Unit,
-    navigateToDashboard: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     onSignupClick: () -> Unit,
     viewModel: UserViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val authState by viewModel.authState.collectAsState()
+    val authState by viewModel.loginState.collectAsState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val isLoading = authState is UiState.Loading
@@ -51,12 +50,7 @@ fun LoginScreen(
     LaunchedEffect(authState) {
         when (val state = authState) {
             is UiState.Success -> {
-                val currentRole = state.data.role
-                if (currentRole == Role.ADMIN) {
-                    navigateToDashboard()
-                } else {
-                    navigateToHome()
-                }
+                navigateToHome()
             }
 
             is UiState.Error -> {
@@ -149,7 +143,7 @@ fun LoginContent(
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 private fun LoginContentPreview() {
-    AppTheme(dynamicColor = false, darkTheme = false) {
+    WisataBanyumasTheme(dynamicColor = false, darkTheme = false) {
         LoginContent(
             onPasswordChange = {},
             onForgotPasswordClick = {},

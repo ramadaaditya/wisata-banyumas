@@ -40,7 +40,7 @@ import com.banyumas.wisata.view.components.CustomTextField
 import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.view.components.DropDownMenu
 import com.banyumas.wisata.view.components.PhotoCarouselViewer
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 
 @Composable
@@ -77,7 +77,7 @@ fun AddOrUpdateDestinationScreen(
         }
     }
 
-    val searchState by viewModel.destinations.collectAsState()
+    val searchState by viewModel.uiDestinations.collectAsState()
     val selectedDestinationState by viewModel.selectedDestination.collectAsState()
     LaunchedEffect(selectedDestinationState) {
         if (!isEditing && selectedDestinationState is UiState.Success) {
@@ -445,7 +445,7 @@ fun AddOrUpdateDestinationContent(
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 private fun AddOrUpdateDestinationPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         AddOrUpdateDestinationContent(
             searchQuery = "Rambutan",
             destination = Destination(
