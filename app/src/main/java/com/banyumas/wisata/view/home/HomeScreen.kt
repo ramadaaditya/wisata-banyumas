@@ -1,5 +1,6 @@
 package com.banyumas.wisata.view.home
 
+import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,13 +27,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.Category
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.EmptyState
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.utils.listDummyDestination
 import com.banyumas.wisata.view.components.CategoryRow
 import com.banyumas.wisata.view.components.DestinationCard
+import com.banyumas.wisata.view.components.EmptyState
+import com.banyumas.wisata.view.components.ErrorState
+import com.banyumas.wisata.view.components.LoadingState
 import com.banyumas.wisata.view.components.Search
 import com.banyumas.wisata.view.theme.BanyumasTheme
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
@@ -39,16 +42,24 @@ import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun HomeScreen(
+    userId: String,
+    modifier: Modifier = Modifier,
     userViewModel: UserViewModel = hiltViewModel(),
     destinationViewModel: DestinationViewModel = hiltViewModel(),
     navigateToDetail: (String) -> Unit,
     onFavoriteClick: (UiDestination) -> Unit
 ) {
     val uiState by destinationViewModel.uiDestinations.collectAsStateWithLifecycle()
-    val authState by userViewModel.authState.collectAsStateWithLifecycle()
+    val authState by userViewModel.authState.collectAsState()
     var selectedCategory by remember { mutableStateOf("All") }
     val categories = remember { Category.list }
     var query by rememberSaveable { mutableStateOf("") }
+
+    Log.d(TAG, "HomeScreen: auth State di Home : $authState")
+    LaunchedEffect(Unit) {
+        destinationViewModel.getAllDestinations(userId)
+        Log.d(TAG, "HomeScreen: userId : $userId")
+    }
 
     HomeScreenContent(
         querySearch = query,
@@ -58,7 +69,8 @@ fun HomeScreen(
         uiState = uiState,
         navigateToDetail = navigateToDetail,
         onFavoriteClick = onFavoriteClick,
-        selectedCategory = selectedCategory
+        selectedCategory = selectedCategory,
+        modifier = modifier
     )
 }
 

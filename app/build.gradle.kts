@@ -6,7 +6,6 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     id("com.google.gms.google-services")
-
 }
 
 android {
@@ -19,7 +18,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -106,7 +104,4 @@ dependencies {
     testImplementation(libs.junit)
 
     implementation(libs.androidx.datastore.preferences)
-    implementation ("com.auth0.android:jwtdecode:2.0.2")
-
-
 }

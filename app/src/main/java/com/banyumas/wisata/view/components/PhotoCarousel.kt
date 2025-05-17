@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Photo
-import com.banyumas.wisata.utils.EmptyState
 
 @Composable
 fun PhotoCarouselViewer(

@@ -1,5 +1,7 @@
 package com.banyumas.wisata.view.dashboard
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,17 +23,16 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.EmptyState
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.AddIcon
 import com.banyumas.wisata.view.components.CategoryRow
 import com.banyumas.wisata.view.components.ConfirmationDialog
 import com.banyumas.wisata.view.components.DestinationCard
+import com.banyumas.wisata.view.components.EmptyState
+import com.banyumas.wisata.view.components.ErrorState
+import com.banyumas.wisata.view.components.LoadingState
 import com.banyumas.wisata.view.components.LogoutIcon
 import com.banyumas.wisata.view.components.Search
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
@@ -39,31 +41,27 @@ import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun DashboardScreen(
+    userId: String,
     onLogout: () -> Unit,
     onAddClick: () -> Unit,
     navigateToDetail: (String) -> Unit,
     viewModel: DestinationViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiDestinations.collectAsStateWithLifecycle()
-    val authState by userViewModel.authState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiDestinations.collectAsState()
+    val authState by userViewModel.authState.collectAsState()
 
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var selectedDestinationId by rememberSaveable { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(authState) {
-        when (val state = authState) {
-            is UiState.Success -> {
-                val currentUser = state.data
-                viewModel.getAllDestinations(currentUser.id)
-            }
-            is UiState.Empty -> {
-                onLogout()
-            }
-            else -> {}
-        }
+    Log.d(TAG, "DashboardScreen: status auth $authState")
+    Log.d(TAG, "DashboardScreen: data user $userId")
+
+    LaunchedEffect(Unit) {
+        viewModel.getAllDestinations(userId)
     }
+
     when (val state = uiState) {
         is UiState.Loading -> LoadingState()
         is UiState.Success -> {
@@ -92,7 +90,25 @@ fun DashboardScreen(
         }
 
         is UiState.Error -> ErrorState(message = state.message)
-        is UiState.Empty -> EmptyState()
+        is UiState.Empty -> {
+            DashboardContent(
+                destinations = emptyList(),
+                navigateToDetail = navigateToDetail,
+                onLongPress = {
+                    selectedDestinationId = it
+                    showDeleteDialog = true
+                },
+                onLogoutClick = { showLogoutDialog = true },
+                onSearchQueryChange = { query ->
+                    viewModel.searchDestinations(
+                        query,
+                        null
+                    )
+                },
+                onCategorySelected = { category -> viewModel.filterDestinations(category) },
+                onAddClick = onAddClick
+            )
+        }
     }
 
 

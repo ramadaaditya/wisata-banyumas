@@ -13,17 +13,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.EmptyState
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.DestinationCard
+import com.banyumas.wisata.view.components.EmptyState
+import com.banyumas.wisata.view.components.ErrorState
+import com.banyumas.wisata.view.components.LoadingState
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun FavoriteScreen(
-    navigateToDetail: (Destination) -> Unit,
+    navigateToDetail: (String) -> Unit,
     viewmodel: DestinationViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel(),
 ) {
@@ -75,7 +75,7 @@ fun FavoriteScreen(
 @Composable
 fun FavoriteContent(
     destinations: List<Destination>,
-    navigateToDetail: (Destination) -> Unit,
+    navigateToDetail: (String) -> Unit,
     onToggleFavorite: (Destination) -> Unit,
 ) {
     LazyColumn(
@@ -87,7 +87,7 @@ fun FavoriteContent(
             DestinationCard(
                 destination = UiDestination(destination, isFavorite = true),
                 onFavoriteClick = { onToggleFavorite(destination) },
-                onClick = { navigateToDetail(destination) },
+                onClick = { navigateToDetail(destination.id) },
                 onLongPress = {}
             )
         }

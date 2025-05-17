@@ -26,13 +26,12 @@ import com.banyumas.wisata.R
 import com.banyumas.wisata.model.User
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.viewmodel.UserViewModel
-import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     viewModel: UserViewModel = hiltViewModel(),
     navigateToLogin: () -> Unit,
-    navigateToHome: () -> Unit,
+    navigateToHome: (User) -> Unit,
 ) {
     var isVisible by remember { mutableStateOf(false) }
     val authState by viewModel.authState.collectAsStateWithLifecycle()
@@ -45,20 +44,20 @@ fun SplashScreen(
 
     LaunchedEffect(Unit) {
         isVisible = true
-        delay(2000)
         viewModel.checkLoginStatus()
     }
 
     LaunchedEffect(authState) {
-        when (authState) {
+        Log.d("SPLASH", "authState: $authState")
+        when (val state = authState) {
             is UiState.Success -> {
-                val user = (authState as UiState.Success).data
-                Log.d("SplashScreen", "User yang login: $user")
-                navigateToHome()
+                val user = state.data
+                Log.d("SPLASH", "Navigating to home with user ${user.id}")
+                navigateToHome(user)
             }
 
             is UiState.Error -> {
-                Log.e("SplashScreen", "Error saat login: ${(authState as UiState.Error).message}")
+                Log.d("SPLASH", "Navigating to login due to error")
                 navigateToLogin()
             }
 

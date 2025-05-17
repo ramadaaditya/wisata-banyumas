@@ -1,6 +1,8 @@
 package com.banyumas.wisata.view.components
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -39,7 +41,7 @@ fun CustomTextField(
     var isPasswordVisible by remember { mutableStateOf(false) }
 
     OutlinedTextField(
-        maxLines = 1,
+        singleLine = true,
         value = value,
         onValueChange = onValueChange,
         leadingIcon = leadingIcon,
@@ -66,8 +68,9 @@ fun CustomTextField(
             focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
             unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         ),
-        modifier = modifier.fillMaxWidth(),
-        label = { Text(label) }
+        modifier = modifier
+            .fillMaxWidth(),
+        label = { Text(label) },
     )
 }
 

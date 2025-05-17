@@ -251,7 +251,7 @@ class UserViewModelTest {
     fun userViewModel_CheckLoginStatusWithExistingUser_ReturnsSuccessState() = runTest {
         val user = DummyUser.generateUser()
 
-        Mockito.`when`(userRepository.getCurrentUserId())
+        Mockito.`when`(userRepository.getCurrentUser())
             .thenReturn(UiState.Success(user))
 
         userViewModel.checkLoginStatus()
@@ -268,7 +268,7 @@ class UserViewModelTest {
 
     @Test
     fun userViewModel_CheckLoginStatusWithNullUser_ReturnsUserNotFoundError() = runTest {
-        Mockito.`when`(userRepository.getCurrentUserId())
+        Mockito.`when`(userRepository.getCurrentUser())
             .thenReturn(UiState.Success(null))
 
         userViewModel.checkLoginStatus()
@@ -291,7 +291,7 @@ class UserViewModelTest {
         val errorText = UiText.StringResource(R.string.error_get_user_id)
         val errorState = UiState.Error(errorText)
 
-        Mockito.`when`(userRepository.getCurrentUserId())
+        Mockito.`when`(userRepository.getCurrentUser())
             .thenReturn(errorState)
 
         userViewModel.checkLoginStatus()

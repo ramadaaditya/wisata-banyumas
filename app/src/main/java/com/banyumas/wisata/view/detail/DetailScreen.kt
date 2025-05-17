@@ -43,9 +43,9 @@ import com.banyumas.wisata.model.Photo
 import com.banyumas.wisata.model.Review
 import com.banyumas.wisata.model.Role
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.EmptyState
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
+import com.banyumas.wisata.view.components.EmptyState
+import com.banyumas.wisata.view.components.ErrorState
+import com.banyumas.wisata.view.components.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.utils.openGoogleMaps
 import com.banyumas.wisata.view.components.BackIcon

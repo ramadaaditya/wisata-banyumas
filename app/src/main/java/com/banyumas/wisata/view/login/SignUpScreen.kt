@@ -2,7 +2,6 @@ package com.banyumas.wisata.view.login
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,7 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.view.components.BackIcon
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.components.PasswordInputField
@@ -97,63 +95,54 @@ private fun RegisterContent(
     onSignInClick: () -> Unit,
     isLoading: Boolean
 ) {
-    Box {
-        BackIcon(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp),
-            onClick = onSignInClick,
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Daftar Sekarang",
+            style = MaterialTheme.typography.titleLarge,
         )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Daftar Sekarang",
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Lengkapi formulir untuk membuat akun",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                ),
-            )
-            Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Lengkapi formulir untuk membuat akun",
+            style = MaterialTheme.typography.titleMedium.copy(
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            ),
+        )
+        Spacer(modifier = Modifier.height(32.dp))
 
-            UsernameInputField(value = username, onValueChange = onUsernameChange)
-            Spacer(modifier = Modifier.height(8.dp))
-            EmailInputField(value = email, onValueChange = onEmailChange)
-            Spacer(modifier = Modifier.height(8.dp))
-            PasswordInputField(value = password, onValueChange = onPasswordChange)
-            Spacer(modifier = Modifier.height(16.dp))
-            CustomButton(
-                onClick = onSignUpClick,
-                text = if (isLoading) "Sedang daftar..." else "Daftar",
-                enabled = username.isNotBlank() && password.isNotBlank() && username.isNotBlank() && !isLoading,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(24.dp))
+        UsernameInputField(value = username, onValueChange = onUsernameChange)
+        Spacer(modifier = Modifier.height(8.dp))
+        EmailInputField(value = email, onValueChange = onEmailChange)
+        Spacer(modifier = Modifier.height(8.dp))
+        PasswordInputField(value = password, onValueChange = onPasswordChange)
+        Spacer(modifier = Modifier.height(16.dp))
+        CustomButton(
+            onClick = onSignUpClick,
+            text = if (isLoading) "Sedang daftar..." else "Daftar",
+            enabled = username.isNotBlank() && password.isNotBlank() && username.isNotBlank() && !isLoading,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(24.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Sudah memiliki akun ? ")
-                TextButton(onClick = onSignInClick) {
-                    Text(text = "Masuk", color = MaterialTheme.colorScheme.primary)
-                }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "Sudah memiliki akun ? ")
+            TextButton(onClick = onSignInClick) {
+                Text(text = "Masuk", color = MaterialTheme.colorScheme.primary)
             }
         }
     }
-
 }
 
 
 @Preview(showBackground = true)
 @Composable
 fun SignupScreenPreview() {
-    WisataBanyumasTheme {
+    WisataBanyumasTheme(dynamicColor = false) {
         RegisterContent(
             email = "mramadaaditya@gmail.com",
             username = "Ramada",

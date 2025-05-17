@@ -3,7 +3,6 @@ package com.banyumas.wisata.view.login
 import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.view.components.BackIcon
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
@@ -84,40 +82,32 @@ fun ResetPasswordContent(
     isLoading: Boolean,
     isValidEmail: Boolean
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        BackIcon(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp),
-            onClick = onSignInClick,
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Reset Kata Sandi",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Reset Kata Sandi",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Text(
-                text = "Masukkan email untuk reset kata sandi.",
-                style = MaterialTheme.typography.titleMedium.copy(color = Color.Gray),
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
+        Text(
+            text = "Masukkan email untuk reset kata sandi.",
+            style = MaterialTheme.typography.titleMedium.copy(color = Color.Gray),
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
 
-            EmailInputField(value = email, onValueChange = onEmailChange)
-            Spacer(modifier = Modifier.height(16.dp))
-            CustomButton(
-                onClick = onResetClick,
-                text = if (isLoading) "Memproses..." else "Reset Kata Sandi",
-                enabled = isValidEmail && !isLoading,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+        EmailInputField(value = email, onValueChange = onEmailChange)
+        Spacer(modifier = Modifier.height(16.dp))
+        CustomButton(
+            onClick = onResetClick,
+            text = if (isLoading) "Memproses..." else "Reset Kata Sandi",
+            enabled = isValidEmail && !isLoading,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

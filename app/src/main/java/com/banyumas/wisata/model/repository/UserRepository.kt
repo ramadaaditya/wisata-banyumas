@@ -1,11 +1,7 @@
 package com.banyumas.wisata.model.repository
 
-import com.auth0.android.jwt.JWT
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.User
-import com.banyumas.wisata.model.api.BackendService
-import com.banyumas.wisata.model.api.LoginRequest
-import com.banyumas.wisata.model.api.LoginResponse
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.utils.UiText
 import com.google.firebase.auth.FirebaseAuth
@@ -16,10 +12,9 @@ import javax.inject.Inject
 class UserRepository @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
-    private val authService: BackendService
 ) {
     companion object {
-        private const val USERS_COLLECTION = "Users"
+        private const val USERS_COLLECTION = "users"
     }
 
     suspend fun registerUser(email: String, password: String, name: String): UiState<Unit> {
@@ -41,46 +36,31 @@ class UserRepository @Inject constructor(
         }
     }
 
-//    suspend fun loginUser(email: String, password: String): UiState<User> {
-//        return try {
-//            val result = auth.signInWithEmailAndPassword(email, password).await()
-//            val firebaseUser = result.user
-//            val userId = firebaseUser?.uid
-//            if (userId.isNullOrBlank()) {
-//                return UiState.Error(UiText.StringResource(R.string.error_user_not_found))
-//            }
-//            val documentSnapshot =
-//                firestore.collection(USERS_COLLECTION)
-//                    .document(userId)
-//                    .get()
-//                    .await()
-//            val user = documentSnapshot.toObject(User::class.java)
-//            if (user != null) {
-//                UiState.Success(user)
-//            } else {
-//                UiState.Error(UiText.StringResource(R.string.error_user_not_found))
-//            }
-//        } catch (e: Exception) {
-//            handleException(R.string.error_login, e)
-//        }
-//    }
-
-    suspend fun login(email: String, password: String): Result<LoginResponse> {
+    suspend fun loginUser(email: String, password: String): UiState<User> {
         return try {
-            val response = authService.loginUser(LoginRequest(email, password))
-            Result.success(response)
+            val result = auth.signInWithEmailAndPassword(email, password).await()
+            val firebaseUser = result.user
+            val userId = firebaseUser?.uid
+            if (userId.isNullOrBlank()) {
+                return UiState.Error(UiText.StringResource(R.string.error_user_not_found))
+            }
+            val documentSnapshot =
+                firestore.collection(USERS_COLLECTION)
+                    .document(userId)
+                    .get()
+                    .await()
+            val user = documentSnapshot.toObject(User::class.java)
+            if (user != null) {
+                UiState.Success(user)
+            } else {
+                UiState.Error(UiText.StringResource(R.string.error_user_not_found))
+            }
         } catch (e: Exception) {
-            Result.failure(e)
+            handleException(R.string.error_login, e)
         }
     }
 
-    fun parseJwt(token: String): String? {
-        val jwt = JWT(token)
-        val userId = jwt.getClaim("id").asString()
-        return userId
-    }
-
-    suspend fun getCurrentUserId(): UiState<User?> {
+    suspend fun getCurrentUser(): UiState<User?> {
         return try {
             val userId = auth.currentUser?.uid
             if (userId.isNullOrBlank()) {

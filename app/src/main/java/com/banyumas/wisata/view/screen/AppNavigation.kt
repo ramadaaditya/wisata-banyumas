@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -16,26 +16,30 @@ import com.banyumas.wisata.view.components.HomeSection
 import com.banyumas.wisata.view.components.WBBottomBar
 import com.banyumas.wisata.view.components.WisataBanyumasScaffold
 import com.banyumas.wisata.view.components.addHomeGraph
+import com.banyumas.wisata.view.dashboard.DashboardScreen
 import com.banyumas.wisata.view.detail.DetailScreen
 import com.banyumas.wisata.view.initial.FetchDatabase
 import com.banyumas.wisata.view.login.LoginScreen
 import com.banyumas.wisata.view.login.RegisterScreen
 import com.banyumas.wisata.view.login.ResetPasswordScreen
-import com.banyumas.wisata.view.navigation.MainDestinations
+import com.banyumas.wisata.view.navigation.Screen
 import com.banyumas.wisata.view.navigation.rememberWBNavController
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.viewmodel.DestinationViewModel
+import com.banyumas.wisata.viewmodel.UserViewModel
 
-@Preview
 @Composable
 fun AppNavigation() {
     WisataBanyumasTheme {
+        val userViewModel: UserViewModel = hiltViewModel()
+        val destinationViewModel: DestinationViewModel = hiltViewModel()
         val banyumasNavController = rememberWBNavController()
         NavHost(
             navController = banyumasNavController.navController,
-            startDestination = MainDestinations.SPLASH_ROUTE
+            startDestination = Screen.SplashScreen.route
         ) {
             composable(
-                route = MainDestinations.SPLASH_ROUTE
+                route = Screen.SplashScreen.route,
             ) {
                 SplashScreen(
                     navigateToLogin = banyumasNavController::navigateToLogin,
@@ -43,7 +47,7 @@ fun AppNavigation() {
                 )
             }
             composable(
-                route = MainDestinations.LOGIN_ROUTE
+                route = Screen.LoginScreen.route,
             ) {
                 LoginScreen(
                     navigateToHome = banyumasNavController::navigateToHome,
@@ -52,38 +56,65 @@ fun AppNavigation() {
                 )
             }
             composable(
-                route = MainDestinations.REGISTER_ROUTE
+                route = Screen.RegisterScreen.route
             ) {
                 RegisterScreen(
                     onSignInClick = banyumasNavController::navigateToLogin
                 )
             }
             composable(
-                route = MainDestinations.FETCH_ROUTE
+                route = Screen.FetchScreen.route
             ) {
                 FetchDatabase()
             }
             composable(
-                route = MainDestinations.RESET_ROUTE
+                route = Screen.ForgotPasswordScreen.route
             ) {
                 ResetPasswordScreen(onSignInClick = banyumasNavController::navigateToLogin)
             }
             composable(
-                route = MainDestinations.HOME_ROUTE
-            ) {
-                MainContainer(onDestinationSelected = banyumasNavController::navigateToDetail)
+                route = Screen.DashboardScreen.DASHBOARD_ROUTE,
+                arguments = listOf(
+                    navArgument("userId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backstackEntry ->
+                val userId = backstackEntry.arguments?.getString("userId") ?: ""
+                DashboardScreen(
+                    userId = userId,
+                    navigateToDetail = { destinationId ->
+                        banyumasNavController.navigateToDetail(destinationId, backstackEntry)
+                    },
+                    onLogout = {},
+                    onAddClick = {})
             }
             composable(
-                "${MainDestinations.DETAIL_ROUTE}/" +
-                        "{${MainDestinations.DESTINATION_ID_KEY}}",
+                route = Screen.HomeScreen.HOME_ROUTE,
                 arguments = listOf(
-                    navArgument(MainDestinations.DESTINATION_ID_KEY) {
-                        type = NavType.LongType
+                    navArgument("userId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                MainContainer(
+                    userId = userId,
+                    onDestinationSelected = banyumasNavController::navigateToDetail,
+                    userViewModel = userViewModel,
+                    destinationViewModel = destinationViewModel,
+                )
+            }
+            composable(
+                route = Screen.DetailScreen.DETAIL_ROUTE,
+                arguments = listOf(
+                    navArgument("destinationId") {
+                        type = NavType.StringType
                     }
                 ),
             ) { backStackEntry ->
                 val arguments = requireNotNull(backStackEntry.arguments)
-                val destinationId = arguments.getString(MainDestinations.DESTINATION_ID_KEY)
+                val destinationId = arguments.getString("destinationId")
                 DetailScreen(
                     destinationId ?: "",
                     onBackClick = banyumasNavController::upPress,
@@ -96,12 +127,16 @@ fun AppNavigation() {
 
 @Composable
 fun MainContainer(
+    userId: String,
+    userViewModel: UserViewModel,
+    destinationViewModel: DestinationViewModel,
     modifier: Modifier = Modifier,
     onDestinationSelected: (placeId: String, from: NavBackStackEntry) -> Unit
 ) {
     val nestedNavController = rememberWBNavController()
     val navBackStackEntry by nestedNavController.navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
     WisataBanyumasScaffold(
         bottomBar = {
             WBBottomBar(
@@ -117,10 +152,13 @@ fun MainContainer(
             startDestination = HomeSection.FEED.route
         ) {
             addHomeGraph(
+                userViewModel = userViewModel,
                 onDestinationSelected = onDestinationSelected,
                 modifier = Modifier
                     .padding(padding)
-                    .consumeWindowInsets(padding)
+                    .consumeWindowInsets(padding),
+                userId = userId,
+                destinationViewModel = destinationViewModel
             )
         }
     }
