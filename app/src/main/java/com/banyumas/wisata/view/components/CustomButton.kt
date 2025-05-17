@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun CustomButton(
@@ -80,7 +80,7 @@ fun CustomButton(
 @Preview(showBackground = true)
 @Composable
 fun CustomButtonPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         CustomButton(
             text = "Navigasi ke Maps",
             onClick = {},

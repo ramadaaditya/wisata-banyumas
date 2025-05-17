@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.banyumas.wisata.R
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,7 +71,7 @@ fun DropDownMenu(
 @Preview(showBackground = true)
 @Composable
 fun DropDownMenuPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         DropDownMenu(
             onCategorySelected = {},
             selectedCategory = "Alam"

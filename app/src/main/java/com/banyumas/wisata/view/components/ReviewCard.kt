@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,15 +21,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.banyumas.wisata.model.Review
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @Composable
 fun ReviewCard(review: Review) {
     Card(
         border = BorderStroke(
-            2.dp, MaterialTheme.colorScheme.primary
+            1.dp, MaterialTheme.colorScheme.primary
         ),
-        shape = RoundedCornerShape(CornerSize(8.dp)),
+        shape = RoundedCornerShape(CornerSize(6.dp)),
     ) {
         Column(
             modifier = Modifier
@@ -51,7 +49,7 @@ fun ReviewCard(review: Review) {
             }
             Text(
                 text = review.text,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
@@ -77,41 +75,17 @@ fun Rating(rating: Int) {
     }
 }
 
-
-@Preview(showBackground = true)
+@Preview
 @Composable
-private fun ReviewCardListPreview() {
-    AppTheme {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(reviews) { review ->
-                ReviewCard(review = review)
-            }
-        }
+private fun ReviewCardPreview() {
+    WisataBanyumasTheme(dynamicColor = false) {
+        ReviewCard(
+            review = Review(
+                text = "Gelo king keren banget wisatanya",
+                rating = 5,
+                timestamp = 123123,
+                authorName = "Bagas"
+            )
+        )
     }
 }
-
-private val reviews = listOf(
-    Review(
-        authorName = "Ramados",
-        text = "Lezat",
-        rating = 4,
-        timestamp = 12321,
-        source = "Google"
-    ),
-    Review(
-        authorName = "Dina",
-        text = "Enak sekali!",
-        rating = 5,
-        timestamp = 12322,
-        source = "Instagram"
-    ),
-    Review(
-        authorName = "Tari",
-        text = "Biasa saja",
-        rating = 3,
-        timestamp = 12323,
-        source = "Facebook"
-    )
-)

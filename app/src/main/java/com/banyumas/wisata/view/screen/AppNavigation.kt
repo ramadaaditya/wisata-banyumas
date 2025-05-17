@@ -1,279 +1,127 @@
 package com.banyumas.wisata.view.screen
 
-import android.util.Log
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.banyumas.wisata.model.Role
-import com.banyumas.wisata.utils.LoadingState
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.view.components.BottomNavigation
-import com.banyumas.wisata.view.dashboard.DashboardScreen
+import com.banyumas.wisata.view.components.HomeSection
+import com.banyumas.wisata.view.components.WBBottomBar
+import com.banyumas.wisata.view.components.WisataBanyumasScaffold
+import com.banyumas.wisata.view.components.addHomeGraph
 import com.banyumas.wisata.view.detail.DetailScreen
-import com.banyumas.wisata.view.home.FavoriteScreen
-import com.banyumas.wisata.view.home.HomeScreen
-import com.banyumas.wisata.view.home.ProfileScreen
+import com.banyumas.wisata.view.initial.FetchDatabase
 import com.banyumas.wisata.view.login.LoginScreen
 import com.banyumas.wisata.view.login.RegisterScreen
 import com.banyumas.wisata.view.login.ResetPasswordScreen
-import com.banyumas.wisata.view.navigation.Screen
-import com.banyumas.wisata.view.review.AddReviewScreen
-import com.banyumas.wisata.view.update.AddOrUpdateDestinationScreen
-import com.banyumas.wisata.viewmodel.DestinationViewModel
-import com.banyumas.wisata.viewmodel.UserViewModel
+import com.banyumas.wisata.view.navigation.MainDestinations
+import com.banyumas.wisata.view.navigation.rememberWBNavController
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
+@Preview
 @Composable
-fun AppNavigation(
-    navController: NavHostController = rememberNavController()
-) {
-
-    //TODO Bungkus dengan AppTheme
-    val userViewModel: UserViewModel = hiltViewModel()
-    val destinationViewModel: DestinationViewModel = hiltViewModel()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val authState by userViewModel.authState.collectAsStateWithLifecycle()
-    val destinationState by destinationViewModel.selectedDestination.collectAsStateWithLifecycle()
-    val currentUser = (authState as? UiState.Success)?.data
-
-    Scaffold(
-        bottomBar = {
-            val currentRoute = navBackStackEntry?.destination?.route
-            if (currentRoute == Screen.Home.route ||
-                currentRoute == Screen.ProfileScreen.route ||
-                currentRoute == Screen.FavoriteScreen.route
-            ) {
-                BottomNavigation(navController = navController)
-            }
-        },
-    ) { innerPadding ->
+fun AppNavigation() {
+    WisataBanyumasTheme {
+        val banyumasNavController = rememberWBNavController()
         NavHost(
-            navController = navController,
-            startDestination = Screen.SplashScreen.route,
-            modifier = Modifier.padding(innerPadding)
+            navController = banyumasNavController.navController,
+            startDestination = MainDestinations.SPLASH_ROUTE
         ) {
-            composable(Screen.SplashScreen.route) {
+            composable(
+                route = MainDestinations.SPLASH_ROUTE
+            ) {
                 SplashScreen(
-                    viewModel = userViewModel,
-                    navigateToHome = { user ->
-                        val targetScreen = if (user.role == Role.ADMIN)
-                            Screen.DashboardScreen.route
-                        else Screen.Home.route
-                        navController.navigate(targetScreen) {
-                            popUpTo(Screen.SplashScreen.route) {
-                                inclusive = true
-                            }
-                        }
-                    },
-                    navigateToLogin = {
-                        Log.d("AppNavigation", "Navigating to LoginScreen")
-                        navController.navigate(Screen.LoginScreen.route) {
-                            popUpTo(Screen.SplashScreen.route) {
-                                inclusive = true
-                            }
-                        }
-                    }
+                    navigateToLogin = banyumasNavController::navigateToLogin,
+                    navigateToHome = banyumasNavController::navigateToHome
                 )
             }
-
-            composable(Screen.LoginScreen.route) {
+            composable(
+                route = MainDestinations.LOGIN_ROUTE
+            ) {
                 LoginScreen(
-                    viewModel = userViewModel,
-                    navigateToDashboard = {
-                        navController.navigate(Screen.DashboardScreen.route) {
-                            popUpTo(Screen.LoginScreen.route) { inclusive = true }
-                        }
-                    },
-                    navigateToHome = {
-                        navController.navigate(
-                            Screen.Home.route
-                        ) {
-                            popUpTo(Screen.LoginScreen.route) { inclusive = true }
-                        }
-                    },
-                    onSignupClick = { navController.navigate(Screen.RegisterScreen.route) },
-                    onForgotPasswordClick = {
-                        navController.navigate(Screen.ForgotPasswordScreen.route)
-                    }
+                    navigateToHome = banyumasNavController::navigateToHome,
+                    onForgotPasswordClick = banyumasNavController::navigateToResetPassword,
+                    onSignupClick = banyumasNavController::navigateToRegister
                 )
             }
-
-            composable(Screen.RegisterScreen.route) {
+            composable(
+                route = MainDestinations.REGISTER_ROUTE
+            ) {
                 RegisterScreen(
-                    onSignInClick = { navController.navigate(Screen.LoginScreen.route) },
+                    onSignInClick = banyumasNavController::navigateToLogin
                 )
             }
-
-            composable(Screen.Home.route) {
-                HomeScreen(
-                    navigateToDetail = { destinationId ->
-                        val route = Screen.DetailScreen.createRoute(destinationId)
-                        Log.d("AppNavigation", "Navigating to DetailScreen: $route")
-                        navController.navigate(route)
-                    },
-                    userViewModel = userViewModel,
-                    destinationViewModel = destinationViewModel,
-                )
-            }
-
             composable(
-                route = Screen.AddReviewScreen.ROUTE,
-                arguments = listOf(navArgument("destinationId") { type = NavType.StringType })
+                route = MainDestinations.FETCH_ROUTE
             ) {
-                val destinationId = it.arguments?.getString("destinationId") ?: ""
-
-                AddReviewScreen(
-                    userViewModel = userViewModel,
-                    viewModel = destinationViewModel,
-                    destinationId = destinationId,
-                )
-            }
-
-            composable(Screen.DashboardScreen.route) {
-                DashboardScreen(
-                    navigateToDetail = { destinationId ->
-                        val route = Screen.DetailScreen.createRoute(destinationId)
-                        Log.d("AppNavigation", "Navigating to DetailScreen: $route")
-                        navController.navigate(route)
-                    },
-                    onLogout = {
-                        navController.navigate(Screen.LoginScreen.route) {
-                            popUpTo(Screen.DashboardScreen.route) { inclusive = true }
-                        }
-                    },
-                    userViewModel = userViewModel,
-                    onAddClick = {
-                        navController.navigate(Screen.AddScreen.route) {
-                            popUpTo(Screen.DashboardScreen.route) { inclusive = true }
-                        }
-                    }
-                )
+                FetchDatabase()
             }
             composable(
-                route = Screen.DetailScreen.ROUTE,
+                route = MainDestinations.RESET_ROUTE
+            ) {
+                ResetPasswordScreen(onSignInClick = banyumasNavController::navigateToLogin)
+            }
+            composable(
+                route = MainDestinations.HOME_ROUTE
+            ) {
+                MainContainer(onDestinationSelected = banyumasNavController::navigateToDetail)
+            }
+            composable(
+                "${MainDestinations.DETAIL_ROUTE}/" +
+                        "{${MainDestinations.DESTINATION_ID_KEY}}",
                 arguments = listOf(
-                    navArgument("destinationId") { type = NavType.StringType }
-                )
-            ) { bacStackEntry ->
-                val destinationId = bacStackEntry.arguments?.getString("destinationId") ?: ""
+                    navArgument(MainDestinations.DESTINATION_ID_KEY) {
+                        type = NavType.LongType
+                    }
+                ),
+            ) { backStackEntry ->
+                val arguments = requireNotNull(backStackEntry.arguments)
+                val destinationId = arguments.getString(MainDestinations.DESTINATION_ID_KEY)
                 DetailScreen(
-                    userViewModel = userViewModel,
-                    destinationId = destinationId,
-                    onBackClick = { navController.popBackStack() },
-                    onEditClick = {
-                        navController.navigate(
-                            Screen.UpdateScreen.createRoute(
-                                destinationId
-                            )
-                        )
-                    },
-                    onAddCommentClick = {
-                        navController.navigate(
-                            Screen.AddReviewScreen.createRoute(
-                                destinationId
-                            )
-                        )
-                    }
+                    destinationId ?: "",
+                    onBackClick = banyumasNavController::upPress,
+                    onEditClick = {}
                 )
-            }
-            composable(Screen.FavoriteScreen.route) {
-                FavoriteScreen(
-                    userViewModel = userViewModel,
-                    navigateToDetail = { destination ->
-                        navController.navigate(
-                            Screen.DetailScreen.createRoute(
-                                destination.id
-                            )
-                        )
-                    },
-                )
-            }
-
-
-            composable(Screen.ProfileScreen.route) {
-                ProfileScreen(
-                    viewModel = userViewModel,
-                    onLogout = {
-                        navController.navigate(Screen.LoginScreen.route) {
-                            popUpTo(0)
-                        }
-                    },
-                    onDelete = {
-                        navController.navigate(Screen.LoginScreen.route) {
-                            popUpTo(0)
-                        }
-                    },
-                )
-            }
-
-            composable(Screen.ForgotPasswordScreen.route) {
-                ResetPasswordScreen(
-                    onSignInClick = {
-                        navController.navigate(Screen.LoginScreen.route) {
-                            popUpTo(Screen.ForgotPasswordScreen.route) { inclusive = true }
-                        }
-                    },
-                )
-            }
-
-            composable(
-                route = Screen.AddScreen.route
-            ) {
-                AddOrUpdateDestinationScreen(
-                    isEditing = false,
-                )
-            }
-
-            composable(
-                route = Screen.UpdateScreen.ROUTE,
-                arguments = listOf(navArgument("destinationId") { type = NavType.StringType })
-            ) {
-                val destinationId =
-                    navBackStackEntry?.arguments?.getString("destinationId") ?: ""
-                if (destinationId.isNotEmpty()) {
-                    LaunchedEffect(destinationId) {
-                        Log.d("UpdateScreen", "Fetching destination data for ID: $destinationId")
-                        destinationViewModel.getDestinationById(
-                            destinationId,
-                            currentUser?.id.orEmpty()
-                        )
-                    }
-                }
-
-                when (val selectedDestination = destinationState) {
-                    is UiState.Loading -> LoadingState()
-                    is UiState.Success -> {
-                        AddOrUpdateDestinationScreen(
-                            initialDestination = selectedDestination.data.destination,
-                            isEditing = true,
-                        )
-                    }
-
-                    is UiState.Error -> {
-                        Text("Gagal memuat destinasi", style = MaterialTheme.typography.bodyMedium)
-                    }
-
-                    UiState.Empty -> {
-                        Text(
-                            "Destinasi tidak ditemukan", style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
             }
         }
     }
 }
 
+@Composable
+fun MainContainer(
+    modifier: Modifier = Modifier,
+    onDestinationSelected: (placeId: String, from: NavBackStackEntry) -> Unit
+) {
+    val nestedNavController = rememberWBNavController()
+    val navBackStackEntry by nestedNavController.navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    WisataBanyumasScaffold(
+        bottomBar = {
+            WBBottomBar(
+                tabs = HomeSection.entries.toTypedArray(),
+                currentRoute = currentRoute ?: HomeSection.FEED.route,
+                navigateToRoute = nestedNavController::navigateToBottomBarRoute,
+            )
+        },
+        modifier = modifier
+    ) { padding ->
+        NavHost(
+            navController = nestedNavController.navController,
+            startDestination = HomeSection.FEED.route
+        ) {
+            addHomeGraph(
+                onDestinationSelected = onDestinationSelected,
+                modifier = Modifier
+                    .padding(padding)
+                    .consumeWindowInsets(padding)
+            )
+        }
+    }
+}

@@ -1,6 +1,5 @@
 package com.banyumas.wisata.view.dashboard
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,7 +33,7 @@ import com.banyumas.wisata.view.components.ConfirmationDialog
 import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.view.components.LogoutIcon
 import com.banyumas.wisata.view.components.Search
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
@@ -57,15 +56,12 @@ fun DashboardScreen(
         when (val state = authState) {
             is UiState.Success -> {
                 val currentUser = state.data
-                viewModel.loadDestinations(currentUser.id)
+                viewModel.getAllDestinations(currentUser.id)
             }
-
             is UiState.Empty -> {
                 onLogout()
             }
-
             else -> {}
-
         }
     }
     when (val state = uiState) {
@@ -117,7 +113,7 @@ fun DashboardScreen(
             title = "Konfirmasi Hapus",
             message = "Apakah Anda yakin ingin menghapus destinasi ini ?",
             onConfirm = {
-                selectedDestinationId?.let { viewModel.deleteDestination(it) }
+                selectedDestinationId?.let { viewModel.deleteDestinationById(it) }
                 showDeleteDialog = false
             },
             onDismiss = { showDeleteDialog = false }
@@ -144,7 +140,6 @@ fun DashboardContent(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -193,10 +188,10 @@ fun DashboardContent(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 fun DashboardContentPreview() {
-    AppTheme {
+    WisataBanyumasTheme(dynamicColor = false) {
         val sampleDestination = List(5) { index ->
             UiDestination(
                 destination = Destination(

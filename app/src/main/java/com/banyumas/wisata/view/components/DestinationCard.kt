@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -35,7 +34,8 @@ import coil3.compose.rememberAsyncImagePainter
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.BanyumasTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -83,42 +83,47 @@ fun DestinationCard(
             )
             if (showFavoriteIcon) {
                 FavoriteIcon(
-                    modifier = Modifier.align(Alignment.TopEnd).padding(12.dp),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(12.dp),
                     onClick = { onFavoriteClick(!destination.isFavorite) },
                     isFavorite = destination.isFavorite
                 )
             }
             Column(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .align(Alignment.BottomStart)
-                    .padding(4.dp)
             ) {
                 Text(
                     text = destination.destination.name,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = BanyumasTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    color = BanyumasTheme.colors.onBackground.copy(alpha = 0.7f),
                 )
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = "Location",
-                        tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                        tint = BanyumasTheme.colors.onBackground.copy(alpha = 0.7f),
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
                         fontSize = 12.sp,
                         text = destination.destination.address,
                         maxLines = 1,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                        color = BanyumasTheme.colors.onBackground.copy(alpha = 0.7f),
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -130,7 +135,7 @@ fun DestinationCard(
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 fun PreviewDestinationCard() {
-    AppTheme {
+    WisataBanyumasTheme {
         Column(modifier = Modifier.padding(16.dp)) {
             val sampleDestination = UiDestination(
                 destination = Destination(

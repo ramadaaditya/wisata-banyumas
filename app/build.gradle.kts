@@ -62,7 +62,6 @@ dependencies {
     implementation(libs.androidx.paging.compose.android)
     implementation(libs.transport.runtime)
     implementation(libs.androidx.ui.text.google.fonts)
-    testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -99,4 +98,15 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.edge.to.edge.preview)
+
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.inline)
+    testImplementation(libs.androidx.core.testing)
+    testImplementation(libs.junit)
+
+    implementation(libs.androidx.datastore.preferences)
+    implementation ("com.auth0.android:jwtdecode:2.0.2")
+
+
 }

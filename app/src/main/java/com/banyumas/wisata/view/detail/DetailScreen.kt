@@ -1,7 +1,6 @@
 package com.banyumas.wisata.view.detail
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,43 +43,37 @@ import com.banyumas.wisata.model.Photo
 import com.banyumas.wisata.model.Review
 import com.banyumas.wisata.model.Role
 import com.banyumas.wisata.model.UiDestination
+import com.banyumas.wisata.utils.EmptyState
+import com.banyumas.wisata.utils.ErrorState
+import com.banyumas.wisata.utils.LoadingState
+import com.banyumas.wisata.utils.UiState
+import com.banyumas.wisata.utils.openGoogleMaps
 import com.banyumas.wisata.view.components.BackIcon
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EditIcon
 import com.banyumas.wisata.view.components.FavoriteIcon
 import com.banyumas.wisata.view.components.PhotoCarouselViewer
 import com.banyumas.wisata.view.components.ReviewCard
-import com.banyumas.wisata.view.theme.AppTheme
-import com.banyumas.wisata.utils.EmptyState
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.openGoogleMaps
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun DetailScreen(
-    destinationId: String?,
+    destinationId: String,
     viewModel: DestinationViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onEditClick: (Destination) -> Unit,
-    onAddCommentClick: (Destination) -> Unit
 ) {
     val uiState by viewModel.selectedDestination.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
-
-    val context = LocalContext.current
     val currentUser = (authState as? UiState.Success)?.data
-    val isAdmin = remember { currentUser?.role == Role.ADMIN }
+    val context = LocalContext.current
+    val isAdmin = remember(currentUser?.role) { currentUser?.role == Role.ADMIN }
 
     LaunchedEffect(destinationId) {
-        if (destinationId.isNullOrBlank()) {
-            viewModel.logError("destinationId null atau kosong!")
-        } else {
-            viewModel.getDestinationById(destinationId, currentUser?.id.orEmpty())
-        }
+        viewModel.getDetailDestination(destinationId, currentUser?.id.orEmpty())
     }
 
     when (val state = uiState) {
@@ -92,9 +85,9 @@ fun DetailScreen(
                     openGoogleMaps(context, lat, long)
                 },
                 onFavoriteClick = { uiDestination ->
-                    currentUser?.let {
+                    currentUser?.id?.let {
                         viewModel.toggleFavorite(
-                            userId = currentUser.id,
+                            userId = it,
                             destinationId = uiDestination.destination.id,
                             isFavorite = !uiDestination.isFavorite
                         )
@@ -102,7 +95,6 @@ fun DetailScreen(
                 },
                 onBackClick = onBackClick,
                 onEditClick = onEditClick,
-                onAddCommentClick = onAddCommentClick,
                 isAdmin = isAdmin
             )
         }
@@ -120,85 +112,73 @@ fun DetailContent(
     onFavoriteClick: (UiDestination) -> Unit,
     onBackClick: () -> Unit,
     onEditClick: (Destination) -> Unit,
-    onAddCommentClick: (Destination) -> Unit,
     isAdmin: Boolean
 ) {
     Column {
-        Box {
-            val firstPhotoUrl = destination.destination.photos.firstOrNull()?.photoUrl
-            DestinationImage(imageUrl = firstPhotoUrl)
-            BackIcon(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp),
-                onClick = onBackClick
+        DetailTopBar(
+            imageUrl = destination.destination.photos.firstOrNull()?.photoUrl,
+            isAdmin = isAdmin,
+            onBackClick = onBackClick,
+            onEditClick = { onEditClick(destination.destination) },
+            onFavoriteClick = { onFavoriteClick(destination) },
+            isFavorite = destination.isFavorite
+        )
+        DetailSection(
+            name = destination.destination.name,
+            rating = destination.destination.rating,
+            reviewCount = destination.destination.reviews.size,
+            address = destination.destination.address,
+        )
+        PhotoCarouselViewer(photos = destination.destination.photos)
+
+        Row(
+            verticalAlignment = Alignment.Top,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Ulasan",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
             )
-            if (isAdmin) {
-                EditIcon(
-                    onClick = {
-                        onEditClick(destination.destination)
-                    },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                )
-            } else {
-                FavoriteIcon(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp),
-                    onClick = { onFavoriteClick(destination) },
-                    isFavorite = destination.isFavorite
+            if (!isAdmin) {
+                CustomButton(
+                    onClick = {},
+                    icon = Icons.Default.Add,
+                    text = "Tambah",
+                    iconSize = Modifier.size(20.dp),
+                    textStyle = MaterialTheme.typography.titleSmall,
                 )
             }
         }
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            DetailSection(
-                name = destination.destination.name,
-                rating = destination.destination.rating,
-                reviewCount = destination.destination.reviewsFromGoogle.size +
-                        destination.destination.reviewsFromLocal.size,
-                address = destination.destination.address,
+
+        LazyColumn(
+            modifier = Modifier
+                .weight(2f)
+                .padding(horizontal = 16.dp)
+        ) {
+            items(destination.destination.reviews) { review ->
+                ReviewCard(review = review)
+            }
+        }
+        if (destination.destination.latitude != null && destination.destination.longitude != null) {
+            CustomButton(
+                onClick = {
+                    onMapClick(
+                        destination.destination.latitude,
+                        destination.destination.longitude
+                    )
+                },
+                text = "Navigasi ke Lokasi",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             )
-            if (destination.destination.photos.isNotEmpty()) {
-                PhotoCarouselViewer(photos = destination.destination.photos)
-            }
-            Row (verticalAlignment = Alignment.Top){
-                Text(
-                    text = "Ulasan",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                if (!isAdmin) {
-                    CustomButton(
-                        onClick = {onAddCommentClick(destination.destination)},
-                        icon = Icons.Default.Add,
-                        text = "Add",
-                        iconSize = Modifier.size(20.dp),
-                        textStyle = MaterialTheme.typography.titleSmall,
-                    )
-                }
-            }
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(destination.destination.reviewsFromGoogle + destination.destination.reviewsFromLocal) { review ->
-                    ReviewCard(review)
-                }
-                item {
-                    CustomButton(
-                        onClick = {
-                            onMapClick(
-                                destination.destination.latitude,
-                                destination.destination.longitude
-                            )
-                        },
-                        text = "Navigasi ke Lokasi",
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
         }
     }
 }
+
 
 @Composable
 fun DestinationImage(imageUrl: String?, modifier: Modifier = Modifier) {
@@ -233,7 +213,9 @@ fun DetailSection(
     address: String,
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -261,7 +243,7 @@ fun DetailSection(
             Spacer(modifier = Modifier.width(6.dp))
 
             Text(
-                text = "$reviewCount Review",
+                text = "($reviewCount)",
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -273,30 +255,57 @@ fun DetailSection(
     }
 }
 
+@Composable
+fun DetailTopBar(
+    imageUrl: String?,
+    isAdmin: Boolean,
+    onBackClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
+    isFavorite: Boolean
+) {
+    Box {
+        DestinationImage(imageUrl = imageUrl)
+        BackIcon(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp),
+            onClick = onBackClick
+        )
+        if (isAdmin) {
+            EditIcon(
+                onClick = onEditClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            )
+        } else {
+            FavoriteIcon(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp),
+                onClick = onFavoriteClick,
+                isFavorite = isFavorite
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 private fun DetailContentPreview() {
-    AppTheme {
+    WisataBanyumasTheme(dynamicColor = false) {
         DetailContent(
             destination =
                 UiDestination(
                     destination = Destination(
                         name = "Curug Baturraden",
                         address = "Jl. Baturraden, Purwokerto Utara",
-                        reviewsFromGoogle = listOf(
+                        reviews = listOf(
                             Review(
                                 authorName = "John Doe",
                                 rating = 5,
                                 text = "Great place to visit!",
-                                source = "Google"
-                            )
-                        ),
-                        reviewsFromLocal = listOf(
-                            Review(
-                                authorName = "Jane Doe",
-                                rating = 4,
-                                text = "Nice place!",
-                                source = "local"
                             )
                         ),
                         rating = 4.5f,
@@ -308,7 +317,6 @@ private fun DetailContentPreview() {
             onBackClick = {},
             isAdmin = false,
             onEditClick = {},
-            onAddCommentClick = {}
         )
     }
 }

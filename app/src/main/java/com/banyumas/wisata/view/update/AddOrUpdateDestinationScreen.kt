@@ -35,13 +35,12 @@ import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.Photo
 import com.banyumas.wisata.model.UiDestination
 import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.generateNewId
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.CustomTextField
 import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.view.components.DropDownMenu
 import com.banyumas.wisata.view.components.PhotoCarouselViewer
-import com.banyumas.wisata.view.theme.AppTheme
+import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.DestinationViewModel
 
 @Composable
@@ -101,44 +100,44 @@ fun AddOrUpdateDestinationScreen(
         }
     }
 
-    fun onSaveDestination() {
-        val latVal = latitudeInput.value.toDoubleOrNull()
-        val longVal = longitudeInput.value.toDoubleOrNull()
-
-        if (latVal == null || longVal == null) {
-            Toast.makeText(context, "Latitude / Longitude tidak valid!", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val finalDestination = destination.copy(
-            latitude = latVal,
-            longitude = longVal
-        )
-
-        if (isEditing) {
-            if (finalDestination.id.isBlank()) {
-                Toast.makeText(
-                    context,
-                    "ID destinasi kosong, tidak bisa update!",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return
-            }
-            viewModel.updateDestination(
-                destination = finalDestination,
-                newImageUris = selectedPhotos,
-                deletedPhotos = deletedPhotos
-            )
-        } else {
-            val newDestination =
-                finalDestination.copy(id = finalDestination.id.ifBlank { generateNewId() })
-
-            viewModel.saveDestination(
-                destination = newDestination,
-                imageUris = selectedPhotos
-            )
-        }
-    }
+//    fun onSaveDestination() {
+//        val latVal = latitudeInput.value.toDoubleOrNull()
+//        val longVal = longitudeInput.value.toDoubleOrNull()
+//
+//        if (latVal == null || longVal == null) {
+//            Toast.makeText(context, "Latitude / Longitude tidak valid!", Toast.LENGTH_SHORT).show()
+//            return
+//        }
+//
+//        val finalDestination = destination.copy(
+//            latitude = latVal,
+//            longitude = longVal
+//        )
+//
+//        if (isEditing) {
+//            if (finalDestination.id.isBlank()) {
+//                Toast.makeText(
+//                    context,
+//                    "ID destinasi kosong, tidak bisa update!",
+//                    Toast.LENGTH_SHORT
+//                ).show()
+//                return
+//            }
+//            viewModel.updateDestination(
+//                destination = finalDestination,
+//                newImageUris = selectedPhotos,
+//                deletedPhotos = deletedPhotos
+//            )
+//        } else {
+//            val newDestination =
+//                finalDestination.copy(id = finalDestination.id.ifBlank { generateNewId() })
+//
+//            viewModel.saveNewDestination(
+//                destination = newDestination,
+//                imageUris = selectedPhotos
+//            )
+//        }
+//    }
 
     LazyColumn(
         modifier = Modifier
@@ -162,7 +161,9 @@ fun AddOrUpdateDestinationScreen(
             }
             item {
                 CustomButton(
-                    onClick = { viewModel.searchDestinationsByName(searchQuery) },
+                    onClick = {
+//                        viewModel.searchDestinationsByName(searchQuery)
+                    },
                     enabled = searchQuery.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),
                     text = "Cari Wisata",
@@ -187,7 +188,7 @@ fun AddOrUpdateDestinationScreen(
                                 destination = fetchedDestination,
                                 onFavoriteClick = {},
                                 onClick = {
-                                    viewModel.fetchPlaceDetailsFromGoogle(fetchedDestination.destination.id)
+//                                    viewModel.fetchPlaceDetailsFromGoogle(fetchedDestination.destination.id)
                                 },
                                 onLongPress = {},
                                 showFavoriteIcon = false
@@ -301,7 +302,7 @@ fun AddOrUpdateDestinationScreen(
         item {
             CustomButton(
                 onClick = {
-                    onSaveDestination()
+//                    onSaveDestination()
                 },
                 enabled = isFormValid,
                 modifier = Modifier.fillMaxWidth(),
@@ -444,7 +445,7 @@ fun AddOrUpdateDestinationContent(
 @Preview(showBackground = true, device = Devices.PIXEL)
 @Composable
 private fun AddOrUpdateDestinationPreview() {
-    AppTheme {
+    WisataBanyumasTheme {
         AddOrUpdateDestinationContent(
             searchQuery = "Rambutan",
             destination = Destination(
