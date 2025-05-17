@@ -1,6 +1,7 @@
 package com.banyumas.wisata.viewmodel
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.banyumas.wisata.R
@@ -43,6 +44,32 @@ class DestinationViewModel @Inject constructor(
     sealed class DestinationEvent {
         data class ShowMessage(val message: String) : DestinationEvent()
         data object Success : DestinationEvent()
+    }
+
+    fun getAllDestinations(userId: String) {
+        if (userId.isBlank()) {
+            _uiDestinations.value =
+                UiState.Error(UiText.StringResource(R.string.error_user_id_empty))
+            return
+        }
+
+        _uiDestinations.value = UiState.Loading
+        viewModelScope.launch {
+            when (val result = repository.getAllDestinations(userId)) {
+                is UiState.Success -> {
+                    allDestinations = result.data
+                    _uiDestinations.value = if (result.data.isEmpty()) UiState.Empty else result
+                    Log.d("VIEWMODEL", "getAllDestinations: berhasil mengambil data wisata $result")
+                }
+
+                is UiState.Error -> _uiDestinations.value = result
+                else -> {
+                    Log.e("VIEWMODEL", "getAllDestinations: $result")
+                    _uiDestinations.value =
+                        UiState.Error(UiText.StringResource(R.string.error_else))
+                }
+            }
+        }
     }
 
 //    fun uploadData(context: Context) {
@@ -100,27 +127,7 @@ class DestinationViewModel @Inject constructor(
         }
     }
 
-    fun getAllDestinations(userId: String) {
-        if (userId.isBlank()) {
-            _uiDestinations.value =
-                UiState.Error(UiText.StringResource(R.string.error_user_id_empty))
-            return
-        }
 
-        _uiDestinations.value = UiState.Loading
-        viewModelScope.launch {
-            when (val result = repository.getAllDestinations(userId)) {
-                is UiState.Success -> {
-                    allDestinations = result.data
-                    _uiDestinations.value = if (result.data.isEmpty()) UiState.Empty else result
-                }
-
-                is UiState.Error -> _uiDestinations.value = result
-                else -> _uiDestinations.value =
-                    UiState.Error(UiText.StringResource(R.string.error_else))
-            }
-        }
-    }
 
     fun getDetailDestination(destinationId: String, userId: String) {
         viewModelScope.launch {
@@ -210,6 +217,24 @@ class DestinationViewModel @Inject constructor(
     }
 
 
+//    fun searchDestinations(query: String, category: String?) {
+//        val filtered = allDestinations.filter { destination ->
+//            val matchesQuery =
+//                query.isBlank() || destination.destination.name.contains(
+//                    query,
+//                    ignoreCase = true
+//                )
+//            val matchesCategory =
+//                category == null || category.equals("Semua", ignoreCase = true) ||
+//                        destination.destination.category.equals(category, ignoreCase = true)
+//            matchesQuery && matchesCategory
+//        }
+//
+//        _uiDestinations.value =
+//            if (filtered.isEmpty()) UiState.Empty else UiState.Success(filtered)
+//    }
+
+    //TODO Perhatikan lagi fungsi dibawah
     fun searchDestinations(query: String, category: String?) {
         val filtered = allDestinations.filter { destination ->
             val matchesQuery =

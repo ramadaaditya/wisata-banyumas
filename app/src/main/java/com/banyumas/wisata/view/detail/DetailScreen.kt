@@ -43,15 +43,15 @@ import com.banyumas.wisata.model.Photo
 import com.banyumas.wisata.model.Review
 import com.banyumas.wisata.model.Role
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.EmptyState
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.utils.openGoogleMaps
 import com.banyumas.wisata.view.components.BackIcon
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EditIcon
+import com.banyumas.wisata.view.components.EmptyState
+import com.banyumas.wisata.view.components.ErrorState
 import com.banyumas.wisata.view.components.FavoriteIcon
+import com.banyumas.wisata.view.components.LoadingState
 import com.banyumas.wisata.view.components.PhotoCarouselViewer
 import com.banyumas.wisata.view.components.ReviewCard
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
@@ -129,8 +129,11 @@ fun DetailContent(
             reviewCount = destination.destination.reviews.size,
             address = destination.destination.address,
         )
-        PhotoCarouselViewer(photos = destination.destination.photos)
-
+        PhotoCarouselViewer(
+            photos = destination.destination.photos,
+            onRemovePhoto = {},
+            showRemoveIcon = false
+        )
         Row(
             verticalAlignment = Alignment.Top,
             modifier = Modifier

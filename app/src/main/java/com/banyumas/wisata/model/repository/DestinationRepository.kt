@@ -1,5 +1,6 @@
 package com.banyumas.wisata.model.repository
 
+import android.content.ContentValues.TAG
 import android.util.Log
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
@@ -7,7 +8,6 @@ import com.banyumas.wisata.model.SearchResultItem
 import com.banyumas.wisata.model.UiDestination
 import com.banyumas.wisata.model.User
 import com.banyumas.wisata.model.api.ApiService
-import com.banyumas.wisata.model.api.BackendService
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.utils.UiText
 import com.banyumas.wisata.utils.toDestination
@@ -67,8 +67,10 @@ class DestinationRepository @Inject constructor(
                     UiDestination(destination = it, isFavorite = favoriteIds.contains(doc.id))
                 }
             }
+            Log.d(TAG, "getAllDestinations: berhasil mengambil destinasi $destinations")
             UiState.Success(destinations)
         } catch (e: Exception) {
+            Log.e(TAG, "getAllDestinations: gagal mengambil destinasi ${e.localizedMessage}", e)
             UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
         }
     }

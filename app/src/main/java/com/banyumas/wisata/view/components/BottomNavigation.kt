@@ -25,11 +25,16 @@ import com.banyumas.wisata.view.home.HomeScreen
 import com.banyumas.wisata.view.home.ProfileScreen
 import com.banyumas.wisata.view.theme.BanyumasTheme
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.viewmodel.DestinationViewModel
+import com.banyumas.wisata.viewmodel.UserViewModel
 
 
 fun NavGraphBuilder.addHomeGraph(
     onDestinationSelected: (placeId: String, from: NavBackStackEntry) -> Unit,
-    modifier: Modifier = Modifier
+    userViewModel: UserViewModel,
+    destinationViewModel: DestinationViewModel,
+    modifier: Modifier = Modifier,
+    userId: String,
 ) {
     composable(HomeSection.FEED.route) { from ->
         HomeScreen(
@@ -38,15 +43,19 @@ fun NavGraphBuilder.addHomeGraph(
             },
             onFavoriteClick = {
             },
+            userViewModel = userViewModel,
+            destinationViewModel = destinationViewModel,
+            userId = userId,
         )
     }
     composable(HomeSection.FAVORITE.route) { from ->
         FavoriteScreen(
-            navigateToDetail = {
-            }
+            navigateToDetail = { placeId ->
+                onDestinationSelected(placeId, from)
+            },
         )
     }
-    composable(HomeSection.PROFILE.route) { from ->
+    composable(HomeSection.PROFILE.route) {
         ProfileScreen(
             onLogout = {},
             onDelete = {}
@@ -69,7 +78,7 @@ fun WBBottomBar(
         contentColor = contentColor
     ) {
         tabs.forEach { section ->
-            val selected = section.route == currentRoute
+            val selected = currentRoute.startsWith(section.route)
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -100,7 +109,6 @@ fun WBBottomBar(
         }
     }
 }
-
 
 enum class HomeSection(
     @StringRes val title: Int,

@@ -37,11 +37,18 @@ fun DetailResponse.toDestination(placeId: String): Destination {
         } ?: emptyList(),
         photos = result.photos?.map { photo ->
             Photo(
-                photoUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo?.photoReference}&key=${BuildConfig.ApiKey}"
+                photoUrl = "${photo?.photoReference}"
             )
         } ?: emptyList(),
         facilities = emptyList()
     )
+}
+
+fun buildPhotoUrl(photoReference: String): String {
+    return "https://maps.googleapis.com/maps/api/place/photo" +
+            "?maxwidth=400" +
+            "&photoreference=$photoReference" +
+            "&key=${BuildConfig.ApiKey}"
 }
 
 fun SearchResponse.toSearchResult(): List<SearchResultItem> {

@@ -11,9 +11,7 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,7 +19,8 @@ fun Search(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeholder: String = ""
 ) {
     SearchBar(
         query = query,
@@ -42,7 +41,7 @@ fun Search(
         },
         placeholder = {
             Text(
-                text = stringResource(id = R.string.placeholder_search),
+                text = placeholder,
                 style = MaterialTheme.typography.bodyMedium
             )
         },

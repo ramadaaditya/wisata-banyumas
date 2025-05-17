@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,17 +21,17 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.banyumas.wisata.model.Category
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.EmptyState
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.view.components.AddIcon
 import com.banyumas.wisata.view.components.CategoryRow
 import com.banyumas.wisata.view.components.ConfirmationDialog
 import com.banyumas.wisata.view.components.DestinationCard
+import com.banyumas.wisata.view.components.EmptyState
+import com.banyumas.wisata.view.components.ErrorState
+import com.banyumas.wisata.view.components.LoadingState
 import com.banyumas.wisata.view.components.LogoutIcon
 import com.banyumas.wisata.view.components.Search
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
@@ -39,31 +40,23 @@ import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
 fun DashboardScreen(
+    userId: String,
     onLogout: () -> Unit,
     onAddClick: () -> Unit,
     navigateToDetail: (String) -> Unit,
     viewModel: DestinationViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiDestinations.collectAsStateWithLifecycle()
-    val authState by userViewModel.authState.collectAsStateWithLifecycle()
-
+    val uiState by viewModel.uiDestinations.collectAsState()
+    val authState by userViewModel.authState.collectAsState()
+    var selectedDestination by remember { mutableStateOf<String?>(null) }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
-    var selectedDestinationId by rememberSaveable { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(authState) {
-        when (val state = authState) {
-            is UiState.Success -> {
-                val currentUser = state.data
-                viewModel.getAllDestinations(currentUser.id)
-            }
-            is UiState.Empty -> {
-                onLogout()
-            }
-            else -> {}
-        }
+    LaunchedEffect(Unit) {
+        viewModel.getAllDestinations(userId)
     }
+
     when (val state = uiState) {
         is UiState.Loading -> LoadingState()
         is UiState.Success -> {
@@ -73,7 +66,7 @@ fun DashboardScreen(
                     destinations = destinations,
                     navigateToDetail = navigateToDetail,
                     onLongPress = {
-                        selectedDestinationId = it
+                        selectedDestination = it
                         showDeleteDialog = true
                     },
                     onLogoutClick = { showLogoutDialog = true },
@@ -92,7 +85,25 @@ fun DashboardScreen(
         }
 
         is UiState.Error -> ErrorState(message = state.message)
-        is UiState.Empty -> EmptyState()
+        is UiState.Empty -> {
+            DashboardContent(
+                destinations = emptyList(),
+                navigateToDetail = navigateToDetail,
+                onLongPress = {
+                    selectedDestination = it
+                    showDeleteDialog = true
+                },
+                onLogoutClick = { showLogoutDialog = true },
+                onSearchQueryChange = { query ->
+                    viewModel.searchDestinations(
+                        query,
+                        null
+                    )
+                },
+                onCategorySelected = { category -> viewModel.filterDestinations(category) },
+                onAddClick = onAddClick
+            )
+        }
     }
 
 
@@ -108,12 +119,12 @@ fun DashboardScreen(
         )
     }
 
-    if (showDeleteDialog && selectedDestinationId != null) {
+    if (showDeleteDialog && selectedDestination != null) {
         ConfirmationDialog(
             title = "Konfirmasi Hapus",
             message = "Apakah Anda yakin ingin menghapus destinasi ini ?",
             onConfirm = {
-                selectedDestinationId?.let { viewModel.deleteDestinationById(it) }
+                selectedDestination?.let { viewModel.deleteDestinationById(it) }
                 showDeleteDialog = false
             },
             onDismiss = { showDeleteDialog = false }
@@ -134,7 +145,7 @@ fun DashboardContent(
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
-    val categories = remember { listOf("All", "Alam", "Religi", "Sejarah", "Kuliner", "Keluarga") }
+    val categories = remember { Category.list }
 
     Column(
         modifier = Modifier

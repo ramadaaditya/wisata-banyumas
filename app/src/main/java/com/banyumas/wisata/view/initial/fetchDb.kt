@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.SearchResultItem
-import com.banyumas.wisata.utils.ErrorState
-import com.banyumas.wisata.utils.LoadingState
+import com.banyumas.wisata.view.components.ErrorState
+import com.banyumas.wisata.view.components.LoadingState
 import com.banyumas.wisata.utils.UiState
 import com.banyumas.wisata.utils.dummySearchResultItem
 import com.banyumas.wisata.view.components.CustomButton

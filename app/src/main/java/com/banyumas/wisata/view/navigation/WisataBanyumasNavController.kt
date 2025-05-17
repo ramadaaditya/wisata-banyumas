@@ -9,20 +9,8 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-
-object MainDestinations {
-    const val HOME_ROUTE = "home"
-    const val DASHBOARD_ROUTE = "dashboard"
-    const val SPLASH_ROUTE = "splash"
-    const val LOGIN_ROUTE = "login"
-    const val REGISTER_ROUTE = "register"
-    const val RESET_ROUTE = "reset"
-    const val DETAIL_ROUTE = "detail"
-    const val DESTINATION_ID_KEY = "placeId"
-    const val FETCH_ROUTE = "fetch"
-    const val USER_ID_KEY = "userId"
-    const val ORIGIN = "origin"
-}
+import com.banyumas.wisata.model.Role
+import com.banyumas.wisata.model.User
 
 @Composable
 fun rememberWBNavController(
@@ -52,37 +40,42 @@ class WBNavController(
         }
     }
 
-    fun navigateToDetail(placeId: String, from: NavBackStackEntry) {
+    fun navigateToDetail(destinationId: String, from: NavBackStackEntry) {
         if (from.lifecycleIsResumed()) {
-            navController.navigate("${MainDestinations.DETAIL_ROUTE}/$placeId")
+            navController.navigate(Screen.DetailScreen.createRoute(destinationId))
         }
     }
 
     fun navigateToLogin() {
-        navController.navigate(MainDestinations.LOGIN_ROUTE)
+        navController.navigate(Screen.LoginScreen) {
+            popUpTo(Screen.SplashScreen.route) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
     }
 
-    fun navigateToHome() {
-//        val encodedId = URLEncoder.encode(user.id, StandardCharsets.UTF_8.toString())
-//        val targetRoute = when (user.role) {
-//            Role.USER -> "${MainDestinations.HOME_ROUTE}/$encodedId"
-//            Role.ADMIN -> "${MainDestinations.DASHBOARD_ROUTE}/$encodedId"
-//        }
-        navController.navigate(MainDestinations.HOME_ROUTE) {
-            popUpTo(0) { inclusive = true }
+    fun navigateToHome(user: User) {
+        val targetRoute = when (user.role) {
+            Role.USER -> Screen.HomeScreen.createRoute(user.id)
+            Role.ADMIN -> Screen.DashboardScreen.createRoute(user.id)
+        }
+        navController.navigate(targetRoute) {
+            popUpTo(Screen.SplashScreen.route) { inclusive = true }
+            launchSingleTop = true
         }
     }
 
     fun navigateToResetPassword() {
-        navController.navigate(MainDestinations.RESET_ROUTE)
+        navController.navigate(Screen.ForgotPasswordScreen.route)
     }
 
     fun navigateToRegister() {
-        navController.navigate(MainDestinations.REGISTER_ROUTE)
+        navController.navigate(Screen.RegisterScreen.route)
     }
 
     fun navigateToFetchDB() {
-        navController.navigate(MainDestinations.FETCH_ROUTE)
+        navController.navigate(Screen.FetchScreen.route)
     }
 }
 

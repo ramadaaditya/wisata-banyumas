@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -24,8 +23,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
+import com.banyumas.wisata.view.theme.BanyumasTheme
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
-
 
 @Composable
 fun CustomTextField(
@@ -36,38 +35,26 @@ fun CustomTextField(
     leadingIcon: @Composable (() -> Unit)? = null,
     isPassword: Boolean = false,
 ) {
-    var isPasswordVisible by remember { mutableStateOf(false) }
-
     OutlinedTextField(
-        maxLines = 1,
+        singleLine = true,
         value = value,
         onValueChange = onValueChange,
         leadingIcon = leadingIcon,
-        trailingIcon = {
-            if (isPassword) {
-                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-                    Icon(
-                        imageVector = if (isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                        contentDescription = if (isPasswordVisible) "Sembunyikan Password" else "Lihat Password"
-                    )
-                }
-            }
-        },
-        visualTransformation = if (isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            focusedLeadingIconColor = MaterialTheme.colorScheme.primary,
-            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-            focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
-            unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            focusedBorderColor = BanyumasTheme.colors.primary,
+            unfocusedBorderColor = BanyumasTheme.colors.outline,
+            cursorColor = BanyumasTheme.colors.primary,
+            focusedLabelColor = BanyumasTheme.colors.primary,
+            unfocusedLabelColor = BanyumasTheme.colors.onSurface.copy(alpha = 0.6f),
+            focusedLeadingIconColor = BanyumasTheme.colors.primary,
+            unfocusedLeadingIconColor = BanyumasTheme.colors.onSurface.copy(alpha = 0.6f),
+            focusedTrailingIconColor = BanyumasTheme.colors.primary,
+            unfocusedTrailingIconColor = BanyumasTheme.colors.onSurface.copy(alpha = 0.6f)
         ),
-        modifier = modifier.fillMaxWidth(),
-        label = { Text(label) }
+        modifier = modifier
+            .fillMaxWidth(),
+        label = { Text(label) },
     )
 }
 
@@ -83,12 +70,36 @@ fun EmailInputField(value: String, onValueChange: (String) -> Unit) {
 
 @Composable
 fun PasswordInputField(value: String, onValueChange: (String) -> Unit) {
-    CustomTextField(
+    var isPasswordVisible by remember { mutableStateOf(false) }
+    OutlinedTextField(
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
         value = value,
         onValueChange = onValueChange,
-        label = "Kata Sandi",
+        visualTransformation = if (!isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+        label = { Text("Kata Sandi") },
         leadingIcon = { Icon(imageVector = Icons.Default.Lock, contentDescription = "Lock Icon") },
-        isPassword = true
+        trailingIcon = {
+            if (isPasswordVisible) {
+                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    Icon(
+                        imageVector = if (isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = if (isPasswordVisible) "Sembunyikan Password" else "Lihat Password"
+                    )
+                }
+            }
+        },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = BanyumasTheme.colors.primary,
+            unfocusedBorderColor = BanyumasTheme.colors.outline,
+            cursorColor = BanyumasTheme.colors.primary,
+            focusedLabelColor = BanyumasTheme.colors.primary,
+            unfocusedLabelColor = BanyumasTheme.colors.onSurface.copy(alpha = 0.6f),
+            focusedLeadingIconColor = BanyumasTheme.colors.primary,
+            unfocusedLeadingIconColor = BanyumasTheme.colors.onSurface.copy(alpha = 0.6f),
+            focusedTrailingIconColor = BanyumasTheme.colors.primary,
+            unfocusedTrailingIconColor = BanyumasTheme.colors.onSurface.copy(alpha = 0.6f)
+        ),
     )
 }
 
@@ -125,7 +136,7 @@ fun PasswordPreview() {
     WisataBanyumasTheme {
         PasswordInputField(
             onValueChange = {},
-            value = "Ramada@gmail.com"
+            value = "Ramada@gmail.com",
         )
     }
 }

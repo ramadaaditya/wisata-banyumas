@@ -3,6 +3,7 @@ package com.banyumas.wisata.di
 import com.banyumas.wisata.BuildConfig
 import com.banyumas.wisata.model.api.ApiService
 import com.banyumas.wisata.model.repository.DestinationRepository
+import com.banyumas.wisata.model.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -13,7 +14,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -30,7 +30,6 @@ object AppModule {
 
     @Singleton
     @Provides
-    @Named("no-auth")
     fun provideOkHttpClient(): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level =
@@ -43,13 +42,22 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideApiService(@Named("no-auth") client: OkHttpClient): ApiService {
+    fun provideApiService(client: OkHttpClient): ApiService {
         return Retrofit.Builder()
             .baseUrl(BuildConfig.BaseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
             .create(ApiService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideUserRepository(
+        firebaseAuth: FirebaseAuth,
+        firestore: FirebaseFirestore,
+    ): UserRepository {
+        return UserRepository(firebaseAuth, firestore)
     }
 
     @Provides
