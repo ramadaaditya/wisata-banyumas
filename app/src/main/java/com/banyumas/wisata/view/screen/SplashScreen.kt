@@ -24,7 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.User
-import com.banyumas.wisata.utils.UiState
+import com.wisata.banyumas.common.UiState
 import com.banyumas.wisata.viewmodel.UserViewModel
 
 @Composable
@@ -50,13 +50,13 @@ fun SplashScreen(
     LaunchedEffect(authState) {
         Log.d("SPLASH", "authState: $authState")
         when (val state = authState) {
-            is UiState.Success -> {
+            is com.wisata.banyumas.common.UiState.Success -> {
                 val user = state.data
                 Log.d("SPLASH", "Navigating to home with user ${user.id}")
                 navigateToHome(user)
             }
 
-            is UiState.Error -> {
+            is com.wisata.banyumas.common.UiState.Error -> {
                 Log.d("SPLASH", "Navigating to login due to error")
                 navigateToLogin()
             }

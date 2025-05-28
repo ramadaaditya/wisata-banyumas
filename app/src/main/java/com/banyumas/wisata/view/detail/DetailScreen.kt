@@ -36,15 +36,14 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.error
-import coil3.request.placeholder
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.Photo
 import com.banyumas.wisata.model.Review
 import com.banyumas.wisata.model.Role
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.openGoogleMaps
+import com.wisata.banyumas.common.UiState
+import com.wisata.banyumas.common.openGoogleMaps
 import com.banyumas.wisata.view.components.BackIcon
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EditIcon
@@ -68,7 +67,7 @@ fun DetailScreen(
 ) {
     val uiState by viewModel.selectedDestination.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
-    val currentUser = (authState as? UiState.Success)?.data
+    val currentUser = (authState as? com.wisata.banyumas.common.UiState.Success)?.data
     val context = LocalContext.current
     val isAdmin = remember(currentUser?.role) { currentUser?.role == Role.ADMIN }
 
@@ -77,12 +76,12 @@ fun DetailScreen(
     }
 
     when (val state = uiState) {
-        is UiState.Loading -> LoadingState()
-        is UiState.Success -> {
+        is com.wisata.banyumas.common.UiState.Loading -> LoadingState()
+        is com.wisata.banyumas.common.UiState.Success -> {
             DetailContent(
                 destination = state.data,
                 onMapClick = { lat, long ->
-                    openGoogleMaps(context, lat, long)
+                    com.wisata.banyumas.common.openGoogleMaps(context, lat, long)
                 },
                 onFavoriteClick = { uiDestination ->
                     currentUser?.id?.let {
@@ -99,8 +98,8 @@ fun DetailScreen(
             )
         }
 
-        is UiState.Error -> ErrorState(message = state.message)
-        UiState.Empty -> EmptyState()
+        is com.wisata.banyumas.common.UiState.Error -> ErrorState(message = state.message)
+        com.wisata.banyumas.common.UiState.Empty -> EmptyState()
     }
 }
 

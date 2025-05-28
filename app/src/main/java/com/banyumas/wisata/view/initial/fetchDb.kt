@@ -32,8 +32,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.SearchResultItem
 import com.banyumas.wisata.view.components.ErrorState
 import com.banyumas.wisata.view.components.LoadingState
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.dummySearchResultItem
+import com.wisata.banyumas.common.UiState
+import com.wisata.banyumas.common.dummySearchResultItem
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.Search
 import com.banyumas.wisata.view.theme.BanyumasTheme
@@ -88,15 +88,15 @@ fun FetchDatabase(
 
         // Prioritaskan tampilan loading/error detailDestinations jika ada
         when (val state = listDestinationState) {
-            UiState.Loading -> {
+            com.wisata.banyumas.common.UiState.Loading -> {
                 LoadingState()
             }
 
-            is UiState.Error -> {
+            is com.wisata.banyumas.common.UiState.Error -> {
                 ErrorState(state.message)
             }
 
-            is UiState.Success -> {
+            is com.wisata.banyumas.common.UiState.Success -> {
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
@@ -113,12 +113,12 @@ fun FetchDatabase(
                 }
             }
 
-            UiState.Empty -> {
+            com.wisata.banyumas.common.UiState.Empty -> {
                 // Tampilkan hasil pencarian jika tidak sedang fetch & save all
                 when (val searchState = destinationState) {
-                    UiState.Loading -> LoadingState()
-                    is UiState.Error -> ErrorState(searchState.message)
-                    is UiState.Success -> {
+                    com.wisata.banyumas.common.UiState.Loading -> LoadingState()
+                    is com.wisata.banyumas.common.UiState.Error -> ErrorState(searchState.message)
+                    is com.wisata.banyumas.common.UiState.Success -> {
                         LazyColumn(
                             modifier = Modifier
                                 .weight(1f)
@@ -213,7 +213,7 @@ fun FetchDatabaseContent(
 private fun FetchDatabasePreview() {
     WisataBanyumasTheme(dynamicColor = false) {
         FetchDatabaseContent(
-            destinations = dummySearchResultItem,
+            destinations = com.wisata.banyumas.common.dummySearchResultItem,
             onImportClicked = {},
             onQueryChange = {},
             onSearchClicked = {},

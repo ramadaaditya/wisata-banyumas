@@ -8,10 +8,10 @@ import com.banyumas.wisata.model.SearchResultItem
 import com.banyumas.wisata.model.UiDestination
 import com.banyumas.wisata.model.User
 import com.banyumas.wisata.model.api.ApiService
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.UiText
-import com.banyumas.wisata.utils.toDestination
-import com.banyumas.wisata.utils.toSearchResult
+import com.wisata.banyumas.common.UiState
+import com.wisata.banyumas.common.UiText
+import com.wisata.banyumas.common.toDestination
+import com.wisata.banyumas.common.toSearchResult
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -28,35 +28,35 @@ class DestinationRepository @Inject constructor(
         private const val USERS_COLLECTION = "users"
     }
 
-    suspend fun getDestinationDetails(placeId: String): UiState<Destination> {
+    suspend fun getDestinationDetails(placeId: String): com.wisata.banyumas.common.UiState<Destination> {
         return try {
             val result = apiService.getDetailPlaces(placeId).toDestination(placeId)
-            UiState.Success(result)
+            com.wisata.banyumas.common.UiState.Success(result)
         } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_detail_place), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_detail_place), e)
         }
     }
 
     suspend fun searchDestinationByName(
         placeName: String,
-    ): UiState<List<SearchResultItem>> {
+    ): com.wisata.banyumas.common.UiState<List<SearchResultItem>> {
         return try {
             val response = apiService.getDestinationByName(query = placeName)
             val candidates = response.takeIf { it.status == "OK" }?.candidates.orEmpty()
             if (candidates.isEmpty()) {
-                UiState.Error(UiText.StringResource(R.string.error_no_place_found))
+                com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_no_place_found))
             } else {
                 val result = response.toSearchResult()
-                UiState.Success(result)
+                com.wisata.banyumas.common.UiState.Success(result)
             }
         } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_fetch_place), e)
         }
     }
 
-    suspend fun getAllDestinations(userId: String): UiState<List<UiDestination>> {
+    suspend fun getAllDestinations(userId: String): com.wisata.banyumas.common.UiState<List<UiDestination>> {
         if (userId.isBlank()) {
-            return UiState.Error(UiText.StringResource(R.string.error_user_not_found))
+            return com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_user_not_found))
         }
         return try {
             val userDoc = firestore.collection(USERS_COLLECTION).document(userId).get().await()
@@ -68,34 +68,34 @@ class DestinationRepository @Inject constructor(
                 }
             }
             Log.d(TAG, "getAllDestinations: berhasil mengambil destinasi $destinations")
-            UiState.Success(destinations)
+            com.wisata.banyumas.common.UiState.Success(destinations)
         } catch (e: Exception) {
             Log.e(TAG, "getAllDestinations: gagal mengambil destinasi ${e.localizedMessage}", e)
-            UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_fetch_place), e)
         }
     }
 
     suspend fun updateDestinationFields(
         destinationId: String,
         updatedFields: Map<String, Any>
-    ): UiState<Unit> {
+    ): com.wisata.banyumas.common.UiState<Unit> {
         return try {
             firestore.collection(DESTINATIONS_COLLECTION)
                 .document(destinationId)
                 .update(updatedFields)
                 .await()
-            UiState.Success(Unit)
+            com.wisata.banyumas.common.UiState.Success(Unit)
         } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_update_place), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_update_place), e)
         }
     }
 
-    suspend fun getFavoriteDestinations(userId: String): UiState<List<Destination>> {
+    suspend fun getFavoriteDestinations(userId: String): com.wisata.banyumas.common.UiState<List<Destination>> {
         return try {
             val userDoc = firestore.collection(USERS_COLLECTION).document(userId).get().await()
             val favoriteIds =
                 userDoc.toObject(User::class.java)?.favoriteDestinations ?: emptyList()
-            if (favoriteIds.isEmpty()) return UiState.Success(emptyList())
+            if (favoriteIds.isEmpty()) return com.wisata.banyumas.common.UiState.Success(emptyList())
 
             val favorites = favoriteIds.chunked(10).flatMap { chunk ->
                 firestore.collection(DESTINATIONS_COLLECTION)
@@ -104,9 +104,9 @@ class DestinationRepository @Inject constructor(
                     .documents.mapNotNull { it.toObject(Destination::class.java) }
             }
 
-            UiState.Success(favorites)
+            com.wisata.banyumas.common.UiState.Success(favorites)
         } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_fetch_favorites), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_fetch_favorites), e)
 
         }
     }
@@ -115,11 +115,11 @@ class DestinationRepository @Inject constructor(
         userId: String,
         destinationId: String,
         isFavorite: Boolean
-    ): UiState<Unit> {
+    ): com.wisata.banyumas.common.UiState<Unit> {
         return try {
             val userDoc = firestore.collection(USERS_COLLECTION).document(userId).get().await()
             val user = userDoc.toObject(User::class.java)
-                ?: return UiState.Error(UiText.StringResource(R.string.error_user_not_found))
+                ?: return com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_user_not_found))
 
             val updatedFavorites = if (isFavorite) {
                 (user.favoriteDestinations + destinationId).distinct()
@@ -131,39 +131,39 @@ class DestinationRepository @Inject constructor(
                 .update("favoriteDestinations", updatedFavorites)
                 .await()
 
-            UiState.Success(Unit)
+            com.wisata.banyumas.common.UiState.Success(Unit)
         } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_update_favorites), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_update_favorites), e)
         }
     }
 
-    suspend fun saveDestination(destination: Destination): UiState<Unit> {
+    suspend fun saveDestination(destination: Destination): com.wisata.banyumas.common.UiState<Unit> {
         return try {
             val id = destination.id.ifBlank { UUID.randomUUID().toString() }
             firestore.collection(DESTINATIONS_COLLECTION)
                 .document(id)
                 .set(destination.copy(id = id), SetOptions.merge())
                 .await()
-            UiState.Success(Unit)
+            com.wisata.banyumas.common.UiState.Success(Unit)
         } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_save_place), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_save_place), e)
         }
     }
 
-    suspend fun fetchAndSaveDestination(placeId: String): UiState<Destination> {
+    suspend fun fetchAndSaveDestination(placeId: String): com.wisata.banyumas.common.UiState<Destination> {
         return try {
             val result = apiService.getDetailPlaces(placeId).toDestination(placeId)
             saveDestination(result)
-            UiState.Success(result)
+            com.wisata.banyumas.common.UiState.Success(result)
         } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_fetch_place), e)
         }
     }
 
 
-    suspend fun getDestinationById(destinationId: String, userId: String): UiState<UiDestination> {
+    suspend fun getDestinationById(destinationId: String, userId: String): com.wisata.banyumas.common.UiState<UiDestination> {
         if (destinationId.isBlank() || userId.isBlank()) {
-            return UiState.Error(UiText.StringResource(R.string.error_fields_required))
+            return com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_fields_required))
         }
 
         return try {
@@ -171,7 +171,7 @@ class DestinationRepository @Inject constructor(
                 .document(destinationId).get().await()
 
             val destination = snapshot.toObject(Destination::class.java)
-                ?: return UiState.Empty
+                ?: return com.wisata.banyumas.common.UiState.Empty
 
             val userSnapshot = firestore.collection(USERS_COLLECTION)
                 .document(userId).get().await()
@@ -179,20 +179,20 @@ class DestinationRepository @Inject constructor(
             val isFavorite = userSnapshot.toObject(User::class.java)
                 ?.favoriteDestinations?.contains(destinationId) == true
 
-            UiState.Success(UiDestination(destination, isFavorite))
+            com.wisata.banyumas.common.UiState.Success(UiDestination(destination, isFavorite))
         } catch (e: Exception) {
             Log.e("Repository", "Error fetching destination", e)
-            UiState.Error(UiText.StringResource(R.string.error_fetch_place), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_fetch_place), e)
         }
     }
 
-    suspend fun deleteDestination(destinationId: String): UiState<Unit> {
+    suspend fun deleteDestination(destinationId: String): com.wisata.banyumas.common.UiState<Unit> {
         return try {
             val destinationRef = firestore.collection("destinations").document(destinationId)
             destinationRef.delete().await()
-            UiState.Success(Unit)
+            com.wisata.banyumas.common.UiState.Success(Unit)
         } catch (e: Exception) {
-            UiState.Error(UiText.StringResource(R.string.error_delete_place), e)
+            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_delete_place), e)
         }
     }
 }

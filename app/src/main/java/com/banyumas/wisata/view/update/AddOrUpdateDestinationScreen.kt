@@ -29,7 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
-import com.banyumas.wisata.utils.UiState
+import com.wisata.banyumas.common.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.CustomTextField
 import com.banyumas.wisata.view.components.DropDownMenu
@@ -75,10 +75,10 @@ fun AddOrUpdateDestinationScreen(
     }
 
     when (searchState) {
-        UiState.Empty -> TODO()
-        is UiState.Error -> TODO()
-        UiState.Loading -> TODO()
-        is UiState.Success<*> -> TODO()
+        com.wisata.banyumas.common.UiState.Empty -> TODO()
+        is com.wisata.banyumas.common.UiState.Error -> TODO()
+        com.wisata.banyumas.common.UiState.Loading -> TODO()
+        is com.wisata.banyumas.common.UiState.Success<*> -> TODO()
     }
 }
 

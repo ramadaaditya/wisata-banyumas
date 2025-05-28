@@ -5,8 +5,8 @@ import com.banyumas.wisata.DummyUser
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.repository.UserRepository
 import com.banyumas.wisata.utils.MainDispatcherRule
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.UiText
+import com.wisata.banyumas.common.UiState
+import com.wisata.banyumas.common.UiText
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import junit.framework.TestCase.fail
@@ -50,12 +50,12 @@ class UserViewModelTest {
         userViewModel.registerUser(emptyEmail, emptyPassword, emptyUsername)
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Error)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Error)
 
-        val message = (state as UiState.Error).message
-        assertTrue(message is UiText.StringResource)
+        val message = (state as com.wisata.banyumas.common.UiState.Error).message
+        assertTrue(message is com.wisata.banyumas.common.UiText.StringResource)
 
-        assertEquals(R.string.error_fields_required, (message as UiText.StringResource).resId)
+        assertEquals(R.string.error_fields_required, (message as com.wisata.banyumas.common.UiText.StringResource).resId)
     }
 
     @Test
@@ -63,12 +63,12 @@ class UserViewModelTest {
         userViewModel.registerUser(invalidEmail, validPassword, validUsername)
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Error)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Error)
 
-        val message = (state as UiState.Error).message
-        assertTrue(message is UiText.StringResource)
+        val message = (state as com.wisata.banyumas.common.UiState.Error).message
+        assertTrue(message is com.wisata.banyumas.common.UiText.StringResource)
 
-        assertEquals(R.string.error_invalid_email, (message as UiText.StringResource).resId)
+        assertEquals(R.string.error_invalid_email, (message as com.wisata.banyumas.common.UiText.StringResource).resId)
 
     }
 
@@ -77,32 +77,32 @@ class UserViewModelTest {
         userViewModel.registerUser(validEmail, invalidPassword, validUsername)
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Error)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Error)
 
-        val message = (state as UiState.Error).message
-        assertTrue(message is UiText.StringResource)
+        val message = (state as com.wisata.banyumas.common.UiState.Error).message
+        assertTrue(message is com.wisata.banyumas.common.UiText.StringResource)
 
-        assertEquals(R.string.error_invalid_password, (message as UiText.StringResource).resId)
+        assertEquals(R.string.error_invalid_password, (message as com.wisata.banyumas.common.UiText.StringResource).resId)
     }
 
     @Test
     fun userViewModel_RegisterUserWithValidData_ReturnsEmptyStateAfterSuccess() = runTest {
 
         Mockito.`when`(userRepository.registerUser(validEmail, validPassword, validUsername))
-            .thenReturn(UiState.Success(Unit))
+            .thenReturn(com.wisata.banyumas.common.UiState.Success(Unit))
 
 
         userViewModel.registerUser(validEmail, validPassword, validUsername)
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Empty)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Empty)
     }
 
     @Test
     fun userViewModel_RegisterUserRepositoryError_ReturnsErrorState() = runTest {
-        val errorText = UiText.StringResource(R.string.error_register)
-        val errorState = UiState.Error(errorText)
+        val errorText = com.wisata.banyumas.common.UiText.StringResource(R.string.error_register)
+        val errorState = com.wisata.banyumas.common.UiState.Error(errorText)
 
         Mockito.`when`(userRepository.registerUser(validEmail, validPassword, validUsername))
             .thenReturn(errorState)
@@ -111,8 +111,8 @@ class UserViewModelTest {
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        if (state is UiState.Error) {
-            assertEquals(UiText.StringResource(R.string.error_register), state.message)
+        if (state is com.wisata.banyumas.common.UiState.Error) {
+            assertEquals(com.wisata.banyumas.common.UiText.StringResource(R.string.error_register), state.message)
         } else {
             fail("Expected UiState.Error but got $state")
         }
@@ -125,12 +125,12 @@ class UserViewModelTest {
 
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Error)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Error)
 
-        val errorMessage = (state as UiState.Error).message
-        assertTrue(errorMessage is UiText.StringResource)
+        val errorMessage = (state as com.wisata.banyumas.common.UiState.Error).message
+        assertTrue(errorMessage is com.wisata.banyumas.common.UiText.StringResource)
 
-        assertEquals(R.string.error_invalid_email, (errorMessage as UiText.StringResource).resId)
+        assertEquals(R.string.error_invalid_email, (errorMessage as com.wisata.banyumas.common.UiText.StringResource).resId)
 
     }
 
@@ -139,12 +139,12 @@ class UserViewModelTest {
         userViewModel.loginUser(emptyEmail, emptyPassword)
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Error)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Error)
 
-        val errorMessage = (state as UiState.Error).message
-        assertTrue(errorMessage is UiText.StringResource)
+        val errorMessage = (state as com.wisata.banyumas.common.UiState.Error).message
+        assertTrue(errorMessage is com.wisata.banyumas.common.UiText.StringResource)
 
-        assertEquals(UiText.StringResource(R.string.error_fields_required), errorMessage)
+        assertEquals(com.wisata.banyumas.common.UiText.StringResource(R.string.error_fields_required), errorMessage)
     }
 
     @Test
@@ -152,13 +152,13 @@ class UserViewModelTest {
         val user = DummyUser.generateUser()
 
         Mockito.`when`(userRepository.loginUser(user.email, user.hashedPassword))
-            .thenReturn(UiState.Success(user))
+            .thenReturn(com.wisata.banyumas.common.UiState.Success(user))
 
         userViewModel.loginUser(user.email, user.hashedPassword)
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        if (state is UiState.Success) {
+        if (state is com.wisata.banyumas.common.UiState.Success) {
             assertEquals(user, state.data)
         } else {
             fail("Expected UiState.Success but got $state")
@@ -167,8 +167,8 @@ class UserViewModelTest {
 
     @Test
     fun userViewModel_LoginUserRepositoryError_ReturnsErrorState() = runTest {
-        val errorText = UiText.StringResource(R.string.error_login)
-        val errorState = UiState.Error(errorText)
+        val errorText = com.wisata.banyumas.common.UiText.StringResource(R.string.error_login)
+        val errorState = com.wisata.banyumas.common.UiState.Error(errorText)
 
         Mockito.`when`(userRepository.loginUser(validEmail, validPassword))
             .thenReturn(errorState)
@@ -177,8 +177,8 @@ class UserViewModelTest {
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        if (state is UiState.Error) {
-            assertEquals(UiText.StringResource(R.string.error_login), state.message)
+        if (state is com.wisata.banyumas.common.UiState.Error) {
+            assertEquals(com.wisata.banyumas.common.UiText.StringResource(R.string.error_login), state.message)
         } else {
             fail("Expected UiState.Error but got $state")
         }
@@ -192,12 +192,12 @@ class UserViewModelTest {
         userViewModel.resetPassword(invalidEmail)
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Error)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Error)
 
-        val errorMessage = (state as UiState.Error).message
-        assertTrue(errorMessage is UiText.StringResource)
+        val errorMessage = (state as com.wisata.banyumas.common.UiState.Error).message
+        assertTrue(errorMessage is com.wisata.banyumas.common.UiText.StringResource)
 
-        assertEquals(R.string.error_invalid_email, (errorMessage as UiText.StringResource).resId)
+        assertEquals(R.string.error_invalid_email, (errorMessage as com.wisata.banyumas.common.UiText.StringResource).resId)
 
     }
 
@@ -206,31 +206,31 @@ class UserViewModelTest {
         userViewModel.resetPassword(emptyEmail)
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Error)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Error)
 
-        val errorMessage = (state as UiState.Error).message
-        assertTrue(errorMessage is UiText.StringResource)
+        val errorMessage = (state as com.wisata.banyumas.common.UiState.Error).message
+        assertTrue(errorMessage is com.wisata.banyumas.common.UiText.StringResource)
 
-        assertEquals(UiText.StringResource(R.string.error_email_empty), errorMessage)
+        assertEquals(com.wisata.banyumas.common.UiText.StringResource(R.string.error_email_empty), errorMessage)
 
     }
 
     @Test
     fun userViewModel_ResetPasswordWithValidEmail_ReturnsEmptyStateAfterSuccess() = runTest {
         Mockito.`when`(userRepository.resetPassword(validEmail))
-            .thenReturn(UiState.Success(Unit))
+            .thenReturn(com.wisata.banyumas.common.UiState.Success(Unit))
 
         userViewModel.resetPassword(validEmail)
 
         advanceUntilIdle()
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Empty)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Empty)
     }
 
     @Test
     fun userViewModel_ResetPasswordRepositoryError_ReturnsErrorState() = runTest {
-        val errorText = UiText.StringResource(R.string.error_reset_password)
-        val errorState = UiState.Error(errorText)
+        val errorText = com.wisata.banyumas.common.UiText.StringResource(R.string.error_reset_password)
+        val errorState = com.wisata.banyumas.common.UiState.Error(errorText)
 
         Mockito.`when`(userRepository.resetPassword(validEmail))
             .thenReturn(errorState)
@@ -239,8 +239,8 @@ class UserViewModelTest {
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        if (state is UiState.Error) {
-            assertEquals(UiText.StringResource(R.string.error_reset_password), state.message)
+        if (state is com.wisata.banyumas.common.UiState.Error) {
+            assertEquals(com.wisata.banyumas.common.UiText.StringResource(R.string.error_reset_password), state.message)
         } else {
             fail("Expected UiState.Error but got $state")
         }
@@ -252,13 +252,13 @@ class UserViewModelTest {
         val user = DummyUser.generateUser()
 
         Mockito.`when`(userRepository.getCurrentUser())
-            .thenReturn(UiState.Success(user))
+            .thenReturn(com.wisata.banyumas.common.UiState.Success(user))
 
         userViewModel.checkLoginStatus()
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        if (state is UiState.Success) {
+        if (state is com.wisata.banyumas.common.UiState.Success) {
             assertEquals(user, state.data)
         } else {
             fail("Expected UiState.Success but got $state")
@@ -269,27 +269,27 @@ class UserViewModelTest {
     @Test
     fun userViewModel_CheckLoginStatusWithNullUser_ReturnsUserNotFoundError() = runTest {
         Mockito.`when`(userRepository.getCurrentUser())
-            .thenReturn(UiState.Success(null))
+            .thenReturn(com.wisata.banyumas.common.UiState.Success(null))
 
         userViewModel.checkLoginStatus()
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Error)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Error)
 
-        val errorMessage = (state as UiState.Error).message
-        assertTrue(errorMessage is UiText.StringResource)
+        val errorMessage = (state as com.wisata.banyumas.common.UiState.Error).message
+        assertTrue(errorMessage is com.wisata.banyumas.common.UiText.StringResource)
 
         assertEquals(
-            UiText.StringResource(R.string.error_user_not_found),
+            com.wisata.banyumas.common.UiText.StringResource(R.string.error_user_not_found),
             errorMessage
         )
     }
 
     @Test
     fun userViewModel_CheckLoginStatusRepositoryError_ReturnsErrorState() = runTest {
-        val errorText = UiText.StringResource(R.string.error_get_user_id)
-        val errorState = UiState.Error(errorText)
+        val errorText = com.wisata.banyumas.common.UiText.StringResource(R.string.error_get_user_id)
+        val errorState = com.wisata.banyumas.common.UiState.Error(errorText)
 
         Mockito.`when`(userRepository.getCurrentUser())
             .thenReturn(errorState)
@@ -298,8 +298,8 @@ class UserViewModelTest {
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        if (state is UiState.Error) {
-            assertEquals(UiText.StringResource(R.string.error_get_user_id), state.message)
+        if (state is com.wisata.banyumas.common.UiState.Error) {
+            assertEquals(com.wisata.banyumas.common.UiText.StringResource(R.string.error_get_user_id), state.message)
         } else {
             fail("Expected UiState.Error but got $state")
         }
@@ -310,19 +310,19 @@ class UserViewModelTest {
     @Test
     fun userViewModel_LogoutUser_ReturnsEmptyStateAfterSuccess() = runTest {
         Mockito.`when`(userRepository.logoutUser())
-            .thenReturn(UiState.Success(Unit))
+            .thenReturn(com.wisata.banyumas.common.UiState.Success(Unit))
 
         userViewModel.logout()
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Empty)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Empty)
     }
 
     @Test
     fun userViewModel_LogoutUserRepositoryError_ReturnsErrorState() = runTest {
-        val errorText = UiText.StringResource(R.string.error_logout)
-        val errorState = UiState.Error(errorText)
+        val errorText = com.wisata.banyumas.common.UiText.StringResource(R.string.error_logout)
+        val errorState = com.wisata.banyumas.common.UiState.Error(errorText)
 
         Mockito.`when`(userRepository.logoutUser())
             .thenReturn(errorState)
@@ -331,8 +331,8 @@ class UserViewModelTest {
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        if (state is UiState.Error) {
-            assertEquals(UiText.StringResource(R.string.error_logout), state.message)
+        if (state is com.wisata.banyumas.common.UiState.Error) {
+            assertEquals(com.wisata.banyumas.common.UiText.StringResource(R.string.error_logout), state.message)
         } else {
             fail("Expected UiState.Error but got $state")
         }
@@ -342,20 +342,20 @@ class UserViewModelTest {
     @Test
     fun userViewModel_DeleteAccount_ReturnsEmptyStateAfterSuccess() = runTest {
         Mockito.`when`(userRepository.deleteAccount())
-            .thenReturn(UiState.Success(Unit))
+            .thenReturn(com.wisata.banyumas.common.UiState.Success(Unit))
 
         userViewModel.deleteAccount()
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        assertTrue(state is UiState.Empty)
+        assertTrue(state is com.wisata.banyumas.common.UiState.Empty)
 
     }
 
     @Test
     fun userViewModel_DeleteAccountRepositoryError_ReturnsErrorState() = runTest {
-        val errorText = UiText.StringResource(R.string.error_delete_account)
-        val errorState = UiState.Error(errorText)
+        val errorText = com.wisata.banyumas.common.UiText.StringResource(R.string.error_delete_account)
+        val errorState = com.wisata.banyumas.common.UiState.Error(errorText)
 
         Mockito.`when`(userRepository.deleteAccount())
             .thenReturn(errorState)
@@ -364,8 +364,8 @@ class UserViewModelTest {
         advanceUntilIdle()
 
         val state = userViewModel.authState.value
-        if (state is UiState.Error) {
-            assertEquals(UiText.StringResource(R.string.error_delete_account), state.message)
+        if (state is com.wisata.banyumas.common.UiState.Error) {
+            assertEquals(com.wisata.banyumas.common.UiText.StringResource(R.string.error_delete_account), state.message)
         } else {
             fail("Expected UiState.Error but got $state")
         }

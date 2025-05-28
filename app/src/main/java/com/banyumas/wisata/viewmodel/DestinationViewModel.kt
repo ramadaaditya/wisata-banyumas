@@ -8,9 +8,9 @@ import com.banyumas.wisata.R
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
 import com.banyumas.wisata.model.repository.DestinationRepository
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.UiText
-import com.banyumas.wisata.utils.updateWithFields
+import com.wisata.banyumas.common.UiState
+import com.wisata.banyumas.common.UiText
+import com.wisata.banyumas.common.updateWithFields
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,17 +24,21 @@ class DestinationViewModel @Inject constructor(
     private val repository: DestinationRepository
 ) : ViewModel() {
 
-    private val _uiDestinations = MutableStateFlow<UiState<List<UiDestination>>>(UiState.Empty)
-    val uiDestinations: StateFlow<UiState<List<UiDestination>>> = _uiDestinations
+    private val _uiDestinations = MutableStateFlow<com.wisata.banyumas.common.UiState<List<UiDestination>>>(
+        com.wisata.banyumas.common.UiState.Empty)
+    val uiDestinations: StateFlow<com.wisata.banyumas.common.UiState<List<UiDestination>>> = _uiDestinations
 
-    private val _selectedDestination = MutableStateFlow<UiState<UiDestination>>(UiState.Empty)
-    val selectedDestination: StateFlow<UiState<UiDestination>> = _selectedDestination
+    private val _selectedDestination = MutableStateFlow<com.wisata.banyumas.common.UiState<UiDestination>>(
+        com.wisata.banyumas.common.UiState.Empty)
+    val selectedDestination: StateFlow<com.wisata.banyumas.common.UiState<UiDestination>> = _selectedDestination
 
-    private val _favoriteDestination = MutableStateFlow<UiState<List<Destination>>>(UiState.Empty)
-    val favoriteDestination: StateFlow<UiState<List<Destination>>> = _favoriteDestination
+    private val _favoriteDestination = MutableStateFlow<com.wisata.banyumas.common.UiState<List<Destination>>>(
+        com.wisata.banyumas.common.UiState.Empty)
+    val favoriteDestination: StateFlow<com.wisata.banyumas.common.UiState<List<Destination>>> = _favoriteDestination
 
-    private val _toggleFavoriteState = MutableStateFlow<UiState<Unit>>(UiState.Empty)
-    val toggleFavoriteState: StateFlow<UiState<Unit>> = _toggleFavoriteState
+    private val _toggleFavoriteState = MutableStateFlow<com.wisata.banyumas.common.UiState<Unit>>(
+        com.wisata.banyumas.common.UiState.Empty)
+    val toggleFavoriteState: StateFlow<com.wisata.banyumas.common.UiState<Unit>> = _toggleFavoriteState
 
     private val _eventFlow = MutableSharedFlow<DestinationEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
@@ -49,24 +53,24 @@ class DestinationViewModel @Inject constructor(
     fun getAllDestinations(userId: String) {
         if (userId.isBlank()) {
             _uiDestinations.value =
-                UiState.Error(UiText.StringResource(R.string.error_user_id_empty))
+                com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_user_id_empty))
             return
         }
 
-        _uiDestinations.value = UiState.Loading
+        _uiDestinations.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result = repository.getAllDestinations(userId)) {
-                is UiState.Success -> {
+                is com.wisata.banyumas.common.UiState.Success -> {
                     allDestinations = result.data
-                    _uiDestinations.value = if (result.data.isEmpty()) UiState.Empty else result
+                    _uiDestinations.value = if (result.data.isEmpty()) com.wisata.banyumas.common.UiState.Empty else result
                     Log.d("VIEWMODEL", "getAllDestinations: berhasil mengambil data wisata $result")
                 }
 
-                is UiState.Error -> _uiDestinations.value = result
+                is com.wisata.banyumas.common.UiState.Error -> _uiDestinations.value = result
                 else -> {
                     Log.e("VIEWMODEL", "getAllDestinations: $result")
                     _uiDestinations.value =
-                        UiState.Error(UiText.StringResource(R.string.error_else))
+                        com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
                 }
             }
         }
@@ -112,17 +116,17 @@ class DestinationViewModel @Inject constructor(
 //    }
 
     fun loadFavoriteDestinations(userId: String) {
-        _favoriteDestination.value = UiState.Loading
+        _favoriteDestination.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result = repository.getFavoriteDestinations(userId)) {
-                is UiState.Success -> {
+                is com.wisata.banyumas.common.UiState.Success -> {
                     _favoriteDestination.value = result
                 }
 
-                UiState.Empty -> _favoriteDestination.value = UiState.Empty
-                is UiState.Error -> _favoriteDestination.value = result
+                com.wisata.banyumas.common.UiState.Empty -> _favoriteDestination.value = com.wisata.banyumas.common.UiState.Empty
+                is com.wisata.banyumas.common.UiState.Error -> _favoriteDestination.value = result
                 else -> _favoriteDestination.value =
-                    UiState.Error(UiText.StringResource(R.string.error_else))
+                    com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
             }
         }
     }
@@ -131,21 +135,21 @@ class DestinationViewModel @Inject constructor(
 
     fun getDetailDestination(destinationId: String, userId: String) {
         viewModelScope.launch {
-            _selectedDestination.value = UiState.Loading
+            _selectedDestination.value = com.wisata.banyumas.common.UiState.Loading
             _selectedDestination.value = repository.getDestinationById(destinationId, userId)
         }
     }
 
     fun saveNewDestination(context: Context, destination: Destination) {
-        _uiDestinations.value = UiState.Loading
+        _uiDestinations.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val saveResult = repository.saveDestination(destination)) {
-                is UiState.Success -> {
-                    _uiDestinations.value = UiState.Success(allDestinations)
+                is com.wisata.banyumas.common.UiState.Success -> {
+                    _uiDestinations.value = com.wisata.banyumas.common.UiState.Success(allDestinations)
                     _eventFlow.emit(DestinationEvent.Success)
                 }
 
-                is UiState.Error -> {
+                is com.wisata.banyumas.common.UiState.Error -> {
                     _uiDestinations.value = saveResult
                     _eventFlow.emit(
                         DestinationEvent.ShowMessage(
@@ -158,26 +162,26 @@ class DestinationViewModel @Inject constructor(
 
                 else -> {
                     _uiDestinations.value =
-                        UiState.Error(UiText.StringResource(R.string.error_else))
+                        com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
                 }
             }
         }
     }
 
     fun deleteDestinationById(destinationId: String) {
-        _uiDestinations.value = UiState.Loading
+        _uiDestinations.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result = repository.deleteDestination(destinationId)) {
-                is UiState.Success -> {
+                is com.wisata.banyumas.common.UiState.Success -> {
                     allDestinations =
                         allDestinations.filterNot { it.destination.id == destinationId }
-                    _uiDestinations.value = UiState.Success(allDestinations)
+                    _uiDestinations.value = com.wisata.banyumas.common.UiState.Success(allDestinations)
                     _eventFlow.emit(DestinationEvent.Success)
                 }
 
-                is UiState.Error -> _uiDestinations.value = result
+                is com.wisata.banyumas.common.UiState.Error -> _uiDestinations.value = result
                 else -> _uiDestinations.value =
-                    UiState.Error(UiText.StringResource(R.string.error_else))
+                    com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
             }
         }
     }
@@ -187,30 +191,30 @@ class DestinationViewModel @Inject constructor(
         destinationId: String,
         updatedFields: Map<String, Any>
     ) {
-        _uiDestinations.value = UiState.Loading
+        _uiDestinations.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result =
                 repository.updateDestinationFields(destinationId, updatedFields)) {
-                is UiState.Success -> {
+                is com.wisata.banyumas.common.UiState.Success -> {
                     allDestinations = allDestinations.map {
                         if (it.destination.id == destinationId) {
                             val updated = it.destination.updateWithFields(updatedFields)
                             it.copy(destination = updated)
                         } else it
                     }
-                    _uiDestinations.value = UiState.Success(allDestinations)
+                    _uiDestinations.value = com.wisata.banyumas.common.UiState.Success(allDestinations)
                     _eventFlow.emit(DestinationEvent.Success)
                     _eventFlow.emit(DestinationEvent.ShowMessage("Destinasi berhasil diperbarui."))
                 }
 
-                is UiState.Error -> {
+                is com.wisata.banyumas.common.UiState.Error -> {
                     _uiDestinations.value = result
                     _eventFlow.emit(DestinationEvent.ShowMessage(result.message.asString(context)))
                 }
 
                 else -> {
                     _uiDestinations.value =
-                        UiState.Error(UiText.StringResource(R.string.error_else))
+                        com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
                 }
             }
         }
@@ -249,7 +253,7 @@ class DestinationViewModel @Inject constructor(
         }
 
         _uiDestinations.value =
-            if (filtered.isEmpty()) UiState.Empty else UiState.Success(filtered)
+            if (filtered.isEmpty()) com.wisata.banyumas.common.UiState.Empty else com.wisata.banyumas.common.UiState.Success(filtered)
     }
 
     fun filterDestinations(category: String?) {
@@ -257,24 +261,24 @@ class DestinationViewModel @Inject constructor(
     }
 
     fun toggleFavorite(userId: String, destinationId: String, isFavorite: Boolean) {
-        _toggleFavoriteState.value = UiState.Loading
+        _toggleFavoriteState.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result =
                 repository.updateFavoriteDestination(userId, destinationId, isFavorite)) {
-                is UiState.Success -> {
-                    _toggleFavoriteState.value = UiState.Success(Unit)
+                is com.wisata.banyumas.common.UiState.Success -> {
+                    _toggleFavoriteState.value = com.wisata.banyumas.common.UiState.Success(Unit)
                     loadFavoriteDestinations(userId)
                 }
 
-                is UiState.Error -> {
-                    _toggleFavoriteState.value = UiState.Error(result.message)
+                is com.wisata.banyumas.common.UiState.Error -> {
+                    _toggleFavoriteState.value = com.wisata.banyumas.common.UiState.Error(result.message)
                 }
 
-                UiState.Empty -> {
-                    _toggleFavoriteState.value = UiState.Empty
+                com.wisata.banyumas.common.UiState.Empty -> {
+                    _toggleFavoriteState.value = com.wisata.banyumas.common.UiState.Empty
                 }
 
-                UiState.Loading -> Unit
+                com.wisata.banyumas.common.UiState.Loading -> Unit
             }
         }
     }

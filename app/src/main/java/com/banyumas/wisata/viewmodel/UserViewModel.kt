@@ -7,10 +7,10 @@ import androidx.lifecycle.viewModelScope
 import com.banyumas.wisata.R
 import com.banyumas.wisata.model.User
 import com.banyumas.wisata.model.repository.UserRepository
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.UiText
-import com.banyumas.wisata.utils.isValidEmail
-import com.banyumas.wisata.utils.isValidPassword
+import com.wisata.banyumas.common.UiState
+import com.wisata.banyumas.common.UiText
+import com.wisata.banyumas.common.isValidEmail
+import com.wisata.banyumas.common.isValidPassword
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,8 +22,8 @@ class UserViewModel @Inject constructor(
     private val repository: UserRepository,
 ) : ViewModel() {
 
-    private val _authState = MutableStateFlow<UiState<User>>(UiState.Empty)
-    val authState: StateFlow<UiState<User>> = _authState
+    private val _authState = MutableStateFlow<com.wisata.banyumas.common.UiState<User>>(com.wisata.banyumas.common.UiState.Empty)
+    val authState: StateFlow<com.wisata.banyumas.common.UiState<User>> = _authState
 
     init {
         Log.d(TAG, ": USERVIEWMODEL dibuat ulang")
@@ -31,22 +31,22 @@ class UserViewModel @Inject constructor(
 
     fun loginUser(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
-            _authState.value = UiState.Error(UiText.StringResource(R.string.error_fields_required))
+            _authState.value = com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_fields_required))
             return
         }
-        if (!isValidEmail(email)) {
-            _authState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
+        if (!com.wisata.banyumas.common.isValidEmail(email)) {
+            _authState.value = com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_invalid_email))
             return
         }
-        _authState.value = UiState.Loading
+        _authState.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result = repository.loginUser(email, password)) {
-                is UiState.Success -> {
-                    _authState.value = UiState.Success(result.data)
+                is com.wisata.banyumas.common.UiState.Success -> {
+                    _authState.value = com.wisata.banyumas.common.UiState.Success(result.data)
                 }
 
-                is UiState.Error -> _authState.value = UiState.Error(result.message)
-                else -> _authState.value = UiState.Error(UiText.StringResource(R.string.error_else))
+                is com.wisata.banyumas.common.UiState.Error -> _authState.value = com.wisata.banyumas.common.UiState.Error(result.message)
+                else -> _authState.value = com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
             }
 
         }
@@ -55,27 +55,27 @@ class UserViewModel @Inject constructor(
     fun registerUser(email: String, password: String, name: String) {
         if (email.isBlank() || password.isBlank() || name.isBlank()) {
             _authState.value =
-                UiState.Error(UiText.StringResource(R.string.error_fields_required))
+                com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_fields_required))
             return
         }
 
-        if (!isValidEmail(email)) {
-            _authState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
+        if (!com.wisata.banyumas.common.isValidEmail(email)) {
+            _authState.value = com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_invalid_email))
             return
         }
-        if (!isValidPassword(password)) {
+        if (!com.wisata.banyumas.common.isValidPassword(password)) {
             _authState.value =
-                UiState.Error(UiText.StringResource(R.string.error_invalid_password))
+                com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_invalid_password))
             return
         }
 
-        _authState.value = UiState.Loading
+        _authState.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result = repository.registerUser(email, password, name)) {
-                is UiState.Success -> _authState.value = UiState.Empty
-                is UiState.Error -> _authState.value = UiState.Error(result.message)
+                is com.wisata.banyumas.common.UiState.Success -> _authState.value = com.wisata.banyumas.common.UiState.Empty
+                is com.wisata.banyumas.common.UiState.Error -> _authState.value = com.wisata.banyumas.common.UiState.Error(result.message)
                 else -> _authState.value =
-                    UiState.Error(UiText.StringResource(R.string.error_else))
+                    com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
             }
         }
     }
@@ -83,18 +83,18 @@ class UserViewModel @Inject constructor(
     fun checkLoginStatus() {
         viewModelScope.launch {
             when (val result = repository.getCurrentUser()) {
-                is UiState.Success -> {
+                is com.wisata.banyumas.common.UiState.Success -> {
                     val user = result.data
                     if (user != null) {
                         Log.d("VIEWMODEL", "checkLoginStatus: ${user.id}")
-                        _authState.value = UiState.Success(user)
+                        _authState.value = com.wisata.banyumas.common.UiState.Success(user)
                     } else {
                         _authState.value =
-                            UiState.Error(UiText.StringResource(R.string.error_user_not_found))
+                            com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_user_not_found))
                     }
                 }
 
-                is UiState.Error -> _authState.value = UiState.Error(result.message)
+                is com.wisata.banyumas.common.UiState.Error -> _authState.value = com.wisata.banyumas.common.UiState.Error(result.message)
                 else -> {}
             }
         }
@@ -103,44 +103,44 @@ class UserViewModel @Inject constructor(
 
     fun resetPassword(email: String) {
         if (email.isBlank()) {
-            _authState.value = UiState.Error(UiText.StringResource(R.string.error_email_empty))
+            _authState.value = com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_email_empty))
             return
         }
-        if (!isValidEmail(email)) {
-            _authState.value = UiState.Error(UiText.StringResource(R.string.error_invalid_email))
+        if (!com.wisata.banyumas.common.isValidEmail(email)) {
+            _authState.value = com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_invalid_email))
             return
         }
-        _authState.value = UiState.Loading
+        _authState.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result = repository.resetPassword(email)) {
-                is UiState.Success -> _authState.value = UiState.Empty
-                is UiState.Error -> _authState.value = UiState.Error(result.message)
+                is com.wisata.banyumas.common.UiState.Success -> _authState.value = com.wisata.banyumas.common.UiState.Empty
+                is com.wisata.banyumas.common.UiState.Error -> _authState.value = com.wisata.banyumas.common.UiState.Error(result.message)
                 else -> _authState.value =
-                    UiState.Error(UiText.StringResource(R.string.error_else))
+                    com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
             }
         }
     }
 
     fun logout() {
-        _authState.value = UiState.Loading
+        _authState.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result = repository.logoutUser()) {
-                is UiState.Success -> _authState.value = UiState.Empty
-                is UiState.Error -> _authState.value = UiState.Error(result.message)
+                is com.wisata.banyumas.common.UiState.Success -> _authState.value = com.wisata.banyumas.common.UiState.Empty
+                is com.wisata.banyumas.common.UiState.Error -> _authState.value = com.wisata.banyumas.common.UiState.Error(result.message)
                 else -> _authState.value =
-                    UiState.Error(UiText.StringResource(R.string.error_else))
+                    com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
             }
         }
     }
 
     fun deleteAccount() {
-        _authState.value = UiState.Loading
+        _authState.value = com.wisata.banyumas.common.UiState.Loading
         viewModelScope.launch {
             when (val result = repository.deleteAccount()) {
-                is UiState.Success -> _authState.value = UiState.Empty
-                is UiState.Error -> _authState.value = UiState.Error(result.message)
+                is com.wisata.banyumas.common.UiState.Success -> _authState.value = com.wisata.banyumas.common.UiState.Empty
+                is com.wisata.banyumas.common.UiState.Error -> _authState.value = com.wisata.banyumas.common.UiState.Error(result.message)
                 else -> _authState.value =
-                    UiState.Error(UiText.StringResource(R.string.error_else))
+                    com.wisata.banyumas.common.UiState.Error(com.wisata.banyumas.common.UiText.StringResource(R.string.error_else))
             }
         }
     }

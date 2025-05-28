@@ -24,7 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.banyumas.wisata.model.Category
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.UiState
+import com.wisata.banyumas.common.UiState
 import com.banyumas.wisata.view.components.AddIcon
 import com.banyumas.wisata.view.components.CategoryRow
 import com.banyumas.wisata.view.components.ConfirmationDialog
@@ -58,8 +58,8 @@ fun DashboardScreen(
     }
 
     when (val state = uiState) {
-        is UiState.Loading -> LoadingState()
-        is UiState.Success -> {
+        is com.wisata.banyumas.common.UiState.Loading -> LoadingState()
+        is com.wisata.banyumas.common.UiState.Success -> {
             val destinations = state.data
             if (destinations.isNotEmpty()) {
                 DashboardContent(
@@ -84,8 +84,8 @@ fun DashboardScreen(
             }
         }
 
-        is UiState.Error -> ErrorState(message = state.message)
-        is UiState.Empty -> {
+        is com.wisata.banyumas.common.UiState.Error -> ErrorState(message = state.message)
+        is com.wisata.banyumas.common.UiState.Empty -> {
             DashboardContent(
                 destinations = emptyList(),
                 navigateToDetail = navigateToDetail,

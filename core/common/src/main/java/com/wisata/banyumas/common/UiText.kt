@@ -1,4 +1,4 @@
-package com.banyumas.wisata.utils
+package com.wisata.banyumas.common
 
 import android.content.Context
 import androidx.annotation.StringRes

@@ -1,4 +1,4 @@
-package com.banyumas.wisata.utils
+package com.wisata.banyumas.common
 
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.Facility

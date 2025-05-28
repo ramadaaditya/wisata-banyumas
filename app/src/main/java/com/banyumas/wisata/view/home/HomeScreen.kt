@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,8 +23,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.Category
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.UiState
-import com.banyumas.wisata.utils.listDummyDestination
+import com.wisata.banyumas.common.UiState
+import com.wisata.banyumas.common.listDummyDestination
 import com.banyumas.wisata.view.components.CategoryRow
 import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.view.components.EmptyState
@@ -80,7 +78,7 @@ internal fun HomeScreenContent(
     categories: List<String>,
     selectedCategory: String,
     onCategorySelected: (String) -> Unit,
-    uiState: UiState<List<UiDestination>>
+    uiState: com.wisata.banyumas.common.UiState<List<UiDestination>>
 ) {
     Column(
         modifier = modifier
@@ -98,8 +96,8 @@ internal fun HomeScreenContent(
             onCategorySelected = onCategorySelected,
         )
         when (uiState) {
-            is UiState.Loading -> LoadingState()
-            is UiState.Success -> {
+            is com.wisata.banyumas.common.UiState.Loading -> LoadingState()
+            is com.wisata.banyumas.common.UiState.Success -> {
                 val destinations = uiState.data.filter {
                     selectedCategory == "All" || it.destination.category == selectedCategory
                 }.filter {
@@ -130,11 +128,11 @@ internal fun HomeScreenContent(
                 }
             }
 
-            is UiState.Error -> {
+            is com.wisata.banyumas.common.UiState.Error -> {
                 ErrorState(message = uiState.message)
             }
 
-            UiState.Empty -> EmptyState()
+            com.wisata.banyumas.common.UiState.Empty -> EmptyState()
         }
     }
 }
@@ -152,7 +150,7 @@ private fun HomeScreenContentPreview() {
             onCategorySelected = {},
             querySearch = "",
             navigateToDetail = {},
-            uiState = UiState.Success(listDummyDestination)
+            uiState = com.wisata.banyumas.common.UiState.Success(com.wisata.banyumas.common.listDummyDestination)
         )
     }
 }

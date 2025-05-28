@@ -13,7 +13,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.Destination
 import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.utils.UiState
+import com.wisata.banyumas.common.UiState
 import com.banyumas.wisata.view.components.DestinationCard
 import com.banyumas.wisata.view.components.EmptyState
 import com.banyumas.wisata.view.components.ErrorState
@@ -29,7 +29,7 @@ fun FavoriteScreen(
 ) {
     val favoriteState by viewmodel.favoriteDestination.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
-    val currentUser = (authState as? UiState.Success)?.data
+    val currentUser = (authState as? com.wisata.banyumas.common.UiState.Success)?.data
 
     LaunchedEffect(currentUser) {
         currentUser?.let { user ->
@@ -38,10 +38,10 @@ fun FavoriteScreen(
     }
 
     when (favoriteState) {
-        is UiState.Loading -> LoadingState()
+        is com.wisata.banyumas.common.UiState.Loading -> LoadingState()
 
-        is UiState.Success -> {
-            val destinations = (favoriteState as UiState.Success<List<Destination>>).data
+        is com.wisata.banyumas.common.UiState.Success -> {
+            val destinations = (favoriteState as com.wisata.banyumas.common.UiState.Success<List<Destination>>).data
             if (destinations.isEmpty()) {
                 EmptyState()
             } else {
@@ -61,13 +61,13 @@ fun FavoriteScreen(
             }
         }
 
-        is UiState.Error -> {
+        is com.wisata.banyumas.common.UiState.Error -> {
             ErrorState(
-                message = (favoriteState as UiState.Error).message,
+                message = (favoriteState as com.wisata.banyumas.common.UiState.Error).message,
             )
         }
 
-        UiState.Empty -> EmptyState()
+        com.wisata.banyumas.common.UiState.Empty -> EmptyState()
     }
 }
 

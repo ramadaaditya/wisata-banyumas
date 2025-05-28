@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.banyumas.wisata.utils.UiState
+import com.wisata.banyumas.common.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.components.PasswordInputField
@@ -43,11 +43,11 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
-    val isLoading = authState is UiState.Loading
+    val isLoading = authState is com.wisata.banyumas.common.UiState.Loading
 
     LaunchedEffect(authState) {
         when (val state = authState) {
-            is UiState.Success -> {
+            is com.wisata.banyumas.common.UiState.Success -> {
                 Toast.makeText(
                     context,
                     "Akun berhasil dibuat. Silahkan cek email untuk verifikasi.",
@@ -55,7 +55,7 @@ fun RegisterScreen(
                 ).show()
             }
 
-            is UiState.Error -> {
+            is com.wisata.banyumas.common.UiState.Error -> {
                 Toast.makeText(
                     context,
                     "Registrasi gagal: ${state.message.asString(context)}",

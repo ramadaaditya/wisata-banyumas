@@ -1,4 +1,4 @@
-package com.banyumas.wisata.utils
+package com.wisata.banyumas.common
 
 sealed class UiState<out T> {
     data class Success<out T>(val data: T) : UiState<T>()

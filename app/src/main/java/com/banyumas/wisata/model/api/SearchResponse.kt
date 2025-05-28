@@ -4,10 +4,10 @@ import com.google.gson.annotations.SerializedName
 
 data class SearchResponse(
 
-	@field:SerializedName("candidates")
+    @field:SerializedName("candidates")
 	val candidates: List<CandidatesItem?>? = null,
 
-	@field:SerializedName("status")
+    @field:SerializedName("status")
 	val status: String? = null
 )
 

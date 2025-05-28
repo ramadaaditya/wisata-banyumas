@@ -37,7 +37,7 @@ import com.banyumas.wisata.model.User
 import com.banyumas.wisata.view.components.EmptyState
 import com.banyumas.wisata.view.components.ErrorState
 import com.banyumas.wisata.view.components.LoadingState
-import com.banyumas.wisata.utils.UiState
+import com.wisata.banyumas.common.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
 import com.banyumas.wisata.viewmodel.UserViewModel
@@ -50,14 +50,14 @@ fun ProfileScreen(
 ) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     LaunchedEffect(authState) {
-        if (authState == UiState.Empty) {
+        if (authState == com.wisata.banyumas.common.UiState.Empty) {
             onLogout()
         }
     }
     when (val state = authState) {
-        is UiState.Loading -> LoadingState()
-        is UiState.Error -> ErrorState(state.message)
-        is UiState.Success -> {
+        is com.wisata.banyumas.common.UiState.Loading -> LoadingState()
+        is com.wisata.banyumas.common.UiState.Error -> ErrorState(state.message)
+        is com.wisata.banyumas.common.UiState.Success -> {
             val user = state.data
             ProfileContent(
                 user = user,
@@ -69,7 +69,7 @@ fun ProfileScreen(
             )
         }
 
-        is UiState.Empty -> EmptyState()
+        is com.wisata.banyumas.common.UiState.Empty -> EmptyState()
     }
 }
 

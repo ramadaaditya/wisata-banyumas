@@ -1,4 +1,4 @@
-package com.banyumas.wisata.utils
+package com.wisata.banyumas.common
 
 fun isValidEmail(email: String): Boolean {
     val emailRegex = "^[A-Za-z](.*)(@)(.+)(\\.)(.+)"

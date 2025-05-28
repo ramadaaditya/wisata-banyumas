@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.utils.UiText
+import com.wisata.banyumas.common.UiText
 import com.banyumas.wisata.view.theme.BanyumasTheme
 
 @Composable
@@ -60,7 +60,7 @@ fun EmptyState(
 
 @Composable
 fun ErrorState(
-    message: UiText,
+    message: com.wisata.banyumas.common.UiText,
     modifier: Modifier = Modifier,
     onRetry: (() -> Unit)? = null
 ) {

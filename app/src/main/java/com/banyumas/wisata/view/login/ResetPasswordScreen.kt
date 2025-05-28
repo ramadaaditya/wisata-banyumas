@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.banyumas.wisata.utils.UiState
+import com.wisata.banyumas.common.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.theme.WisataBanyumasTheme
@@ -39,7 +39,7 @@ fun ResetPasswordScreen(
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     val resetPasswordState by viewModel.authState.collectAsStateWithLifecycle()
-    var isLoading = resetPasswordState is UiState.Loading
+    var isLoading = resetPasswordState is com.wisata.banyumas.common.UiState.Loading
 
     val isValidEmail = remember(email) {
         Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -47,14 +47,14 @@ fun ResetPasswordScreen(
 
     LaunchedEffect(resetPasswordState) {
         when (val state = resetPasswordState) {
-            is UiState.Loading -> isLoading = true
-            is UiState.Success -> {
+            is com.wisata.banyumas.common.UiState.Loading -> isLoading = true
+            is com.wisata.banyumas.common.UiState.Success -> {
                 isLoading = false
                 Toast.makeText(context, "Email reset kata sandi telah dikirim!", Toast.LENGTH_SHORT)
                     .show()
             }
 
-            is UiState.Error -> {
+            is com.wisata.banyumas.common.UiState.Error -> {
             }
 
             else -> Unit

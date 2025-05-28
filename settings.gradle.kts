@@ -1,4 +1,13 @@
+@file:Suppress("UnstableApiUsage")
+
+include(":core:model")
+
+
+include(":core:common")
+
+
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -21,4 +30,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "Wisata Banyumas"
 include(":app")
- 
+include(":core:data")
+include(":core:navigation")
+include(":feature:profile")

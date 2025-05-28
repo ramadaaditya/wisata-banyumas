@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.model.User
-import com.banyumas.wisata.utils.UiState
+import com.wisata.banyumas.common.UiState
 import com.banyumas.wisata.view.components.CustomButton
 import com.banyumas.wisata.view.components.EmailInputField
 import com.banyumas.wisata.view.components.PasswordInputField
@@ -45,15 +45,15 @@ fun LoginScreen(
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val isLoading = authState is UiState.Loading
+    val isLoading = authState is com.wisata.banyumas.common.UiState.Loading
 
     LaunchedEffect(authState) {
         when (val state = authState) {
-            is UiState.Success -> {
+            is com.wisata.banyumas.common.UiState.Success -> {
                 navigateToHome(state.data)
             }
 
-            is UiState.Error -> {
+            is com.wisata.banyumas.common.UiState.Error -> {
                 Toast.makeText(context, "Login Gagal: $state", Toast.LENGTH_SHORT)
                     .show()
             }
