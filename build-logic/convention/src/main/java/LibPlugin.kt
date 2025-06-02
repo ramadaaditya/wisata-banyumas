@@ -5,6 +5,7 @@ import com.wisata.banyumas.buidlogic.convention.configAndroid
 import com.wisata.banyumas.buidlogic.convention.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.configure
 
 class LibPlugin : Plugin<Project> {
@@ -13,8 +14,6 @@ class LibPlugin : Plugin<Project> {
             with(pluginManager) {
                 alias(libs.plugins.android.library)
                 alias(libs.plugins.kotlin.android)
-                alias(libs.plugins.compose.compiler)
-                alias(libs.plugins.base.hilt)
             }
 
             extensions.configure<LibraryExtension> {

@@ -3,10 +3,10 @@ package com.banyumas.wisata.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.banyumas.wisata.DummyDestination
 import com.banyumas.wisata.R
-import com.banyumas.wisata.model.repository.DestinationRepository
+import com.banyumas.wisata.core.data.repository.DestinationRepository
 import com.banyumas.wisata.utils.MainDispatcherRule
-import com.wisata.banyumas.common.UiState
-import com.wisata.banyumas.common.UiText
+import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.common.UiText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -51,15 +51,15 @@ class DestinationViewModelTest {
         val userId = "user123"
 
         `when`(repository.getAllDestinations(userId)).thenReturn(
-            com.wisata.banyumas.common.UiState.Success(
+            com.banyumas.wisata.core.common.UiState.Success(
                 dummyListUiDestination
             )
         )
         destinationViewModel.getAllDestinations(userId)
         advanceUntilIdle()
         val result = destinationViewModel.uiDestinations.value
-        assertTrue(result is com.wisata.banyumas.common.UiState.Success)
-        assertEquals(dummyListUiDestination, (result as com.wisata.banyumas.common.UiState.Success).data)
+        assertTrue(result is com.banyumas.wisata.core.common.UiState.Success)
+        assertEquals(dummyListUiDestination, (result as com.banyumas.wisata.core.common.UiState.Success).data)
         verify(repository).getAllDestinations(userId)
     }
 
@@ -69,10 +69,10 @@ class DestinationViewModelTest {
         advanceUntilIdle()
 
         val result = destinationViewModel.uiDestinations.value
-        assertTrue(result is com.wisata.banyumas.common.UiState.Error)
+        assertTrue(result is com.banyumas.wisata.core.common.UiState.Error)
         assertEquals(
             R.string.error_user_id_empty,
-            ((result as com.wisata.banyumas.common.UiState.Error).message as com.wisata.banyumas.common.UiText.StringResource).resId
+            ((result as com.banyumas.wisata.core.common.UiState.Error).message as com.banyumas.wisata.core.common.UiText.StringResource).resId
         )
     }
 
@@ -83,15 +83,15 @@ class DestinationViewModelTest {
         val isFavorite = true
 
         `when`(repository.updateFavoriteDestination(userId, destinationId, isFavorite))
-            .thenReturn(com.wisata.banyumas.common.UiState.Success(Unit))
+            .thenReturn(com.banyumas.wisata.core.common.UiState.Success(Unit))
         `when`(repository.getFavoriteDestinations(userId))
-            .thenReturn(com.wisata.banyumas.common.UiState.Success(emptyList()))
+            .thenReturn(com.banyumas.wisata.core.common.UiState.Success(emptyList()))
 
         destinationViewModel.toggleFavorite(userId, destinationId, isFavorite)
         advanceUntilIdle()
 
         val result = destinationViewModel.toggleFavoriteState.value
-        assertTrue(result is com.wisata.banyumas.common.UiState.Success)
+        assertTrue(result is com.banyumas.wisata.core.common.UiState.Success)
 
         verify(repository).updateFavoriteDestination(userId, destinationId, isFavorite)
         verify(repository).getFavoriteDestinations(userId)
@@ -101,15 +101,15 @@ class DestinationViewModelTest {
     fun `loadFavoriteDestinations returns success`() = runTest {
         val userId = "user123"
         `when`(repository.getFavoriteDestinations(userId)).thenReturn(
-            com.wisata.banyumas.common.UiState.Success(
+            com.banyumas.wisata.core.common.UiState.Success(
                 dummyListDestination
             )
         )
         destinationViewModel.loadFavoriteDestinations(userId)
         advanceUntilIdle()
         val result = destinationViewModel.favoriteDestination.value
-        assertTrue(result is com.wisata.banyumas.common.UiState.Success)
-        assertEquals(dummyListDestination, (result as com.wisata.banyumas.common.UiState.Success).data)
+        assertTrue(result is com.banyumas.wisata.core.common.UiState.Success)
+        assertEquals(dummyListDestination, (result as com.banyumas.wisata.core.common.UiState.Success).data)
     }
 
     @Test
@@ -120,8 +120,8 @@ class DestinationViewModelTest {
         field.set(destinationViewModel, dummyListUiDestination)
         destinationViewModel.searchDestinations("Curug", "Alam")
         val state = destinationViewModel.uiDestinations.value
-        assertTrue(state is com.wisata.banyumas.common.UiState.Success)
-        val filtered = (state as com.wisata.banyumas.common.UiState.Success).data
+        assertTrue(state is com.banyumas.wisata.core.common.UiState.Success)
+        val filtered = (state as com.banyumas.wisata.core.common.UiState.Success).data
         println("Filtered: ${filtered.map { it.destination.name + " - " + it.destination.category }}")
         assertEquals(2, filtered.size)
         assertTrue(filtered.all { it.destination.name.contains("Curug") && it.destination.category == "Alam" })

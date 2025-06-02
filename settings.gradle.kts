@@ -1,11 +1,30 @@
 @file:Suppress("UnstableApiUsage")
 
-include(":core:model")
+include(":feature:profile")
 
 
-include(":core:common")
+include(":feature:resetpassword")
 
 
+include(":feature:register")
+
+
+include(":feature:login")
+
+
+include(":feature:admin")
+
+
+include(":feature:search")
+
+
+include(":feature:dashboard")
+
+
+include(":feature:bookmarks")
+
+
+rootProject.name = "WisataBanyumas"
 pluginManagement {
     includeBuild("build-logic")
     repositories {
@@ -31,5 +50,6 @@ dependencyResolutionManagement {
 rootProject.name = "Wisata Banyumas"
 include(":app")
 include(":core:data")
-include(":core:navigation")
-include(":feature:profile")
+include(":core:designsystem")
+include(":core:model")
+include(":core:common")

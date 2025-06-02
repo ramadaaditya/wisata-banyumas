@@ -1,27 +1,30 @@
 import org.gradle.initialization.DependenciesAccessors
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     `kotlin-dsl`
 }
 
 group = "com.wisata.banyumas.buildlogic"
+
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
     }
 }
+
 
 dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.android.tools.common)
+    compileOnly(libs.compose.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
     gradle.serviceOf<DependenciesAccessors>().classes.asFiles.forEach {
         compileOnly(files(it.absolutePath))
@@ -38,36 +41,36 @@ tasks {
 gradlePlugin {
     plugins {
         register("androidApplication") {
-            id = "base.application"
+            id = libs.plugins.base.application.asProvider().get().pluginId
             implementationClass = "AppPlugin"
         }
         register("androidApplicationCompose") {
-            id = "base.application.compose"
+            id = libs.plugins.base.application.compose.get().pluginId
             implementationClass = "AppComposePlugin"
         }
         register("androidApi") {
-            id = "base.api"
+            id = libs.plugins.base.api.get().pluginId
             implementationClass = "ApiPlugin"
         }
         register("androidFeature") {
-            id = "base.feature"
+            id = libs.plugins.base.feature.get().pluginId
             implementationClass = "FeaturePlugin"
         }
         register("androidLibrary") {
-            id = "base.library"
+            id = libs.plugins.base.library.asProvider().get().pluginId
             implementationClass = "LibPlugin"
         }
         register("androidLibraryCompose") {
-            id = "base.library.compose"
+            id = libs.plugins.base.library.compose.get().pluginId
             implementationClass = "LibComposePlugin"
         }
-        register("androidNav") {
-            id = "base.navigation"
-            implementationClass = "NavPlugin"
-        }
         register("androidHilt") {
-            id = "base.hilt"
+            id = libs.plugins.base.hilt.get().pluginId
             implementationClass = "HiltPlugin"
+        }
+        register("androidFirebase") {
+            id = libs.plugins.base.firebase.get().pluginId
+            implementationClass = "FirebasePlugin"
         }
     }
 }

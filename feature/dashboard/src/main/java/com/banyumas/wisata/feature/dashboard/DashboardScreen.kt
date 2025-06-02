@@ -1,0 +1,210 @@
+package com.banyumas.wisata.feature.dashboard
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.banyumas.wisata.viewmodel.DestinationViewModel
+import com.banyumas.wisata.viewmodel.UserViewModel
+
+@Composable
+fun DashboardScreen(
+    userId: String,
+    onLogout: () -> Unit,
+    onAddClick: () -> Unit,
+    navigateToDetail: (String) -> Unit,
+    viewModel: DestinationViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiDestinations.collectAsState()
+    val authState by userViewModel.authState.collectAsState()
+    var selectedDestination by remember { mutableStateOf<String?>(null) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.getAllDestinations(userId)
+    }
+
+    when (val state = uiState) {
+        is com.banyumas.wisata.core.common.UiState.Loading -> com.banyumas.wisata.core.designsystem.components.LoadingState()
+        is com.banyumas.wisata.core.common.UiState.Success -> {
+            val destinations = state.data
+            if (destinations.isNotEmpty()) {
+                DashboardContent(
+                    destinations = destinations,
+                    navigateToDetail = navigateToDetail,
+                    onLongPress = {
+                        selectedDestination = it
+                        showDeleteDialog = true
+                    },
+                    onLogoutClick = { showLogoutDialog = true },
+                    onSearchQueryChange = { query ->
+                        viewModel.searchDestinations(
+                            query,
+                            null
+                        )
+                    },
+                    onCategorySelected = { category -> viewModel.filterDestinations(category) },
+                    onAddClick = onAddClick
+                )
+            } else {
+                com.banyumas.wisata.core.designsystem.components.EmptyState(message = "Tidak Ada Destinasi yang cocok dengan pencarian")
+            }
+        }
+
+        is com.banyumas.wisata.core.common.UiState.Error -> com.banyumas.wisata.core.designsystem.components.ErrorState(message = state.message)
+        is com.banyumas.wisata.core.common.UiState.Empty -> {
+            DashboardContent(
+                destinations = emptyList(),
+                navigateToDetail = navigateToDetail,
+                onLongPress = {
+                    selectedDestination = it
+                    showDeleteDialog = true
+                },
+                onLogoutClick = { showLogoutDialog = true },
+                onSearchQueryChange = { query ->
+                    viewModel.searchDestinations(
+                        query,
+                        null
+                    )
+                },
+                onCategorySelected = { category -> viewModel.filterDestinations(category) },
+                onAddClick = onAddClick
+            )
+        }
+    }
+
+
+    if (showLogoutDialog) {
+        com.banyumas.wisata.core.designsystem.components.ConfirmationDialog(
+            title = "Konfirmasi Logout",
+            message = "Apakah Anda yakin ingin keluar ?",
+            onConfirm = {
+                userViewModel.logout()
+                showLogoutDialog = false
+            },
+            onDismiss = { showLogoutDialog = false }
+        )
+    }
+
+    if (showDeleteDialog && selectedDestination != null) {
+        com.banyumas.wisata.core.designsystem.components.ConfirmationDialog(
+            title = "Konfirmasi Hapus",
+            message = "Apakah Anda yakin ingin menghapus destinasi ini ?",
+            onConfirm = {
+                selectedDestination?.let { viewModel.deleteDestinationById(it) }
+                showDeleteDialog = false
+            },
+            onDismiss = { showDeleteDialog = false }
+        )
+    }
+}
+
+
+@Composable
+fun DashboardContent(
+    destinations: List<com.banyumas.wisata.core.model.UiDestination>,
+    navigateToDetail: (String) -> Unit,
+    onLongPress: (String) -> Unit,
+    onLogoutClick: () -> Unit,
+    onAddClick: () -> Unit,
+    onCategorySelected: (String) -> Unit,
+    onSearchQueryChange: (String) -> Unit
+) {
+    var query by rememberSaveable { mutableStateOf("") }
+    var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
+    val categories = remember { com.banyumas.wisata.core.model.Category.list }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            com.banyumas.wisata.core.designsystem.components.Search(
+                query = query,
+                onQueryChange = {
+                    query = it
+                    onSearchQueryChange(it)
+                },
+                onSearch = {},
+                modifier = Modifier.weight(1f)
+            )
+            com.banyumas.wisata.core.designsystem.components.AddIcon(onClick = onAddClick)
+            com.banyumas.wisata.core.designsystem.components.LogoutIcon(onClick = onLogoutClick)
+        }
+
+        com.banyumas.wisata.core.designsystem.components.CategoryRow(
+            categories = categories,
+            selectedCategory = selectedCategory ?: "All",
+            onCategorySelected = {
+                selectedCategory = it
+                onCategorySelected(it)
+            }
+        )
+
+        if (destinations.isEmpty()) {
+            com.banyumas.wisata.core.designsystem.components.EmptyState()
+        } else {
+            LazyColumn {
+                items(destinations) { destination ->
+                    com.banyumas.wisata.core.designsystem.components.DestinationCard(
+                        destination = destination,
+                        onFavoriteClick = {},
+                        onClick = {
+                            navigateToDetail(destination.destination.id)
+                        },
+                        showFavoriteIcon = false,
+                        onLongPress = { onLongPress(destination.destination.id) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, device = Devices.PIXEL)
+@Composable
+fun DashboardContentPreview() {
+    com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme(dynamicColor = false) {
+        val sampleDestination = List(5) { index ->
+            com.banyumas.wisata.core.model.UiDestination(
+                destination = com.banyumas.wisata.core.model.Destination(
+                    id = "id_$index",
+                    name = "Curug Baturraden $index",
+                    address = "Jl. Baturraden, Purwokerto Utara"
+                )
+            )
+        }
+        DashboardContent(
+            destinations = sampleDestination,
+            navigateToDetail = {},
+            onLongPress = {},
+            onSearchQueryChange = {},
+            onCategorySelected = {},
+            onLogoutClick = {},
+            onAddClick = {}
+        )
+    }
+}

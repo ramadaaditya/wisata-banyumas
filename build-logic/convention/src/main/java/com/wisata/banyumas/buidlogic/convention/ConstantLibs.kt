@@ -4,7 +4,8 @@ object ConstantLibs {
     val coreModules = listOf(
         ":core:data",
         ":core:common",
-        ":core:navigation"
+        ":core:model",
+        ":core:designsystem"
     )
 
     val resourceExcludes = listOf(

@@ -14,12 +14,11 @@ class AppPlugin : Plugin<Project> {
             with(pluginManager) {
                 alias(libs.plugins.android.application)
                 alias(libs.plugins.kotlin.android)
-                alias(libs.plugins.compose.compiler)
             }
-
             extensions.configure<ApplicationExtension> {
                 configAndroid(this)
                 defaultConfig.targetSdk = MAX_SDK_VERSION
+
                 packaging {
                     resources {
                         resourceExcludes.forEach { excludes += it }

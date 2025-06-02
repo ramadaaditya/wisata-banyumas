@@ -1,0 +1,211 @@
+package com.banyumas.wisata.core.data.repository
+
+import android.content.ContentValues.TAG
+import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.common.UiState.Empty
+import com.banyumas.wisata.core.common.UiState.Error
+import com.banyumas.wisata.core.common.UiState.Success
+import com.banyumas.wisata.core.common.UiText
+import com.banyumas.wisata.core.data.retrofit.ApiService
+import com.banyumas.wisata.core.data.utils.toDestination
+import com.banyumas.wisata.core.data.utils.toSearchResult
+import com.banyumas.wisata.core.model.Destination
+import com.banyumas.wisata.core.model.SearchResultItem
+import com.banyumas.wisata.core.model.UiDestination
+import com.banyumas.wisata.core.model.User
+import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.wisata.banyumas.core.data.R
+import kotlinx.coroutines.tasks.await
+import timber.log.Timber
+import java.util.UUID
+import javax.inject.Inject
+
+class DestinationRepository @Inject constructor(
+    private val apiService: ApiService,
+    private val firestore: FirebaseFirestore,
+) {
+    companion object {
+        private const val DESTINATIONS_COLLECTION = "destinations"
+        private const val USERS_COLLECTION = "users"
+    }
+
+    suspend fun getDestinationDetails(placeId: String): UiState<Destination> {
+        return try {
+            val result = apiService.getDetailPlaces(placeId).toDestination(placeId)
+            Success(result)
+        } catch (e: Exception) {
+            Error(UiText.StringResource(R.string.error_detail_place), e)
+        }
+    }
+
+    suspend fun searchDestinationByName(
+        placeName: String,
+    ): UiState<List<SearchResultItem>> {
+        return try {
+            val response = apiService.getDestinationByName(query = placeName)
+            val candidates = response.takeIf { it.status == "OK" }?.candidates.orEmpty()
+            if (candidates.isEmpty()) {
+                Error(UiText.StringResource(R.string.error_no_place_found))
+            } else {
+                val result = response.toSearchResult()
+                Success(result)
+            }
+        } catch (e: Exception) {
+            Error(UiText.StringResource(R.string.error_fetch_place), e)
+        }
+    }
+
+    suspend fun getAllDestinations(userId: String): UiState<List<UiDestination>> {
+        if (userId.isBlank()) {
+            return Error(UiText.StringResource(R.string.error_user_not_found))
+        }
+        return try {
+            val userDoc = firestore.collection(USERS_COLLECTION).document(userId).get().await()
+            val favoriteIds = userDoc.toObject(User::class.java)?.favoriteDestinations.orEmpty()
+            val snapshot = firestore.collection(DESTINATIONS_COLLECTION).get().await()
+            val destinations = snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Destination::class.java)?.let {
+                    UiDestination(
+                        destination = it,
+                        isFavorite = favoriteIds.contains(doc.id)
+                    )
+                }
+            }
+            Timber.tag(TAG).d("getAllDestinations: berhasil mengambil destinasi $destinations")
+            Success(destinations)
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "getAllDestinations: gagal mengambil destinasi ${e.localizedMessage}")
+            Error(
+                UiText.StringResource(
+                R.string.error_fetch_place), e)
+        }
+    }
+
+    suspend fun updateDestinationFields(
+        destinationId: String,
+        updatedFields: Map<String, Any>
+    ): UiState<Unit> {
+        return try {
+            firestore.collection(DESTINATIONS_COLLECTION)
+                .document(destinationId)
+                .update(updatedFields)
+                .await()
+            Success(Unit)
+        } catch (e: Exception) {
+            Error(UiText.StringResource(R.string.error_update_place), e)
+        }
+    }
+
+    suspend fun getFavoriteDestinations(userId: String): UiState<List<Destination>> {
+        return try {
+            val userDoc = firestore.collection(USERS_COLLECTION).document(userId).get().await()
+            val favoriteIds =
+                userDoc.toObject(User::class.java)?.favoriteDestinations ?: emptyList()
+            if (favoriteIds.isEmpty()) return Success(emptyList())
+
+            val favorites = favoriteIds.chunked(10).flatMap { chunk ->
+                firestore.collection(DESTINATIONS_COLLECTION)
+                    .whereIn(FieldPath.documentId(), chunk)
+                    .get().await()
+                    .documents.mapNotNull { it.toObject(Destination::class.java) }
+            }
+
+            Success(favorites)
+        } catch (e: Exception) {
+            Error(UiText.StringResource(R.string.error_fetch_favorites), e)
+
+        }
+    }
+
+    suspend fun updateFavoriteDestination(
+        userId: String,
+        destinationId: String,
+        isFavorite: Boolean
+    ): UiState<Unit> {
+        return try {
+            val userDoc = firestore.collection(USERS_COLLECTION).document(userId).get().await()
+            val user = userDoc.toObject(User::class.java)
+                ?: return Error(UiText.StringResource(R.string.error_user_not_found))
+
+            val updatedFavorites = if (isFavorite) {
+                (user.favoriteDestinations + destinationId).distinct()
+            } else {
+                user.favoriteDestinations - destinationId
+            }
+
+            firestore.collection(USERS_COLLECTION).document(userId)
+                .update("favoriteDestinations", updatedFavorites)
+                .await()
+
+            Success(Unit)
+        } catch (e: Exception) {
+            Error(UiText.StringResource(R.string.error_update_favorites), e)
+        }
+    }
+
+    suspend fun saveDestination(destination: Destination): UiState<Unit> {
+        return try {
+            val id = destination.id.ifBlank { UUID.randomUUID().toString() }
+            firestore.collection(DESTINATIONS_COLLECTION)
+                .document(id)
+                .set(destination.copy(id = id), SetOptions.merge())
+                .await()
+            Success(Unit)
+        } catch (e: Exception) {
+            Error(UiText.StringResource(R.string.error_save_place), e)
+        }
+    }
+
+    suspend fun fetchAndSaveDestination(placeId: String): UiState<Destination> {
+        return try {
+            val result = apiService.getDetailPlaces(placeId).toDestination(placeId)
+            saveDestination(result)
+            Success(result)
+        } catch (e: Exception) {
+            Error(UiText.StringResource(R.string.error_fetch_place), e)
+        }
+    }
+
+
+    suspend fun getDestinationById(destinationId: String, userId: String): UiState<UiDestination> {
+        if (destinationId.isBlank() || userId.isBlank()) {
+            return Error(UiText.StringResource(R.string.error_fields_required))
+        }
+
+        return try {
+            val snapshot = firestore.collection(DESTINATIONS_COLLECTION)
+                .document(destinationId).get().await()
+
+            val destination = snapshot.toObject(Destination::class.java)
+                ?: return Empty
+
+            val userSnapshot = firestore.collection(USERS_COLLECTION)
+                .document(userId).get().await()
+
+            val isFavorite = userSnapshot.toObject(User::class.java)
+                ?.favoriteDestinations?.contains(destinationId) == true
+
+            Success(
+                UiDestination(
+                    destination,
+                    isFavorite
+                )
+            )
+        } catch (e: Exception) {
+            Timber.tag("Repository").e(e, "Error fetching destination")
+            Error(UiText.StringResource(R.string.error_fetch_place), e)
+        }
+    }
+
+    suspend fun deleteDestination(destinationId: String): UiState<Unit> {
+        return try {
+            val destinationRef = firestore.collection("destinations").document(destinationId)
+            destinationRef.delete().await()
+            Success(Unit)
+        } catch (e: Exception) {
+            Error(UiText.StringResource(R.string.error_delete_place), e)
+        }
+    }
+}

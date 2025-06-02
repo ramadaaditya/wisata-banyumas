@@ -17,16 +17,9 @@ internal fun Project.configCompose(
             implementation(platform(bom))
             androidTestImplementation(platform(bom))
             implementation(libs.androidx.activity.compose.get())
-            implementation(libs.androidx.appcompat.get())
-            implementation(libs.androidx.material3.get())
+            implementation(libs.timber.get())
             implementation(libs.androidx.ui.tooling.preview.get())
             debugImplementation(libs.androidx.ui.tooling.debug.get())
-            implementation(libs.androidx.core.ktx.get())
-            implementation(libs.coil.compose.get())
-            implementation(libs.coil.network.get())
-            implementation(libs.coil.video.get())
-            implementation(libs.timber.get())
-
         }
     }
 }

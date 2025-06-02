@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.wisata.banyumas.core.profile"
+    namespace = "com.banyumas.wisata.feature.profile"
     compileSdk = 35
 
     defaultConfig {
-        minSdk = 26
+        minSdk = 24
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -22,6 +22,13 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }
 

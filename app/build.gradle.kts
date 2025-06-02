@@ -1,18 +1,12 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.base.application)
     alias(libs.plugins.base.application.compose)
-//    alias(libs.plugins.hilt)
-//    alias(libs.plugins.ksp)
-//    id("com.google.devtools.ksp")
-//    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
-//    id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
+    alias(libs.plugins.base.firebase)
+    alias(libs.plugins.base.hilt)
 }
 
 android {
-    namespace = "com.wisata.banyumas"
-
     defaultConfig {
         applicationId = "com.wisata.banyumas"
         versionCode = 1
@@ -29,21 +23,33 @@ android {
             isShrinkResources = true
         }
     }
-
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
 }
 
 dependencies {
-//    implementation(libs.androidx.core.ktx)
+    implementation(project(":core:data"))
+    implementation(project(":core:designsystem"))
+    implementation(project(":core:common"))
+    implementation(project(":core:model"))
+
+
+    implementation(project(":feature:login"))
+    implementation(project(":feature:register"))
+    implementation(project(":feature:resetpassword"))
+    implementation(project(":feature:dashboard"))
+    implementation(project(":feature:admin"))
+    implementation(project(":feature:search"))
+
+
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.core.splashscreen)
+
+
 //    implementation(libs.androidx.lifecycle.runtime.ktx)
-//    implementation(libs.androidx.activity.compose)
 //    implementation(platform(libs.androidx.compose.bom))
 //    implementation(libs.androidx.ui)
 //    implementation(libs.androidx.ui.graphics)
-//    implementation(libs.androidx.ui.tooling.preview)
 //    implementation(libs.androidx.material3)
 //    implementation(libs.androidx.navigation.runtime.ktx)
 //    implementation(libs.androidx.navigation.compose)
@@ -57,13 +63,11 @@ dependencies {
 //    androidTestImplementation(libs.androidx.espresso.core)
 //    androidTestImplementation(platform(libs.androidx.compose.bom))
 //    androidTestImplementation(libs.androidx.ui.test.junit4)
-//    debugImplementation(libs.androidx.ui.tooling.debug)
 //    debugImplementation(libs.androidx.ui.test.manifest)
 //
 //    implementation(libs.hilt.android)
 //    ksp(libs.hilt.android.compiler)
 //    implementation(libs.androidx.hilt.navigation.compose)
-//
 //    implementation(libs.converter.gson)
 //    implementation(libs.retrofit)
 //    implementation(libs.okhttp.interceptor)
@@ -75,15 +79,6 @@ dependencies {
 //
 //    implementation(libs.coil.compose)
 //    implementation(libs.coil.network)
-//
-//    implementation(platform(libs.firebase.bom))
-//    implementation(libs.firebase.firestore)
-//    implementation(libs.firebase.storage)
-//    implementation(libs.firebase.database)
-//    implementation(libs.firebase.auth)
-//    implementation(libs.play.services.auth)
-//
-//    implementation(libs.core.splashscreen)
 //
 //    implementation(libs.androidx.room.runtime)
 //    ksp(libs.androidx.room.compiler)

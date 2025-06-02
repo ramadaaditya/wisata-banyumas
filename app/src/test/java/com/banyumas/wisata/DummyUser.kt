@@ -30,27 +30,27 @@
 
 package com.banyumas.wisata
 
-import com.banyumas.wisata.model.Role
-import com.banyumas.wisata.model.User
+import com.banyumas.wisata.core.model.Role
+import com.banyumas.wisata.core.model.User
 
 object DummyUser {
-    fun generateUser(): User {
-        return User(
+    fun generateUser(): com.banyumas.wisata.core.model.User {
+        return com.banyumas.wisata.core.model.User(
             id = "user",
             name = "Wisatawan Bule",
             favoriteDestinations = listOf("Destinasi1", "Destinasi2"),
-            role = Role.USER,
+            role = com.banyumas.wisata.core.model.Role.USER,
             hashedPassword = "ASodqioqwiu",
             email = "Bule@gmail.com"
         )
     }
 
-    fun generateAdmin(): User {
-        return User(
+    fun generateAdmin(): com.banyumas.wisata.core.model.User {
+        return com.banyumas.wisata.core.model.User(
             id = "iniadmin",
             name = "Admin Lokal",
             favoriteDestinations = emptyList(),
-            role = Role.ADMIN,
+            role = com.banyumas.wisata.core.model.Role.ADMIN,
             hashedPassword = "admin123hashed",
             email = "admin@banyumas.go.id"
         )
