@@ -1,6 +1,5 @@
 package com.banyumas.wisata.feature.admin.update
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,81 +11,69 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.banyumas.wisata.R
-import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.designsystem.components.CustomButton
 import com.banyumas.wisata.core.designsystem.components.CustomTextField
 import com.banyumas.wisata.core.designsystem.components.DropDownMenu
+import com.banyumas.wisata.core.designsystem.components.Search
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.Destination
-import com.banyumas.wisata.viewmodel.DestinationViewModel
-import com.wisata.banyumas.feature.admin.R
+import com.banyumas.wisata.feature.admin.R
 
 @Composable
 fun AddOrUpdateDestinationScreen(
-    initialDestination: com.banyumas.wisata.core.model.Destination? = null,
+    initialDestination: Destination? = null,
     isEditing: Boolean = false,
-    viewModel: DestinationViewModel = hiltViewModel(),
+//    viewModel: DestinationViewModel = hiltViewModel(),
 ) {
-    val context = LocalContext.current
-    var destination by remember { mutableStateOf(initialDestination ?: com.banyumas.wisata.core.model.Destination()) }
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    val searchState by viewModel.uiDestinations.collectAsStateWithLifecycle()
-    val selectedDestinationState by viewModel.selectedDestination.collectAsStateWithLifecycle()
+//    val context = LocalContext.current
+//    var destination by remember { mutableStateOf(initialDestination ?: Destination()) }
+//    var searchQuery by rememberSaveable { mutableStateOf("") }
+//    val searchState by viewModel.uiDestinations.collectAsStateWithLifecycle()
+//    val selectedDestinationState by viewModel.selectedDestination.collectAsStateWithLifecycle()
+//
+//    LaunchedEffect(Unit) {
+//        viewModel.eventFlow.collect { event ->
+//            when (event) {
+//                is DestinationViewModel.DestinationEvent.Success -> {
+//                    destination = Destination()
+//                    searchQuery = ""
+//                }
+//
+//                is DestinationViewModel.DestinationEvent.ShowMessage -> {
+//                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+//                }
+//            }
+//        }
+//    }
 
-    LaunchedEffect(Unit) {
-        viewModel.eventFlow.collect { event ->
-            when (event) {
-                is DestinationViewModel.DestinationEvent.Success -> {
-                    destination = com.banyumas.wisata.core.model.Destination()
-                    searchQuery = ""
-                }
-
-                is DestinationViewModel.DestinationEvent.ShowMessage -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    val isFormValid by remember {
-        derivedStateOf {
-            destination.name.isNotBlank() &&
-                    destination.address.isNotBlank() &&
-                    destination.latitude.toString().isNotBlank() &&
-                    destination.longitude.toString().isNotBlank() &&
-                    destination.category.isNotBlank()
-        }
-    }
-
-    when (searchState) {
-        UiState.Empty -> TODO()
-        is UiState.Error -> TODO()
-        UiState.Loading -> TODO()
-        is UiState.Success<*> -> TODO()
-    }
+//    val isFormValid by remember {
+//        derivedStateOf {
+//            destination.name.isNotBlank() &&
+//                    destination.address.isNotBlank() &&
+//                    destination.latitude.toString().isNotBlank() &&
+//                    destination.longitude.toString().isNotBlank() &&
+//                    destination.category.isNotBlank()
+//        }
+//    }
+//
+//    when (searchState) {
+//        UiState.Empty -> TODO()
+//        is UiState.Error -> TODO()
+//        UiState.Loading -> TODO()
+//        is UiState.Success<*> -> TODO()
+//    }
 }
 
 
 @Composable
 fun AddOrUpdateDestinationContent(
     searchQuery: String,
-    destination: com.banyumas.wisata.core.model.Destination,
+    destination: Destination,
     isEditing: Boolean = false,
     photoUrl: String,
 ) {
@@ -97,10 +84,10 @@ fun AddOrUpdateDestinationContent(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (!isEditing) {
-            com.banyumas.wisata.core.designsystem.components.Search(
+            Search(
                 query = searchQuery,
                 onQueryChange = {},
-                placeholder = stringResource(R.string.placeholder_search),
+                placeholder = "",
                 onSearch = {}
             )
         }

@@ -5,7 +5,7 @@ object ConstantLibs {
         ":core:data",
         ":core:common",
         ":core:model",
-        ":core:designsystem"
+        ":core:designsystem",
     )
 
     val resourceExcludes = listOf(
@@ -13,8 +13,7 @@ object ConstantLibs {
         "/META-INF/gradle/incremental.annotation.processors"
     )
 
-    const val BASE_NAME = "com.wisata.banyumas"
-    const val COMPILER_VERSION = ""
+    const val BASE_NAME = "com.banyumas.wisata"
     const val MIN_SDK_VERSION = 26
     const val MAX_SDK_VERSION = 35
     const val KSP = "ksp"

@@ -2,10 +2,10 @@ package com.banyumas.wisata.core.data.repository
 
 import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.common.UiText
+import com.banyumas.wisata.core.data.R
 import com.banyumas.wisata.core.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.wisata.banyumas.core.data.R
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 

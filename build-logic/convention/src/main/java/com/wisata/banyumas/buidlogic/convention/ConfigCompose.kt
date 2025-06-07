@@ -20,6 +20,13 @@ internal fun Project.configCompose(
             implementation(libs.timber.get())
             implementation(libs.androidx.ui.tooling.preview.get())
             debugImplementation(libs.androidx.ui.tooling.debug.get())
+            implementation(libs.androidx.ui)
+            implementation(libs.androidx.ui.graphics)
+            implementation(libs.androidx.material3)
+            implementation(libs.androidx.navigation.runtime.ktx)
+            implementation(libs.androidx.navigation.compose)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network)
         }
     }
 }

@@ -55,13 +55,9 @@ class WBNavController(
         }
     }
 
-    fun navigateToHome(user: User, popUpToRoute: String? = null) {
-        val targetRoute = when (user.role) {
-            Role.USER -> Screen.HomeScreen.createRoute(user.id)
-            Role.ADMIN -> Screen.DashboardScreen.createRoute(user.id)
-        }
-        navController.navigate(targetRoute) {
-            popUpTo(Screen.SplashScreen.route) { inclusive = true }
+    fun navigateToHome(user: User, popUpToGraphRoute: String) {
+        navController.navigate(MAIN_GRAPH_ROUTE) {
+            popUpTo(popUpToGraphRoute) { inclusive = true }
             launchSingleTop = true
         }
     }

@@ -23,8 +23,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import com.banyumas.wisata.view.theme.BanyumasTheme
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.designsystem.theme.BanyumasTheme
+import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 
 @Composable
 fun CustomTextField(

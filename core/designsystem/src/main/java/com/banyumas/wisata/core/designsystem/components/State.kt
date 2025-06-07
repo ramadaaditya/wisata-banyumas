@@ -18,8 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.UiText
-import com.banyumas.wisata.view.theme.BanyumasTheme
+import com.banyumas.wisata.core.designsystem.theme.BanyumasTheme
+import com.banyumas.wisata.core.common.UiText
+
 
 @Composable
 fun LoadingState(

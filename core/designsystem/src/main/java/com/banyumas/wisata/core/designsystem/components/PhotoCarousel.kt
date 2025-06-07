@@ -31,9 +31,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.rememberAsyncImagePainter
-import com.banyumas.wisata.R
-import com.banyumas.wisata.model.Photo
-import com.banyumas.wisata.view.theme.BanyumasTheme
+import com.banyumas.wisata.core.designsystem.R
+import com.banyumas.wisata.core.designsystem.theme.BanyumasTheme
+import com.banyumas.wisata.core.model.Photo
 
 @Composable
 fun PhotoCarouselViewer(

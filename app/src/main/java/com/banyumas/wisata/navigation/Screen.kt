@@ -18,13 +18,9 @@ sealed class Screen(val route: String) {
         }
     }
 
-    data class DetailScreen(val destinationId: String) :
-        Screen(DETAIL_ROUTE) {
-        companion object {
-            const val DETAIL_ROUTE = "detail/{destinationId}"
-            fun createRoute(destinationId: String) =
-                "detail/$destinationId"
-        }
+    data object DetailScreen : Screen("detail/{destinationId}") {
+        fun createRoute(destinationId: String) =
+            "detail/$destinationId"
     }
 
     data class UpdateScreen(val destinationId: String) : Screen(UPDATE_ROUTE) {
@@ -34,17 +30,10 @@ sealed class Screen(val route: String) {
         }
     }
 
-    data class HomeScreen(val userId: String) : Screen(HOME_ROUTE) {
-        companion object {
-            const val HOME_ROUTE = "home/{userId}"
-            fun createRoute(userId: String) = "home/$userId"
-        }
+    data object DashboardScreen : Screen("dashboard/{userId}/{role}") {
+        fun createRoute(userId: String, role: String) = "dashboard/$userId/$role"
     }
 
-    data class DashboardScreen(val userId: String) : Screen(DASHBOARD_ROUTE) {
-        companion object {
-            const val DASHBOARD_ROUTE = "dashboard/{userId}"
-            fun createRoute(userId: String) = "dashboard/$userId"
-        }
-    }
+    data object Main : Screen("main_screen")
 }
+

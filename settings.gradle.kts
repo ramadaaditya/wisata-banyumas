@@ -1,15 +1,9 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":feature:auth")
+
+
 include(":feature:profile")
-
-
-include(":feature:resetpassword")
-
-
-include(":feature:register")
-
-
-include(":feature:login")
 
 
 include(":feature:admin")

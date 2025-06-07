@@ -1,99 +1,100 @@
 package com.banyumas.wisata.feature.dashboard
 
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.banyumas.wisata.viewmodel.DestinationViewModel
-import com.banyumas.wisata.viewmodel.UserViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.designsystem.components.AddIcon
+import com.banyumas.wisata.core.designsystem.components.CategoryRow
+import com.banyumas.wisata.core.designsystem.components.ConfirmationDialog
+import com.banyumas.wisata.core.designsystem.components.DestinationCard
+import com.banyumas.wisata.core.designsystem.components.EmptyState
+import com.banyumas.wisata.core.designsystem.components.ErrorState
+import com.banyumas.wisata.core.designsystem.components.LoadingState
+import com.banyumas.wisata.core.designsystem.components.LogoutIcon
+import com.banyumas.wisata.core.designsystem.components.Search
+import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.model.Category
+import com.banyumas.wisata.core.model.Destination
+import com.banyumas.wisata.core.model.Role
+import com.banyumas.wisata.core.model.UiDestination
+import com.banyumas.wisata.feature.auth.UserViewModel
 
 @Composable
 fun DashboardScreen(
     userId: String,
-    onLogout: () -> Unit,
-    onAddClick: () -> Unit,
+    userRole: Role,
+    navigateToAddDestination: () -> Unit,
     navigateToDetail: (String) -> Unit,
-    viewModel: DestinationViewModel = hiltViewModel(),
-    userViewModel: UserViewModel = hiltViewModel(),
+    userViewModel: UserViewModel,
+    dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiDestinations.collectAsState()
-    val authState by userViewModel.authState.collectAsState()
-    var selectedDestination by remember { mutableStateOf<String?>(null) }
-    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    val uiState by dashboardViewModel.uiDestinations.collectAsStateWithLifecycle()
+
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var selectedCategory by rememberSaveable { mutableStateOf("All") }
+    var destinationToDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) {
-        viewModel.getAllDestinations(userId)
-    }
+    val focusManager = LocalFocusManager.current
 
-    when (val state = uiState) {
-        is com.banyumas.wisata.core.common.UiState.Loading -> com.banyumas.wisata.core.designsystem.components.LoadingState()
-        is com.banyumas.wisata.core.common.UiState.Success -> {
-            val destinations = state.data
-            if (destinations.isNotEmpty()) {
-                DashboardContent(
-                    destinations = destinations,
-                    navigateToDetail = navigateToDetail,
-                    onLongPress = {
-                        selectedDestination = it
-                        showDeleteDialog = true
-                    },
-                    onLogoutClick = { showLogoutDialog = true },
-                    onSearchQueryChange = { query ->
-                        viewModel.searchDestinations(
-                            query,
-                            null
-                        )
-                    },
-                    onCategorySelected = { category -> viewModel.filterDestinations(category) },
-                    onAddClick = onAddClick
-                )
-            } else {
-                com.banyumas.wisata.core.designsystem.components.EmptyState(message = "Tidak Ada Destinasi yang cocok dengan pencarian")
+    DashboardContent(
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = { focusManager.clearFocus() })
+        },
+        uiState = uiState,
+        userRole = userRole,
+        query = query,
+        navigateToDetail = navigateToDetail,
+        onLongPress = { destinationId ->
+            if (userRole == Role.ADMIN) {
+                destinationToDeleteId = destinationId
             }
-        }
-
-        is com.banyumas.wisata.core.common.UiState.Error -> com.banyumas.wisata.core.designsystem.components.ErrorState(message = state.message)
-        is com.banyumas.wisata.core.common.UiState.Empty -> {
-            DashboardContent(
-                destinations = emptyList(),
-                navigateToDetail = navigateToDetail,
-                onLongPress = {
-                    selectedDestination = it
-                    showDeleteDialog = true
-                },
-                onLogoutClick = { showLogoutDialog = true },
-                onSearchQueryChange = { query ->
-                    viewModel.searchDestinations(
-                        query,
-                        null
-                    )
-                },
-                onCategorySelected = { category -> viewModel.filterDestinations(category) },
-                onAddClick = onAddClick
+        },
+        onLogoutClick = { showLogoutDialog = true },
+        onSearchQueryChange = {
+            query = it
+            dashboardViewModel.searchDestinations(it, selectedCategory)
+        },
+        onCategorySelected = { category ->
+            selectedCategory = category
+            dashboardViewModel.searchDestinations(query, category)
+        },
+        onFavoriteClick = { destination ->
+            dashboardViewModel.toggleFavorite(
+                userId,
+                destination.destination.id,
+                destination.isFavorite
             )
-        }
-    }
+        },
+        onAddClick = navigateToAddDestination,
+        selectedCategory = selectedCategory,
+        categories = Category.list
+    )
 
 
     if (showLogoutDialog) {
-        com.banyumas.wisata.core.designsystem.components.ConfirmationDialog(
+        ConfirmationDialog(
             title = "Konfirmasi Logout",
             message = "Apakah Anda yakin ingin keluar ?",
             onConfirm = {
@@ -104,15 +105,15 @@ fun DashboardScreen(
         )
     }
 
-    if (showDeleteDialog && selectedDestination != null) {
-        com.banyumas.wisata.core.designsystem.components.ConfirmationDialog(
+    if (destinationToDeleteId != null) {
+        ConfirmationDialog(
             title = "Konfirmasi Hapus",
             message = "Apakah Anda yakin ingin menghapus destinasi ini ?",
             onConfirm = {
-                selectedDestination?.let { viewModel.deleteDestinationById(it) }
-                showDeleteDialog = false
+                destinationToDeleteId?.let { dashboardViewModel.deleteDestinationById(it) }
+                destinationToDeleteId = null
             },
-            onDismiss = { showDeleteDialog = false }
+            onDismiss = { destinationToDeleteId = null }
         )
     }
 }
@@ -120,91 +121,172 @@ fun DashboardScreen(
 
 @Composable
 fun DashboardContent(
-    destinations: List<com.banyumas.wisata.core.model.UiDestination>,
+    modifier: Modifier = Modifier,
+    uiState: UiState<List<UiDestination>>,
+    userRole: Role,
+    onFavoriteClick: (UiDestination) -> Unit,
     navigateToDetail: (String) -> Unit,
     onLongPress: (String) -> Unit,
     onLogoutClick: () -> Unit,
     onAddClick: () -> Unit,
     onCategorySelected: (String) -> Unit,
-    onSearchQueryChange: (String) -> Unit
+    onSearchQueryChange: (String) -> Unit,
+    query: String,
+    selectedCategory: String,
+    categories: List<String>,
 ) {
-    var query by rememberSaveable { mutableStateOf("") }
-    var selectedCategory by rememberSaveable { mutableStateOf<String?>(null) }
-    val categories = remember { com.banyumas.wisata.core.model.Category.list }
-
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            com.banyumas.wisata.core.designsystem.components.Search(
+            Search(
                 query = query,
-                onQueryChange = {
-                    query = it
-                    onSearchQueryChange(it)
-                },
+                onQueryChange = onSearchQueryChange,
                 onSearch = {},
                 modifier = Modifier.weight(1f)
             )
-            com.banyumas.wisata.core.designsystem.components.AddIcon(onClick = onAddClick)
-            com.banyumas.wisata.core.designsystem.components.LogoutIcon(onClick = onLogoutClick)
+            if (userRole == Role.ADMIN) {
+                AddIcon(onClick = onAddClick)
+            }
+            LogoutIcon(onClick = onLogoutClick)
         }
 
-        com.banyumas.wisata.core.designsystem.components.CategoryRow(
+        CategoryRow(
             categories = categories,
-            selectedCategory = selectedCategory ?: "All",
-            onCategorySelected = {
-                selectedCategory = it
-                onCategorySelected(it)
-            }
+            selectedCategory = selectedCategory,
+            onCategorySelected = onCategorySelected,
         )
 
-        if (destinations.isEmpty()) {
-            com.banyumas.wisata.core.designsystem.components.EmptyState()
-        } else {
-            LazyColumn {
-                items(destinations) { destination ->
-                    com.banyumas.wisata.core.designsystem.components.DestinationCard(
-                        destination = destination,
-                        onFavoriteClick = {},
-                        onClick = {
-                            navigateToDetail(destination.destination.id)
-                        },
-                        showFavoriteIcon = false,
-                        onLongPress = { onLongPress(destination.destination.id) }
-                    )
+        when (uiState) {
+            is UiState.Loading -> LoadingState()
+            is UiState.Success -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    items(uiState.data, key = { it.destination.id }) { destination ->
+                        DestinationCard(
+                            destination = destination,
+                            onFavoriteClick = { onFavoriteClick(destination) },
+                            onClick = { navigateToDetail(destination.destination.id) },
+                            showFavoriteIcon = userRole == Role.USER,
+                            onLongPress = { onLongPress(destination.destination.id) }
+                        )
+                    }
                 }
             }
+
+            is UiState.Error -> ErrorState(message = uiState.message)
+            is UiState.Empty -> EmptyState(message = "Tidak ada destinasi yang ditemukan")
         }
     }
 }
 
-@Preview(showBackground = true, device = Devices.PIXEL)
+@Preview(showBackground = true, device = Devices.PIXEL, name = "Admin Role")
 @Composable
 fun DashboardContentPreview() {
-    com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme(dynamicColor = false) {
-        val sampleDestination = List(5) { index ->
-            com.banyumas.wisata.core.model.UiDestination(
-                destination = com.banyumas.wisata.core.model.Destination(
-                    id = "id_$index",
-                    name = "Curug Baturraden $index",
-                    address = "Jl. Baturraden, Purwokerto Utara"
-                )
-            )
-        }
+    WisataBanyumasTheme(dynamicColor = false) {
         DashboardContent(
-            destinations = sampleDestination,
-            navigateToDetail = {},
-            onLongPress = {},
+            uiState = UiState.Success(generateDummyDestinations()),
+            userRole = Role.ADMIN, // <-- Lihat sebagai Admin
+            query = "",
+            selectedCategory = "Semua",
+            categories = Category.list,
             onSearchQueryChange = {},
             onCategorySelected = {},
+            onFavoriteClick = {},
+            onAddClick = {},
             onLogoutClick = {},
-            onAddClick = {}
+            onLongPress = {},
+            navigateToDetail = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, device = Devices.PIXEL_4, name = "User Role")
+@Composable
+private fun DashboardContentUserPreview() {
+    WisataBanyumasTheme (dynamicColor = false){
+        DashboardContent(
+            uiState = UiState.Success(generateDummyDestinations(true)), // <-- User punya favorit
+            userRole = Role.USER, // <-- Lihat sebagai User
+            query = "Baturraden",
+            selectedCategory = "Alam",
+            categories = Category.list,
+            onSearchQueryChange = {},
+            onCategorySelected = {},
+            onFavoriteClick = {},
+            onAddClick = {},
+            onLogoutClick = {},
+            onLongPress = {},
+            navigateToDetail = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Empty State")
+@Composable
+private fun DashboardContentEmptyPreview() {
+    WisataBanyumasTheme (dynamicColor = false){
+        DashboardContent(
+            uiState = UiState.Empty, // <-- Kondisi kosong
+            userRole = Role.USER,
+            query = "",
+            selectedCategory = "Semua",
+            categories = Category.list,
+            onSearchQueryChange = {},
+            onCategorySelected = {},
+            onFavoriteClick = {},
+            onAddClick = {},
+            onLogoutClick = {},
+            onLongPress = {},
+            navigateToDetail = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Loading State")
+@Composable
+private fun DashboardContentLoadingPreview() {
+    WisataBanyumasTheme (dynamicColor = false){
+        DashboardContent(
+            uiState = UiState.Loading, // <-- Kondisi loading
+            userRole = Role.USER,
+            query = "",
+            selectedCategory = "Semua",
+            categories = Category.list,
+            onSearchQueryChange = {},
+            onCategorySelected = {},
+            onFavoriteClick = {},
+            onAddClick = {},
+            onLogoutClick = {},
+            onLongPress = {},
+            navigateToDetail = {}
+        )
+    }
+}
+
+// Helper function untuk membuat data dummy untuk preview
+private fun generateDummyDestinations(isUser: Boolean = false): List<UiDestination> {
+    return List(5) { index ->
+        UiDestination(
+            destination = Destination(
+                id = "id_$index",
+                name = "Curug Baturraden $index",
+                address = "Jl. Baturraden, Purwokerto Utara",
+                category = if (index % 2 == 0) "Alam" else "Kuliner"
+            ),
+            // User bisa memiliki item yang sudah di-favoritkan
+            isFavorite = isUser && (index % 2 == 0)
         )
     }
 }

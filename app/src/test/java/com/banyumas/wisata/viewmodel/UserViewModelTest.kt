@@ -21,13 +21,13 @@ class UserViewModelTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private lateinit var userViewModel: UserViewModel
+    private lateinit var userViewModel: com.banyumas.wisata.feature.auth.UserViewModel
     private lateinit var userRepository: UserDataRepository
 
     @Before
     fun setUp() {
         userRepository = Mockito.mock(UserDataRepository::class.java)
-        userViewModel = UserViewModel(userRepository)
+        userViewModel = com.banyumas.wisata.feature.auth.UserViewModel(userRepository)
     }
 
     @get:Rule

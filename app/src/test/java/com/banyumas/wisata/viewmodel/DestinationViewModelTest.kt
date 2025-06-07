@@ -3,10 +3,8 @@ package com.banyumas.wisata.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.banyumas.wisata.DummyDestination
 import com.banyumas.wisata.R
-import com.banyumas.wisata.core.data.repository.DestinationRepository
+import com.banyumas.wisata.core.data.repository.DestinationDataRepository
 import com.banyumas.wisata.utils.MainDispatcherRule
-import com.banyumas.wisata.core.common.UiState
-import com.banyumas.wisata.core.common.UiText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -30,7 +28,7 @@ class DestinationViewModelTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Mock
-    private lateinit var repository: DestinationRepository
+    private lateinit var repository: DestinationDataRepository
     private lateinit var destinationViewModel: DestinationViewModel
     private val dummyDestination = DummyDestination.generateDummyDestination()
     private val dummyUiDestination = DummyDestination.generateDummyUiDestination()

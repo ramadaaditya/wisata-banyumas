@@ -42,13 +42,13 @@ import com.banyumas.wisata.core.model.Photo
 import com.banyumas.wisata.core.model.Review
 import com.banyumas.wisata.core.model.UiDestination
 import com.banyumas.wisata.viewmodel.DestinationViewModel
-import com.banyumas.wisata.viewmodel.UserViewModel
+import com.banyumas.wisata.feature.auth.UserViewModel
 
 @Composable
 fun DetailScreen(
     destinationId: String,
     viewModel: DestinationViewModel = hiltViewModel(),
-    userViewModel: UserViewModel = hiltViewModel(),
+    userViewModel: com.banyumas.wisata.feature.auth.UserViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onEditClick: (com.banyumas.wisata.core.model.Destination) -> Unit,
 ) {

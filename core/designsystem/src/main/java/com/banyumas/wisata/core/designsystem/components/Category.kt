@@ -14,12 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.model.Category
-import com.banyumas.wisata.view.theme.BanyumasTheme
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.designsystem.theme.BanyumasTheme
 
 @Composable
 fun CategoryRow(
@@ -68,20 +64,6 @@ fun CategoryChip(
             text = label,
             color = textColor,
             style = BanyumasTheme.typography.bodySmall
-        )
-    }
-}
-
-
-@Preview(showBackground = true, device = Devices.PIXEL)
-@Composable
-fun CategoryPreview() {
-    WisataBanyumasTheme(dynamicColor = false) {
-        val categories = Category.list
-        CategoryRow(
-            categories = categories,
-            selectedCategory = "All",
-            onCategorySelected = {}
         )
     }
 }

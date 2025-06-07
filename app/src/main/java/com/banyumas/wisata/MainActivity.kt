@@ -8,13 +8,13 @@ import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.navigation.AppNavigation
-import com.banyumas.wisata.viewmodel.UserViewModel
+import com.banyumas.wisata.feature.auth.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    val viewModel: UserViewModel by viewModels()
+    private val viewModel: UserViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)

@@ -20,8 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.model.Review
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.model.Review
 
 @Composable
 fun ReviewCard(review: Review) {

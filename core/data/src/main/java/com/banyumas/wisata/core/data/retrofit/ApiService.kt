@@ -1,6 +1,6 @@
 package com.banyumas.wisata.core.data.retrofit
 
-import com.wisata.banyumas.core.data.BuildConfig
+import com.banyumas.wisata.core.data.BuildConfig
 import retrofit2.http.GET
 import retrofit2.http.Query
 

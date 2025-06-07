@@ -12,10 +12,14 @@ class FeaturePlugin : Plugin<Project> {
             with(pluginManager) {
                 alias(libs.plugins.base.library)
                 alias(libs.plugins.base.library.compose)
+                alias(libs.plugins.base.hilt)
             }
 
             dependencies {
                 coreModules.forEach { module -> implementation(project(module)) }
+                implementation(libs.androidx.lifecycle.runtime.ktx)
+                implementation(libs.androidx.hilt.navigation.compose.get())
+
             }
         }
     }

@@ -15,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.banyumas.wisata.R
-import com.banyumas.wisata.model.Facility
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.designsystem.R
+import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.model.Facility
 
 @Composable
 fun FacilityItem(drawableRes: Int, label: String) {

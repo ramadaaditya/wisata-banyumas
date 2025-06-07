@@ -1,8 +1,8 @@
 package com.banyumas.wisata.core.data.di
 
-import com.banyumas.wisata.BuildConfig
+import com.banyumas.wisata.core.data.BuildConfig
 import com.banyumas.wisata.core.data.retrofit.ApiService
-import com.banyumas.wisata.core.data.repository.DestinationRepository
+import com.banyumas.wisata.core.data.repository.DestinationDataRepository
 import com.banyumas.wisata.core.data.repository.UserDataRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -24,8 +24,8 @@ object AppModule {
     fun provideDestinationRepository(
         apiService: ApiService,
         firestore: FirebaseFirestore
-    ): DestinationRepository {
-        return DestinationRepository(apiService, firestore)
+    ): DestinationDataRepository {
+        return DestinationDataRepository(apiService, firestore)
     }
 
     @Singleton

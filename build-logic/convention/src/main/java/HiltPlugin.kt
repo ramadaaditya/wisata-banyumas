@@ -16,7 +16,6 @@ class HiltPlugin : Plugin<Project> {
 
             dependencies {
                 implementation(libs.hilt.android)
-                implementation(libs.androidx.hilt.navigation.compose.get())
                 add(KSP, libs.hilt.android.compiler.get())
             }
         }

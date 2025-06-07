@@ -17,8 +17,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.banyumas.wisata.R
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.designsystem.R
+import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,11 +37,11 @@ fun DropDownMenu(
         OutlinedTextField(
             value = selectedCategory.ifBlank { "Pilih Kategori" },
             onValueChange = {},
-            readOnly = true, // ✅ Agar tidak bisa diketik langsung
+            readOnly = true,
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()
-                .clickable { isDropDownExpanded = true }, // ✅ Klik untuk membuka dropdown
+                .clickable { isDropDownExpanded = true },
             trailingIcon = {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_dropdown),

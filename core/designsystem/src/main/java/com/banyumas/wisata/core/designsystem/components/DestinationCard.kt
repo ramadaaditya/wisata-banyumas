@@ -31,11 +31,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
-import com.banyumas.wisata.R
-import com.banyumas.wisata.model.Destination
-import com.banyumas.wisata.model.UiDestination
-import com.banyumas.wisata.view.theme.BanyumasTheme
-import com.banyumas.wisata.view.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.designsystem.R
+import com.banyumas.wisata.core.designsystem.theme.BanyumasTheme
+import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.model.Destination
+import com.banyumas.wisata.core.model.UiDestination
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
