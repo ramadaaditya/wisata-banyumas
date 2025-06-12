@@ -34,8 +34,10 @@ fun CustomTextField(
     label: String,
     leadingIcon: @Composable (() -> Unit)? = null,
     isPassword: Boolean = false,
+    enabled: Boolean
 ) {
     OutlinedTextField(
+        enabled = enabled,
         singleLine = true,
         value = value,
         onValueChange = onValueChange,
@@ -59,17 +61,23 @@ fun CustomTextField(
 }
 
 @Composable
-fun EmailInputField(value: String, onValueChange: (String) -> Unit) {
+fun EmailInputField(value: String, onValueChange: (String) -> Unit, enabled: Boolean = true) {
     CustomTextField(
         value = value,
         onValueChange = onValueChange,
         label = "Email",
-        leadingIcon = { Icon(imageVector = Icons.Default.Email, contentDescription = "Email Icon") }
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Email,
+                contentDescription = "Email Icon"
+            )
+        },
+        enabled = enabled
     )
 }
 
 @Composable
-fun PasswordInputField(value: String, onValueChange: (String) -> Unit) {
+fun PasswordInputField(value: String, onValueChange: (String) -> Unit, enabled: Boolean = true) {
     var isPasswordVisible by remember { mutableStateOf(false) }
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
@@ -100,12 +108,13 @@ fun PasswordInputField(value: String, onValueChange: (String) -> Unit) {
             focusedTrailingIconColor = BanyumasTheme.colors.primary,
             unfocusedTrailingIconColor = BanyumasTheme.colors.onSurface.copy(alpha = 0.6f)
         ),
+        enabled = enabled
     )
 }
 
 
 @Composable
-fun UsernameInputField(value: String, onValueChange: (String) -> Unit) {
+fun UsernameInputField(value: String, onValueChange: (String) -> Unit, enabled: Boolean = true) {
     CustomTextField(
         value = value,
         onValueChange = onValueChange,
@@ -116,6 +125,7 @@ fun UsernameInputField(value: String, onValueChange: (String) -> Unit) {
                 contentDescription = "Person icon"
             )
         },
+        enabled = enabled
     )
 }
 
@@ -125,7 +135,8 @@ fun EmailPreview() {
     WisataBanyumasTheme {
         EmailInputField(
             onValueChange = {},
-            value = "Ramada@gmail.com"
+            value = "Ramada@gmail.com",
+            enabled = true
         )
     }
 }
@@ -137,6 +148,7 @@ fun PasswordPreview() {
         PasswordInputField(
             onValueChange = {},
             value = "Ramada@gmail.com",
+            enabled = true
         )
     }
 }
@@ -147,7 +159,8 @@ fun UsernamePreview() {
     WisataBanyumasTheme {
         UsernameInputField(
             onValueChange = {},
-            value = "Ramada@gmail.com"
+            value = "Ramada@gmail.com",
+            enabled = true
         )
     }
 }

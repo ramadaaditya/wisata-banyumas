@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.common.UiText
-import com.banyumas.wisata.core.data.repository.DestinationDataRepository
+import com.banyumas.wisata.core.data.repository.DestinationRepository
 import com.banyumas.wisata.core.model.UiDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -13,12 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val repository: DestinationDataRepository,
+    private val repository: DestinationRepository,
 ) : ViewModel() {
 
     private val _uiDestinations = MutableStateFlow<UiState<List<UiDestination>>>(UiState.Empty)
@@ -44,22 +43,11 @@ class DashboardViewModel @Inject constructor(
 
         _uiDestinations.value = UiState.Loading
         viewModelScope.launch {
-            when (val result = repository.getAllDestinations(userId)) {
-                is UiState.Success -> {
-                    allDestinations = result.data
-                    _uiDestinations.value = UiState.Success(allDestinations)
-                    Timber.tag("VIEWMODEL")
-                        .d("getAllDestinations: berhasil mengambil data wisata $result")
-                }
-
-                is UiState.Error -> _uiDestinations.value = result
-                is UiState.Empty -> _uiDestinations.value = UiState.Empty
-                else -> {
-                    Timber.tag("VIEWMODEL").e("getAllDestinations: $result")
-                    _uiDestinations.value =
-                        UiState.Error(UiText.StringResource(R.string.error_else))
-                }
+            val result = repository.getAllDestinations(userId)
+            if (result is UiState.Success) {
+                allDestinations = result.data
             }
+            _uiDestinations.value = result
         }
     }
 
@@ -74,15 +62,11 @@ class DashboardViewModel @Inject constructor(
                     _eventFlow.emit(DestinationEvent.Success)
                 }
 
-                is UiState.Error -> _uiDestinations.value = result
-                else -> {
-                    _eventFlow.emit(
-                        DestinationEvent.ShowMessage(
-                            UiText.StringResource(R.string.error_else)
-                                .toString()
-                        )
-                    )
+                is UiState.Error -> {
+                    _eventFlow.emit(DestinationEvent.ShowMessage(result.message.toString()))
                 }
+
+                else -> {}
             }
         }
     }
@@ -91,59 +75,37 @@ class DashboardViewModel @Inject constructor(
         val filtered = allDestinations.filter { destination ->
             val matchesQuery =
                 query.isBlank() || destination.destination.name.contains(query, ignoreCase = true)
-            val matchesCategory = category == null || category.equals(
-                "Semua",
-                ignoreCase = true
-            ) || destination.destination.category.equals(category, ignoreCase = true)
+            val matchesCategory =
+                category == null || category == "All" || destination.destination.category.equals(
+                    category,
+                    ignoreCase = true
+                )
             matchesQuery && matchesCategory
         }
-        _uiDestinations.value = UiState.Success(filtered)
+        _uiDestinations.value = if (filtered.isEmpty()) UiState.Empty else UiState.Success(filtered)
     }
 
     fun toggleFavorite(userId: String, destinationId: String, isCurrentlyFavorite: Boolean) {
-        // 1. Lakukan update pada UI secara langsung (Optimistic Update)
         val currentList = (uiDestinations.value as? UiState.Success)?.data ?: return
 
-        val newList = currentList.map {
-            if (it.destination.id == destinationId) {
-                it.copy(isFavorite = !isCurrentlyFavorite)
-            } else {
-                it
-            }
+        val optimisticList = currentList.map {
+            if (it.destination.id == destinationId) it.copy(isFavorite = !isCurrentlyFavorite) else it
         }
-        _uiDestinations.value = UiState.Success(newList)
-        // Juga update cache utama
+        _uiDestinations.value = UiState.Success(optimisticList)
         allDestinations = allDestinations.map {
-            if (it.destination.id == destinationId) {
-                it.copy(isFavorite = !isCurrentlyFavorite)
-            } else {
-                it
-            }
+            if (it.destination.id == destinationId) it.copy(isFavorite = !isCurrentlyFavorite) else it
         }
 
-        // 2. Lakukan proses update ke repository di background
         viewModelScope.launch {
             val result =
-                repository.updateFavoriteDestination(userId, destinationId, !isCurrentlyFavorite)
+                repository.updateFavoriteStatus(userId, destinationId, !isCurrentlyFavorite)
 
-            // 3. Jika gagal, kembalikan state ke semula dan beri tahu user
             if (result is UiState.Error) {
-                // Kembalikan state UI ke sebelum di-toggle
                 _uiDestinations.value = UiState.Success(currentList)
-                // Kembalikan cache utama juga
                 allDestinations = allDestinations.map {
-                    if (it.destination.id == destinationId) {
-                        it.copy(isFavorite = isCurrentlyFavorite) // kembalikan ke nilai awal
-                    } else {
-                        it
-                    }
+                    if (it.destination.id == destinationId) it.copy(isFavorite = isCurrentlyFavorite) else it
                 }
-                _eventFlow.emit(
-                    DestinationEvent.ShowMessage(
-                        UiText.StringResource(R.string.error_update_favorite)
-                            .toString()
-                    )
-                )
+                _eventFlow.emit(DestinationEvent.ShowMessage(result.message.toString()))
             }
         }
     }

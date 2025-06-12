@@ -3,7 +3,7 @@ package com.banyumas.wisata.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.banyumas.wisata.DummyUser
 import com.banyumas.wisata.R
-import com.banyumas.wisata.core.data.repository.UserDataRepository
+import com.banyumas.wisata.core.data.repository.AuthDataRepositoryImpl
 import com.banyumas.wisata.utils.MainDispatcherRule
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
@@ -22,11 +22,11 @@ class UserViewModelTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private lateinit var userViewModel: com.banyumas.wisata.feature.auth.UserViewModel
-    private lateinit var userRepository: UserDataRepository
+    private lateinit var userRepository: AuthDataRepositoryImpl
 
     @Before
     fun setUp() {
-        userRepository = Mockito.mock(UserDataRepository::class.java)
+        userRepository = Mockito.mock(AuthDataRepositoryImpl::class.java)
         userViewModel = com.banyumas.wisata.feature.auth.UserViewModel(userRepository)
     }
 

@@ -24,8 +24,9 @@ import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.Review
 
 @Composable
-fun ReviewCard(review: Review) {
+fun ReviewCard(review: Review, modifier: Modifier) {
     Card(
+        modifier = modifier,
         border = BorderStroke(
             1.dp, MaterialTheme.colorScheme.primary
         ),
@@ -85,7 +86,8 @@ private fun ReviewCardPreview() {
                 rating = 5,
                 timestamp = 123123,
                 authorName = "Bagas"
-            )
+            ),
+            modifier = Modifier.padding(16.dp)
         )
     }
 }

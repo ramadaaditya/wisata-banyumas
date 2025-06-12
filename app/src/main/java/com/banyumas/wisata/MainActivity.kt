@@ -5,32 +5,40 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.banyumas.wisata.core.common.UiState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.navigation.AppNavigation
-import com.banyumas.wisata.feature.auth.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import com.banyumas.wisata.core.model.LocalUser
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val viewModel: UserViewModel by viewModels()
+    private val viewModel: MainActivityViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         Timber.d("MainActivity onCreate : Calling checkLoginStatus")
         splashScreen.setKeepOnScreenCondition {
-            val currentState = viewModel.authState.value
-            Timber.d("setKeepOnScreenCondition: Current authState is $currentState")
-            when (currentState) {
-                is UiState.Empty -> true
-                is UiState.Loading -> true
-                else -> false
-            }
+            viewModel.uiState.value is MainActivityUiState.Loading
         }
         enableEdgeToEdge()
         setContent {
-            AppNavigation(userViewModel = viewModel)
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            WisataBanyumasTheme {
+                when (val state = uiState) {
+                    is MainActivityUiState.Loading -> {}
+                    is MainActivityUiState.Success -> {
+                        CompositionLocalProvider(LocalUser provides state.user) {
+                            AppNavigation()
+                        }
+                    }
+                }
+            }
         }
     }
 }

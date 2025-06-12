@@ -6,7 +6,7 @@ import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.common.UiText
 import com.banyumas.wisata.core.common.isValidEmail
 import com.banyumas.wisata.core.common.isValidPassword
-import com.banyumas.wisata.core.data.repository.UserDataRepository
+import com.banyumas.wisata.core.data.repository.AuthDataRepositoryImpl
 import com.banyumas.wisata.core.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,41 +17,38 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val repository: UserDataRepository,
+    private val repository: AuthDataRepositoryImpl,
 ) : ViewModel() {
 
     private val _authState = MutableStateFlow<UiState<User>>(UiState.Empty)
     val authState: StateFlow<UiState<User>> = _authState
 
-    init {
-        checkLoginStatus()
-    }
-
-    fun checkLoginStatus() {
-        viewModelScope.launch {
-            when (val result = repository.getCurrentUser()) {
-                is UiState.Success -> {
-                    val user = result.data
-                    if (user != null) {
-                        Timber.tag("VIEWMODEL").d("checkLoginStatus: ${user.id}")
-                        _authState.value = UiState.Success(user)
-                    } else {
-                        _authState.value =
-                            UiState.Error(
-                                UiText.StringResource(
-                                    R.string.error_user_not_found
-                                )
-                            )
-                    }
-                }
-
-                is UiState.Error -> _authState.value =
-                    UiState.Error(result.message)
-
-                else -> {}
-            }
-        }
-    }
+//
+//    fun checkLoginStatus() {
+//        viewModelScope.launch {
+//            when (val result = repository.getCurrentUser()) {
+//                is UiState.Success -> {
+//                    val user = result.data
+//                    if (user != null) {
+//                        Timber.tag("VIEWMODEL").d("checkLoginStatus: ${user.id}")
+//                        _authState.value = UiState.Success(user)
+//                    } else {
+//                        _authState.value =
+//                            UiState.Error(
+//                                UiText.StringResource(
+//                                    R.string.error_user_not_found
+//                                )
+//                            )
+//                    }
+//                }
+//
+//                is UiState.Error -> _authState.value =
+//                    UiState.Error(result.message)
+//
+//                else -> {}
+//            }
+//        }
+//    }
 
 
     fun loginUser(email: String, password: String) {

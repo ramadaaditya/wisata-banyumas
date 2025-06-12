@@ -2,5 +2,5 @@ plugins {
     alias(libs.plugins.base.library)
 }
 dependencies {
-    implementation(libs.androidx.annotation.jvm)
+    api(libs.androidx.annotation.jvm)
 }

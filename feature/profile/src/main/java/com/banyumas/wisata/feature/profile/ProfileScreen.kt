@@ -33,24 +33,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.banyumas.wisata.viewmodel.UserViewModel
+import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.designsystem.components.CustomButton
+import com.banyumas.wisata.core.designsystem.components.EmptyState
+import com.banyumas.wisata.core.designsystem.components.ErrorState
+import com.banyumas.wisata.core.designsystem.components.LoadingState
+import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
+import com.banyumas.wisata.core.model.User
+import com.banyumas.wisata.feature.auth.UserViewModel
 
 @Composable
 fun ProfileScreen(
-    viewModel: UserViewModel = hiltViewModel(),
+    viewModel: UserViewModel,
     onLogout: () -> Unit,
     onDelete: () -> Unit
 ) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     LaunchedEffect(authState) {
-        if (authState == com.banyumas.wisata.core.common.UiState.Empty) {
+        if (authState == UiState.Empty) {
             onLogout()
         }
     }
     when (val state = authState) {
-        is com.banyumas.wisata.core.common.UiState.Loading -> com.banyumas.wisata.core.designsystem.components.LoadingState()
-        is com.banyumas.wisata.core.common.UiState.Error -> com.banyumas.wisata.core.designsystem.components.ErrorState(state.message)
-        is com.banyumas.wisata.core.common.UiState.Success -> {
+        is UiState.Loading -> LoadingState()
+        is UiState.Error -> ErrorState(state.message)
+        is UiState.Success -> {
             val user = state.data
             ProfileContent(
                 user = user,
@@ -62,13 +69,13 @@ fun ProfileScreen(
             )
         }
 
-        is com.banyumas.wisata.core.common.UiState.Empty -> com.banyumas.wisata.core.designsystem.components.EmptyState()
+        is UiState.Empty -> EmptyState()
     }
 }
 
 @Composable
 fun ProfileContent(
-    user: com.banyumas.wisata.core.model.User,
+    user: User,
     onLogout: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -85,7 +92,7 @@ fun ProfileContent(
         ProfileItem(icon = Icons.Default.Email, title = user.email)
         Spacer(modifier = Modifier.height(16.dp))
 
-        com.banyumas.wisata.core.designsystem.components.CustomButton(
+        CustomButton(
             text = "Delete Account",
             onClick = { showDeleteDialog = true },
             isCancel = true,
@@ -96,7 +103,7 @@ fun ProfileContent(
         )
         Spacer(modifier = Modifier.weight(1f))
 
-        com.banyumas.wisata.core.designsystem.components.CustomButton(
+        CustomButton(
             text = "Logout",
             onClick = { showLogoutDialog = true },
             isCancel = true,
@@ -178,12 +185,12 @@ fun ProfileItem(icon: ImageVector, title: String) {
 @Preview(showBackground = true)
 @Composable
 fun ProfileContentPreview() {
-    com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme(
+    WisataBanyumasTheme(
         darkTheme = false,
         dynamicColor = false
     ) {
         ProfileContent(
-            user = com.banyumas.wisata.core.model.User(
+            user = User(
                 name = "Ramados",
                 email = "Ramados24@gmail.com"
             ),

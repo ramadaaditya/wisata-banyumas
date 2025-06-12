@@ -3,12 +3,12 @@ package com.banyumas.wisata.feature.bookmarks
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.designsystem.components.DestinationCard
@@ -17,12 +17,13 @@ import com.banyumas.wisata.core.designsystem.components.ErrorState
 import com.banyumas.wisata.core.designsystem.components.LoadingState
 import com.banyumas.wisata.core.model.Destination
 import com.banyumas.wisata.core.model.UiDestination
+import com.banyumas.wisata.feature.auth.UserViewModel
 
 @Composable
 fun BookmarksScreen(
     navigateToDetail: (String) -> Unit,
-    viewmodel: DestinationViewModel = hiltViewModel(),
-    userViewModel: UserViewModel = hiltViewModel(),
+    viewmodel: BookmarksViewModel,
+    userViewModel: UserViewModel,
 ) {
     val favoriteState by viewmodel.favoriteDestination.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
@@ -50,7 +51,7 @@ fun BookmarksScreen(
                             viewmodel.toggleFavorite(
                                 userId = currentUser.id,
                                 destinationId = data.id,
-                                isFavorite = false
+                                isCurrentlyFavorite = false
                             )
                         }
                     },

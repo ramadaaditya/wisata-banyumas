@@ -1,6 +1,5 @@
 package com.banyumas.wisata.feature.dashboard
 
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,12 +15,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.designsystem.components.AddIcon
@@ -32,7 +29,7 @@ import com.banyumas.wisata.core.designsystem.components.EmptyState
 import com.banyumas.wisata.core.designsystem.components.ErrorState
 import com.banyumas.wisata.core.designsystem.components.LoadingState
 import com.banyumas.wisata.core.designsystem.components.LogoutIcon
-import com.banyumas.wisata.core.designsystem.components.Search
+import com.banyumas.wisata.core.designsystem.components.AppSearchBar
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.Category
 import com.banyumas.wisata.core.model.Destination
@@ -42,12 +39,10 @@ import com.banyumas.wisata.feature.auth.UserViewModel
 
 @Composable
 fun DashboardScreen(
-    userId: String,
-    userRole: Role,
     navigateToAddDestination: () -> Unit,
-    navigateToDetail: (String) -> Unit,
+    onDestinationClick: (String) -> Unit,
     userViewModel: UserViewModel,
-    dashboardViewModel: DashboardViewModel = hiltViewModel()
+    dashboardViewModel: DashboardViewModel
 ) {
     val uiState by dashboardViewModel.uiDestinations.collectAsStateWithLifecycle()
 
@@ -55,21 +50,20 @@ fun DashboardScreen(
     var query by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf("All") }
     var destinationToDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
-
     val focusManager = LocalFocusManager.current
 
     DashboardContent(
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures(onTap = { focusManager.clearFocus() })
-        },
+//        modifier = Modifier.pointerInput(Unit) {
+//            detectTapGestures(onTap = { focusManager.clearFocus() })
+//        },
         uiState = uiState,
-        userRole = userRole,
+        userRole = Role.ADMIN,
         query = query,
-        navigateToDetail = navigateToDetail,
+        navigateToDetail = onDestinationClick,
         onLongPress = { destinationId ->
-            if (userRole == Role.ADMIN) {
-                destinationToDeleteId = destinationId
-            }
+//            if (userRole == Role.ADMIN) {
+//                destinationToDeleteId = destinationId
+//            }
         },
         onLogoutClick = { showLogoutDialog = true },
         onSearchQueryChange = {
@@ -81,11 +75,11 @@ fun DashboardScreen(
             dashboardViewModel.searchDestinations(query, category)
         },
         onFavoriteClick = { destination ->
-            dashboardViewModel.toggleFavorite(
-                userId,
-                destination.destination.id,
-                destination.isFavorite
-            )
+//            dashboardViewModel.toggleFavorite(
+//                userId,
+//                destination.destination.id,
+//                destination.isFavorite
+//            )
         },
         onAddClick = navigateToAddDestination,
         selectedCategory = selectedCategory,
@@ -147,7 +141,7 @@ fun DashboardContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Search(
+            AppSearchBar(
                 query = query,
                 onQueryChange = onSearchQueryChange,
                 onSearch = {},
@@ -215,7 +209,7 @@ fun DashboardContentPreview() {
 @Preview(showBackground = true, device = Devices.PIXEL_4, name = "User Role")
 @Composable
 private fun DashboardContentUserPreview() {
-    WisataBanyumasTheme (dynamicColor = false){
+    WisataBanyumasTheme(dynamicColor = false) {
         DashboardContent(
             uiState = UiState.Success(generateDummyDestinations(true)), // <-- User punya favorit
             userRole = Role.USER, // <-- Lihat sebagai User
@@ -236,7 +230,7 @@ private fun DashboardContentUserPreview() {
 @Preview(showBackground = true, name = "Empty State")
 @Composable
 private fun DashboardContentEmptyPreview() {
-    WisataBanyumasTheme (dynamicColor = false){
+    WisataBanyumasTheme(dynamicColor = false) {
         DashboardContent(
             uiState = UiState.Empty, // <-- Kondisi kosong
             userRole = Role.USER,
@@ -257,7 +251,7 @@ private fun DashboardContentEmptyPreview() {
 @Preview(showBackground = true, name = "Loading State")
 @Composable
 private fun DashboardContentLoadingPreview() {
-    WisataBanyumasTheme (dynamicColor = false){
+    WisataBanyumasTheme(dynamicColor = false) {
         DashboardContent(
             uiState = UiState.Loading, // <-- Kondisi loading
             userRole = Role.USER,

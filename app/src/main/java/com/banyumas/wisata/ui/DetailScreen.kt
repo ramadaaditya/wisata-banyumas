@@ -1,26 +1,41 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.banyumas.wisata.ui
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,281 +46,269 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.rememberAsyncImagePainter
-import coil3.request.ImageRequest
-import coil3.request.crossfade
-import coil3.request.error
-import com.banyumas.wisata.R
-import com.banyumas.wisata.core.common.openGoogleMaps
+import coil3.compose.AsyncImage
+import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.designsystem.components.EditIcon
+import com.banyumas.wisata.core.designsystem.components.EmptyState
+import com.banyumas.wisata.core.designsystem.components.ErrorState
+import com.banyumas.wisata.core.designsystem.components.FavoriteIcon
+import com.banyumas.wisata.core.designsystem.components.LoadingState
+import com.banyumas.wisata.core.designsystem.components.PhotoCarouselViewer
+import com.banyumas.wisata.core.designsystem.components.ReviewCard
+import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.Destination
 import com.banyumas.wisata.core.model.Photo
 import com.banyumas.wisata.core.model.Review
+import com.banyumas.wisata.core.model.Role
 import com.banyumas.wisata.core.model.UiDestination
-import com.banyumas.wisata.viewmodel.DestinationViewModel
 import com.banyumas.wisata.feature.auth.UserViewModel
+import com.banyumas.wisata.utils.openGoogleMaps
+import kotlinx.coroutines.launch
 
 @Composable
 fun DetailScreen(
-    destinationId: String,
-    viewModel: DestinationViewModel = hiltViewModel(),
-    userViewModel: com.banyumas.wisata.feature.auth.UserViewModel = hiltViewModel(),
+    viewModel: DetailViewModel = hiltViewModel(),
+    userViewModel: UserViewModel,
     onBackClick: () -> Unit,
-    onEditClick: (com.banyumas.wisata.core.model.Destination) -> Unit,
+    onEditClick: (Destination) -> Unit,
 ) {
-    val uiState by viewModel.selectedDestination.collectAsStateWithLifecycle()
+    val uiState by viewModel.destinationState.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
-    val currentUser = (authState as? com.banyumas.wisata.core.common.UiState.Success)?.data
-    val context = LocalContext.current
-    val isAdmin = remember(currentUser?.role) { currentUser?.role == com.banyumas.wisata.core.model.Role.ADMIN }
+    val currentUser = (authState as? UiState.Success)?.data
 
-    LaunchedEffect(destinationId) {
-        viewModel.getDetailDestination(destinationId, currentUser?.id.orEmpty())
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        currentUser?.id?.let { viewModel.loadDestinationDetail(it) }
     }
 
-    when (val state = uiState) {
-        is com.banyumas.wisata.core.common.UiState.Loading -> com.banyumas.wisata.core.designsystem.components.LoadingState()
-        is com.banyumas.wisata.core.common.UiState.Success -> {
-            DetailContent(
-                destination = state.data,
-                onMapClick = { lat, long ->
-                    com.banyumas.wisata.core.common.openGoogleMaps(context, lat, long)
-                },
-                onFavoriteClick = { uiDestination ->
-                    currentUser?.id?.let {
-                        viewModel.toggleFavorite(
-                            userId = it,
-                            destinationId = uiDestination.destination.id,
-                            isFavorite = !uiDestination.isFavorite
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is DetailViewModel.DetailScreenEvent.ShowMessage -> {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(event.message.asString(context))
+                    }
+                }
+            }
+        }
+    }
+
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        content = { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                when (val state = uiState) {
+                    is UiState.Loading -> LoadingState()
+                    is UiState.Success -> {
+                        val destination = state.data
+                        DetailContent(
+                            destination = destination,
+                            isAdmin = currentUser?.role == Role.ADMIN,
+                            onMapClick = { lat, long -> openGoogleMaps(context, lat, long) },
+                            onFavoriteClick = { currentUser?.id?.let { viewModel.toggleFavorite(it) } },
+                            onEditClick = { onEditClick(destination.destination) }
                         )
                     }
-                },
-                onBackClick = onBackClick,
-                onEditClick = onEditClick,
-                isAdmin = isAdmin
-            )
+
+                    is UiState.Error -> ErrorState(message = state.message)
+                    is UiState.Empty -> EmptyState(message = "Destinasi tidak ditemukan.")
+                }
+                // Tombol back selalu ada di atas konten
+                IconButton(onClick = onBackClick, modifier = Modifier.padding(8.dp)) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Kembali",
+                        tint = Color.White
+                    )
+                }
+            }
         }
-
-        is com.banyumas.wisata.core.common.UiState.Error -> com.banyumas.wisata.core.designsystem.components.ErrorState(message = state.message)
-        com.banyumas.wisata.core.common.UiState.Empty -> com.banyumas.wisata.core.designsystem.components.EmptyState()
-    }
+    )
 }
-
 
 @Composable
 fun DetailContent(
-    destination: com.banyumas.wisata.core.model.UiDestination,
-    onMapClick: (Double?, Double?) -> Unit,
-    onFavoriteClick: (com.banyumas.wisata.core.model.UiDestination) -> Unit,
-    onBackClick: () -> Unit,
-    onEditClick: (com.banyumas.wisata.core.model.Destination) -> Unit,
-    isAdmin: Boolean
+    destination: UiDestination,
+    isAdmin: Boolean,
+    onMapClick: (Double, Double) -> Unit,
+    onFavoriteClick: () -> Unit,
+    onEditClick: () -> Unit
 ) {
-    Column {
-        DetailTopBar(
-            imageUrl = destination.destination.photos.firstOrNull()?.photoUrl,
-            isAdmin = isAdmin,
-            onBackClick = onBackClick,
-            onEditClick = { onEditClick(destination.destination) },
-            onFavoriteClick = { onFavoriteClick(destination) },
-            isFavorite = destination.isFavorite
-        )
-        DetailSection(
-            name = destination.destination.name,
-            rating = destination.destination.rating,
-            reviewCount = destination.destination.reviews.size,
-            address = destination.destination.address,
-        )
-        com.banyumas.wisata.core.designsystem.components.PhotoCarouselViewer(
-            photos = destination.destination.photos,
-            onRemovePhoto = {},
-            showRemoveIcon = false
-        )
-        Row(
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = "Ulasan",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f)
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+            ) {
+                AsyncImage(
+                    model = destination.destination.photos.firstOrNull()?.photoUrl,
+                    contentDescription = "Image of ${destination.destination.name}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+                    if (isAdmin) {
+                        EditIcon(onClick = onEditClick)
+                    } else {
+                        FavoriteIcon(onClick = onFavoriteClick, isFavorite = destination.isFavorite)
+                    }
+                }
+            }
+        }
+
+        // --- Bagian 2: Info Utama (Nama, Rating, Alamat) ---
+        item {
+            DetailInfoSection(
+                name = destination.destination.name,
+                rating = destination.destination.rating,
+                reviewCount = destination.destination.reviews.size,
+                address = destination.destination.address,
+                modifier = Modifier.padding(16.dp)
             )
-            if (!isAdmin) {
-                com.banyumas.wisata.core.designsystem.components.CustomButton(
-                    onClick = {},
-                    icon = Icons.Default.Add,
-                    text = "Tambah",
-                    iconSize = Modifier.size(20.dp),
-                    textStyle = MaterialTheme.typography.titleSmall,
+        }
+
+        // --- Bagian 3: Carousel Foto ---
+        if (destination.destination.photos.isNotEmpty()) {
+            item {
+                PhotoCarouselViewer(
+                    photos = destination.destination.photos,
+                    onRemovePhoto = {},
+                    showRemoveIcon = false
                 )
             }
         }
 
-        LazyColumn(
-            modifier = Modifier
-                .weight(2f)
-                .padding(horizontal = 16.dp)
-        ) {
-            items(destination.destination.reviews) { review ->
-                com.banyumas.wisata.core.designsystem.components.ReviewCard(review = review)
+        // --- Bagian 4: Header "Ulasan" yang menempel (sticky) ---
+        stickyHeader {
+            Surface(modifier = Modifier.fillMaxWidth(), shadowElevation = 2.dp) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        "Ulasan",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (!isAdmin) {
+                        TextButton(onClick = { /* TODO: Buka layar tambah ulasan */ }) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "Tambah Ulasan",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text("Tambah")
+                        }
+                    }
+                }
             }
         }
-        if (destination.destination.latitude != null && destination.destination.longitude != null) {
-            com.banyumas.wisata.core.designsystem.components.CustomButton(
-                onClick = {
-                    onMapClick(
-                        destination.destination.latitude,
-                        destination.destination.longitude
-                    )
-                },
-                text = "Navigasi ke Lokasi",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+
+        // --- Bagian 5: Daftar Ulasan ---
+        items(destination.destination.reviews) { review ->
+            ReviewCard(
+                review = review,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
+        }
+
+        // --- Bagian 6: Tombol Navigasi Peta (jika ada koordinat) ---
+        if (destination.destination.latitude != null && destination.destination.longitude != null) {
+            item {
+                ExtendedFloatingActionButton(
+                    text = { Text("Navigasi ke Lokasi") },
+                    icon = { Icon(Icons.Default.Map, contentDescription = null) },
+                    onClick = {
+                        onMapClick(
+                            destination.destination.latitude!!,
+                            destination.destination.longitude!!
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+            }
         }
     }
 }
 
 
 @Composable
-fun DestinationImage(imageUrl: String?, modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val imageRequest = remember(imageUrl) {
-        ImageRequest.Builder(context)
-            .data(imageUrl)
-            .placeholder(R.drawable.image_placeholder)
-            .error(R.drawable.image_placeholder)
-            .crossfade(true)
-            .build()
-    }
-
-    val painter = rememberAsyncImagePainter(model = imageRequest)
-
-    Image(
-        painter = painter,
-        contentDescription = "Image of ${imageUrl.orEmpty()}",
-        contentScale = ContentScale.Crop,
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(16f / 9f)
-    )
-}
-
-
-@Composable
-fun DetailSection(
+fun DetailInfoSection(
     name: String,
     rating: Float,
     reviewCount: Int,
     address: String,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = name,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.weight(1f)
             )
             Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = "Rating Star",
+                Icons.Default.Star,
+                contentDescription = "Rating",
                 tint = Color.Yellow,
                 modifier = Modifier.size(18.dp)
             )
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            Text(
-                text = "$rating/5",
-                style = MaterialTheme.typography.labelLarge
-            )
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            Text(
-                text = "($reviewCount)",
-                style = MaterialTheme.typography.labelLarge
-            )
+            Spacer(Modifier.width(4.dp))
+            Text("$rating ($reviewCount ulasan)", style = MaterialTheme.typography.bodyMedium)
         }
         Text(
             text = address,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
 
-@Composable
-fun DetailTopBar(
-    imageUrl: String?,
-    isAdmin: Boolean,
-    onBackClick: () -> Unit,
-    onEditClick: () -> Unit,
-    onFavoriteClick: () -> Unit,
-    isFavorite: Boolean
-) {
-    Box {
-        DestinationImage(imageUrl = imageUrl)
-        com.banyumas.wisata.core.designsystem.components.BackIcon(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp),
-            onClick = onBackClick
-        )
-        if (isAdmin) {
-            com.banyumas.wisata.core.designsystem.components.EditIcon(
-                onClick = onEditClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
-            )
-        } else {
-            com.banyumas.wisata.core.designsystem.components.FavoriteIcon(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp),
-                onClick = onFavoriteClick,
-                isFavorite = isFavorite
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, device = Devices.PIXEL)
+@Preview(showBackground = true, device = Devices.PIXEL_4)
 @Composable
 private fun DetailContentPreview() {
-    com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme(dynamicColor = false) {
+    WisataBanyumasTheme {
         DetailContent(
-            destination =
-                UiDestination(
-                    destination = Destination(
-                        name = "Curug Baturraden",
-                        address = "Jl. Baturraden, Purwokerto Utara",
-                        reviews = listOf(
-                            Review(
-                                authorName = "John Doe",
-                                rating = 5,
-                                text = "Great place to visit!",
-                            )
-                        ),
-                        rating = 4.5f,
-                        photos = listOf(Photo("https://via.p0laceholder.com/600x400")), // Dummy photo
-                    )
+            destination = UiDestination(
+                destination = Destination(
+                    name = "Curug Baturraden",
+                    address = "Jl. Baturraden, Purwokerto Utara, Kabupaten Banyumas",
+                    reviews = List(3) {
+                        Review(
+                            authorName = "Pengunjung ${it + 1}",
+                            rating = (5 - it),
+                            text = "Tempatnya bagus dan sejuk, cocok untuk liburan keluarga."
+                        )
+                    },
+                    rating = 4.5f,
+                    photos = List(5) { Photo("https://placehold.co/600x400?text=Foto+${it + 1}") },
+                    latitude = -7.318,
+                    longitude = 109.226
                 ),
+                isFavorite = true
+            ),
+            isAdmin = false,
             onMapClick = { _, _ -> },
             onFavoriteClick = {},
-            onBackClick = {},
-            isAdmin = false,
-            onEditClick = {},
+            onEditClick = {}
         )
     }
 }

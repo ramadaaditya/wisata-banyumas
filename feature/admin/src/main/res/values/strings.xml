@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wisata Banyumas</string>
+    <string name="category_alam">Alam</string>
+    <string name="category_kuliner">Kuliner</string>
+    <string name="category_keluarga">Keluarga</string>
+    <string name="category_religi">Religi</string>
+    <string name="category_seni">Seni</string>
+    <string name="placeholder_search">Cari Destinasi</string>
+    <string name="location_Baturraden">Baturraden</string>
+
+    <!--    User Auth Message-->
+    <string name="error_register">Gagal registrasi</string>
+    <string name="error_login">Gagal login</string>
+    <string name="error_user_not_found">Pengguna tidak ditemukan. Silakan login terlebih dahulu.</string>
+    <string name="error_get_user">Gagal mengambil data user</string>
+    <string name="error_get_user_id">Gagal mengambil ID pengguna</string>
+    <string name="error_logout">Terjadi kesalahan saat logout. Silakan coba lagi nanti.</string>
+    <string name="error_reset_password">Terjadi kesalahan saat mengirim email</string>
+    <string name="error_delete_account">Terjadi kesalahan saat menghapus akun</string>
+    <string name="error_user_not_logged_in">Pengguna belum login</string>
+    <string name="error_load_user">Gagal memuat akun pengguna</string>
+    <string name="error_else">Terjadi kesalahan, coba lagi nanti</string>
+    <string name="error_unknown">Terjadi kesalahan. Silakan coba lagi nanti.</string>
+    <string name="error_no_internet">Tidak ada koneksi internet. Periksa jaringan Anda dan coba lagi.</string>
+    <string name="error_email_exists">Email sudah terdaftar. Gunakan email lain atau login.</string>
+    <string name="error_invalid_email">Format email tidak valid. Silakan periksa kembali.</string>
+    <string name="error_invalid_password">Kata sandi harus minimal 6 karakter dan mengandung huruf serta angka.</string>
+    <string name="error_fields_required">Email, kata sandi, dan nama tidak boleh kosong.</string>
+    <string name="error_login_failed">Login gagal. Periksa kembali email dan kata sandi Anda.</string>
+    <string name="error_user_data_not_found">Data pengguna tidak ditemukan setelah login.</string>
+    <string name="error_email_empty">Email tidak boleh kosong.</string>
+    <string name="error_email_not_registered">Email tidak terdaftar. Periksa kembali email Anda.</string>
+    <string name="error_account_not_found">Akun tidak ditemukan.</string>
+
+    <!--    Destination Message-->
+
+    <string name="error_user_id_empty">User ID kosong</string>
+    <string name="error_load_destination">Gagal memuat destinasi</string>
+    <string name="error_delete_destination">Gagal menghapus destinasi</string>
+    <string name="success_save_destination">Berhasil menyimpan destinasi!</string>
+    <string name="error_save_destination">Gagal menyimpan destinasi</string>
+    <string name="success_update_destination">Destinasi berhasil diperbarui!</string>
+    <string name="error_update_destination">Gagal memperbarui destinasi</string>
+    <string name="error_fetch_destination">Gagal mengambil destinasi</string>
+    <string name="error_search_destination">Gagal mencari destinasi</string>
+    <string name="error_fetch_place_detail">Gagal mengambil detail wisata</string>
+    <string name="success_add_review">Berhasil menambahkan review!</string>
+    <string name="error_add_review">Gagal menambahkan review</string>
+
+    <!--    Favorite Destinations-->
+    <string name="error_load_favorite">Failed to load favorite destinations</string>
+    <string name="error_toggle_favorite">Failed to load favorite destinations</string>
+    <string name="error_upload_data">Error upload data</string>
+
+
+    <!-- Destination Errors -->
+    <string name="error_fetch_place">Gagal mengambil data tempat</string>
+    <string name="error_save_place">Gagal menyimpan data destinasi</string>
+    <string name="error_no_place_found">Tidak ditemukan tempat untuk nama tersebut</string>
+    <string name="error_fetch_favorites">Gagal mengambil destinasi favorit</string>
+    <string name="error_update_favorites">Gagal memperbarui favorit</string>
+    <string name="error_destination_not_found">Destinasi tidak ditemukan</string>
+    <string name="error_delete_place">Gagal menghapus destinasi</string>
+    <string name="error_update_place">Gagal memperbarui destinasi</string>
+    <string name="error_detail_place">Gagal mendapatkan detail destinasi</string>
+    <string name="error_update_favorite">Gagal memperbarui favorit</string>
+
+
+    <!--    Navigation-->
+    <string name="home_feed">Home</string>
+    <string name="home_favorite">Favorite</string>
+    <string name="home_profile">Profile</string>
+    <string name="title_convention">build-logic</string>
+    <string name="title_dynamicfeature">Module Title</string>
+
+</resources>

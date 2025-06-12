@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     implementation(project(":feature:auth"))
+    api(project(":core:data"))
 }

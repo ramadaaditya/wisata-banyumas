@@ -1,12 +1,11 @@
 import org.gradle.initialization.DependenciesAccessors
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     `kotlin-dsl`
 }
 
-group = "com.wisata.banyumas.buildlogic"
+group = "com.banyumas.wisata.buildlogic"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -15,16 +14,14 @@ java {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
+        optIn.add("kotlin.RequiresOptIn")
     }
 }
-
 
 dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.android.tools.common)
-    compileOnly(libs.compose.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
     gradle.serviceOf<DependenciesAccessors>().classes.asFiles.forEach {
         compileOnly(files(it.absolutePath))
@@ -48,14 +45,6 @@ gradlePlugin {
             id = libs.plugins.base.application.compose.get().pluginId
             implementationClass = "AppComposePlugin"
         }
-        register("androidApi") {
-            id = libs.plugins.base.api.get().pluginId
-            implementationClass = "ApiPlugin"
-        }
-        register("androidFeature") {
-            id = libs.plugins.base.feature.get().pluginId
-            implementationClass = "FeaturePlugin"
-        }
         register("androidLibrary") {
             id = libs.plugins.base.library.asProvider().get().pluginId
             implementationClass = "LibPlugin"
@@ -67,6 +56,10 @@ gradlePlugin {
         register("androidHilt") {
             id = libs.plugins.base.hilt.get().pluginId
             implementationClass = "HiltPlugin"
+        }
+        register("androidFeature") {
+            id = libs.plugins.base.feature.get().pluginId
+            implementationClass = "FeaturePlugin"
         }
         register("androidFirebase") {
             id = libs.plugins.base.firebase.get().pluginId

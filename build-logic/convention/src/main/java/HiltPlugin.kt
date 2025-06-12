@@ -1,22 +1,24 @@
-import com.wisata.banyumas.buidlogic.convention.ConstantLibs.KSP
-import com.wisata.banyumas.buidlogic.convention.alias
-import com.wisata.banyumas.buidlogic.convention.implementation
 import com.wisata.banyumas.buidlogic.convention.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.dependencies
 
 class HiltPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            with(pluginManager) {
-                alias(libs.plugins.hilt)
-                alias(libs.plugins.ksp)
-            }
+            apply(plugin = "com.google.devtools.ksp")
 
             dependencies {
-                implementation(libs.hilt.android)
-                add(KSP, libs.hilt.android.compiler.get())
+                "ksp"(libs.findLibrary("hilt.android.compiler").get())
+            }
+
+            pluginManager.withPlugin("com.android.base") {
+                apply(plugin = "dagger.hilt.android.plugin")
+                dependencies {
+                    "implementation"(libs.findLibrary("hilt.android").get())
+                    "implementation"(libs.findLibrary("androidx.hilt.navigation.compose").get())
+                }
             }
         }
     }

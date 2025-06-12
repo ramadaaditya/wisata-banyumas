@@ -1,12 +1,10 @@
-import com.wisata.banyumas.buidlogic.convention.implementation
-import com.wisata.banyumas.buidlogic.convention.libs
-
 plugins {
     alias(libs.plugins.base.application)
     alias(libs.plugins.base.application.compose)
-    id("com.google.gms.google-services")
     alias(libs.plugins.base.firebase)
     alias(libs.plugins.base.hilt)
+    id("com.google.gms.google-services")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -44,30 +42,4 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.core.splashscreen)
-    implementation(libs.androidx.hilt.navigation.compose)
-
-    implementation(libs.androidx.paging.common.android)
-    implementation(libs.androidx.espresso.core)
-    implementation(libs.androidx.runtime.livedata)
-    implementation(libs.androidx.paging.compose.android)
-    implementation(libs.transport.runtime)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.test.manifest)
-
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
-
-    implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
-
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.inline)
-    testImplementation(libs.androidx.core.testing)
-    testImplementation(libs.junit)
-
-    implementation(libs.androidx.datastore.preferences)
 }

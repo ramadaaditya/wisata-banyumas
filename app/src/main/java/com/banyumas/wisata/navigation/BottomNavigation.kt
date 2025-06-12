@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavDestination.Companion.hasRoute
 
 @Composable
 fun WBBottomBar(
@@ -19,9 +19,7 @@ fun WBBottomBar(
 ) {
     NavigationBar(modifier = modifier) {
         destinations.forEach { destination ->
-            val selected = currentDestination?.hierarchy?.any {
-                it.route == destination.route
-            } == true
+            val selected = currentDestination?.hasRoute(destination.route::class) == true
 
             NavigationBarItem(
                 selected = selected,
@@ -34,7 +32,7 @@ fun WBBottomBar(
                         contentDescription = stringResource(destination.iconTextId)
                     )
                 },
-                label = { Text(stringResource(destination.iconTextId)) }
+                label = { Text(stringResource(destination.titleTextId)) }
             )
         }
     }

@@ -35,7 +35,7 @@ import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 @Composable
 fun RegisterScreen(
     onSignInClick: () -> Unit,
-    viewModel: UserViewModel = hiltViewModel()
+    viewModel: UserViewModel
 ) {
     val context = LocalContext.current
     val authState by viewModel.authState.collectAsState()
