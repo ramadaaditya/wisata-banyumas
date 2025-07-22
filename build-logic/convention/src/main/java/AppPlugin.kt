@@ -12,9 +12,12 @@ class AppPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "com.android.application")
             apply(plugin = "org.jetbrains.kotlin.android")
+            apply(plugin = "base.lint")
+
             extensions.configure<ApplicationExtension> {
                 configAndroid(this)
                 defaultConfig.targetSdk = MAX_SDK_VERSION
+                testOptions.animationsDisabled = true
 
                 packaging {
                     resources {

@@ -1,8 +1,5 @@
-@file:OptIn(ExperimentalFoundationApi::class)
+package com.banyumas.wisata.feature.detail
 
-package com.banyumas.wisata.ui
-
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.data.viewModel.UserViewModel
 import com.banyumas.wisata.core.designsystem.components.EditIcon
 import com.banyumas.wisata.core.designsystem.components.EmptyState
 import com.banyumas.wisata.core.designsystem.components.ErrorState
@@ -61,31 +59,53 @@ import com.banyumas.wisata.core.model.Photo
 import com.banyumas.wisata.core.model.Review
 import com.banyumas.wisata.core.model.Role
 import com.banyumas.wisata.core.model.UiDestination
-import com.banyumas.wisata.feature.auth.UserViewModel
-import com.banyumas.wisata.utils.openGoogleMaps
+import com.banyumas.wisata.feature.detail.utils.openGoogleMaps
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+
+
+@Composable
+fun DetailRoute(
+    onBackClick: () -> Unit,
+    onEditClick: (String) -> Unit,
+    detailViewModel: DetailViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel()
+) {
+    val detailUiState by detailViewModel.destinationState.collectAsStateWithLifecycle()
+    val authState by userViewModel.authState.collectAsStateWithLifecycle()
+
+
+    val currentUser = (authState as? UiState.Success)?.data
+    val isAdmin = currentUser?.role == Role.ADMIN
+    val currentUserId = currentUser?.id
+
+    DetailScreen(
+        uiState = detailUiState,
+        isAdmin = isAdmin,
+        onBackClick = onBackClick,
+        onEditClick = { destinationId -> onEditClick(destinationId) },
+        onFavoriteClick = { currentUserId?.let { detailViewModel.toggleFavorite(it) } },
+        eventFlow = detailViewModel.eventFlow
+    )
+}
 
 @Composable
 fun DetailScreen(
-    viewModel: DetailViewModel = hiltViewModel(),
-    userViewModel: UserViewModel,
+    uiState: UiState<UiDestination>,
+    isAdmin: Boolean,
+    onFavoriteClick: () -> Unit,
     onBackClick: () -> Unit,
-    onEditClick: (Destination) -> Unit,
+    onEditClick: (String) -> Unit,
+    eventFlow: Flow<DetailViewModel.DetailScreenEvent>
 ) {
-    val uiState by viewModel.destinationState.collectAsStateWithLifecycle()
-    val authState by userViewModel.authState.collectAsStateWithLifecycle()
-    val currentUser = (authState as? UiState.Success)?.data
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
-        currentUser?.id?.let { viewModel.loadDestinationDetail(it) }
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.eventFlow.collect { event ->
+    LaunchedEffect(eventFlow) {
+        eventFlow.collectLatest { event ->
             when (event) {
                 is DetailViewModel.DetailScreenEvent.ShowMessage -> {
                     scope.launch {
@@ -95,7 +115,6 @@ fun DetailScreen(
             }
         }
     }
-
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -111,10 +130,10 @@ fun DetailScreen(
                         val destination = state.data
                         DetailContent(
                             destination = destination,
-                            isAdmin = currentUser?.role == Role.ADMIN,
+                            isAdmin = isAdmin,
                             onMapClick = { lat, long -> openGoogleMaps(context, lat, long) },
-                            onFavoriteClick = { currentUser?.id?.let { viewModel.toggleFavorite(it) } },
-                            onEditClick = { onEditClick(destination.destination) }
+                            onFavoriteClick = onFavoriteClick,
+                            onEditClick = { onEditClick(destination.destination.id) }
                         )
                     }
 

@@ -1,5 +1,8 @@
 package com.banyumas.wisata.feature.dashboard
 
+import android.content.ContentValues.TAG
+import android.util.Log
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,13 +18,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.data.viewModel.UserViewModel
 import com.banyumas.wisata.core.designsystem.components.AddIcon
+import com.banyumas.wisata.core.designsystem.components.AppSearchBar
 import com.banyumas.wisata.core.designsystem.components.CategoryRow
 import com.banyumas.wisata.core.designsystem.components.ConfirmationDialog
 import com.banyumas.wisata.core.designsystem.components.DestinationCard
@@ -29,41 +36,45 @@ import com.banyumas.wisata.core.designsystem.components.EmptyState
 import com.banyumas.wisata.core.designsystem.components.ErrorState
 import com.banyumas.wisata.core.designsystem.components.LoadingState
 import com.banyumas.wisata.core.designsystem.components.LogoutIcon
-import com.banyumas.wisata.core.designsystem.components.AppSearchBar
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.Category
 import com.banyumas.wisata.core.model.Destination
 import com.banyumas.wisata.core.model.Role
 import com.banyumas.wisata.core.model.UiDestination
-import com.banyumas.wisata.feature.auth.UserViewModel
+import timber.log.Timber
 
 @Composable
 fun DashboardScreen(
     navigateToAddDestination: () -> Unit,
     onDestinationClick: (String) -> Unit,
-    userViewModel: UserViewModel,
-    dashboardViewModel: DashboardViewModel
+    userViewModel: UserViewModel = hiltViewModel(),
+    dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by dashboardViewModel.uiDestinations.collectAsStateWithLifecycle()
-
+    val authState by userViewModel.authState.collectAsStateWithLifecycle()
+    val currentUser = (authState as? UiState.Success)?.data
+    val userRole = currentUser?.role ?: Role.USER
+    val userId = currentUser?.id
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf("All") }
     var destinationToDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
     val focusManager = LocalFocusManager.current
 
+    Log.d(TAG, "DashboardScreen: $currentUser")
+
     DashboardContent(
-//        modifier = Modifier.pointerInput(Unit) {
-//            detectTapGestures(onTap = { focusManager.clearFocus() })
-//        },
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = { focusManager.clearFocus() })
+        },
         uiState = uiState,
-        userRole = Role.ADMIN,
+        userRole = userRole,
         query = query,
         navigateToDetail = onDestinationClick,
         onLongPress = { destinationId ->
-//            if (userRole == Role.ADMIN) {
-//                destinationToDeleteId = destinationId
-//            }
+            if (userRole == Role.ADMIN) {
+                destinationToDeleteId = destinationId
+            }
         },
         onLogoutClick = { showLogoutDialog = true },
         onSearchQueryChange = {
@@ -75,11 +86,13 @@ fun DashboardScreen(
             dashboardViewModel.searchDestinations(query, category)
         },
         onFavoriteClick = { destination ->
-//            dashboardViewModel.toggleFavorite(
-//                userId,
-//                destination.destination.id,
-//                destination.isFavorite
-//            )
+            userId?.let {
+                dashboardViewModel.toggleFavorite(
+                    userId = it,
+                    destination.destination.id,
+                    destination.isFavorite
+                )
+            }
         },
         onAddClick = navigateToAddDestination,
         selectedCategory = selectedCategory,
@@ -253,7 +266,7 @@ private fun DashboardContentEmptyPreview() {
 private fun DashboardContentLoadingPreview() {
     WisataBanyumasTheme(dynamicColor = false) {
         DashboardContent(
-            uiState = UiState.Loading, // <-- Kondisi loading
+            uiState = UiState.Loading,
             userRole = Role.USER,
             query = "",
             selectedCategory = "Semua",
@@ -269,7 +282,6 @@ private fun DashboardContentLoadingPreview() {
     }
 }
 
-// Helper function untuk membuat data dummy untuk preview
 private fun generateDummyDestinations(isUser: Boolean = false): List<UiDestination> {
     return List(5) { index ->
         UiDestination(
@@ -279,7 +291,6 @@ private fun generateDummyDestinations(isUser: Boolean = false): List<UiDestinati
                 address = "Jl. Baturraden, Purwokerto Utara",
                 category = if (index % 2 == 0) "Alam" else "Kuliner"
             ),
-            // User bisa memiliki item yang sudah di-favoritkan
             isFavorite = isUser && (index % 2 == 0)
         )
     }

@@ -34,17 +34,17 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.data.viewModel.UserViewModel
 import com.banyumas.wisata.core.designsystem.components.CustomButton
 import com.banyumas.wisata.core.designsystem.components.EmptyState
 import com.banyumas.wisata.core.designsystem.components.ErrorState
 import com.banyumas.wisata.core.designsystem.components.LoadingState
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.User
-import com.banyumas.wisata.feature.auth.UserViewModel
 
 @Composable
 fun ProfileScreen(
-    viewModel: UserViewModel,
+    viewModel: UserViewModel = hiltViewModel(),
     onLogout: () -> Unit,
     onDelete: () -> Unit
 ) {

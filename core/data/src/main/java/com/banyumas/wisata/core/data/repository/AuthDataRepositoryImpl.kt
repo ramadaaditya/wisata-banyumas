@@ -6,7 +6,6 @@ import com.banyumas.wisata.core.data.R
 import com.banyumas.wisata.core.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -104,18 +103,6 @@ class AuthDataRepositoryImpl @Inject constructor(
         UiState.Success(user)
     }
 
-//    override suspend fun getCurrentUser(): UiState<User?> = safeCall(
-//        errorMessage = UiText.StringResource(R.string.error_get_user_id)
-//    ) {
-//        // BEST PRACTICE: Jika tidak ada user yang login, ini bukan error.
-//        // Ini adalah state yang valid, yaitu "tidak ada sesi". Kembalikan Success(null).
-//        val firebaseUser = auth.currentUser ?: return@safeCall UiState.Success(null)
-//
-//        val documentSnapshot =
-//            firestore.collection(USERS_COLLECTION).document(firebaseUser.uid).get().await()
-//        val user = documentSnapshot.toObject(User::class.java)
-//        UiState.Success(user)
-//    }
 
     override suspend fun logoutUser(): UiState<Unit> = safeCall(
         errorMessage = UiText.StringResource(R.string.error_logout)

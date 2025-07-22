@@ -2,6 +2,6 @@ plugins {
     alias(libs.plugins.base.library)
 }
 
-dependencies{
+dependencies {
     implementation(libs.androidx.runtime.android)
 }

@@ -1,4 +1,4 @@
-package com.banyumas.wisata.feature.auth
+package com.banyumas.wisata.core.data.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,22 +6,34 @@ import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.common.UiText
 import com.banyumas.wisata.core.common.isValidEmail
 import com.banyumas.wisata.core.common.isValidPassword
-import com.banyumas.wisata.core.data.repository.AuthDataRepositoryImpl
+import com.banyumas.wisata.core.data.R
+import com.banyumas.wisata.core.data.repository.AuthRepository
 import com.banyumas.wisata.core.model.User
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
+
+// PERBAIKAN: Buat sealed interface untuk mendefinisikan event satu kali yang jelas.
+sealed interface AuthEvent {
+    data object LoginSuccess : AuthEvent
+    data class ActionFailed(val message: UiText) : AuthEvent
+    // Anda bisa menambahkan event lain di sini, mis: RegistrationSuccess, PasswordResetSent
+}
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val repository: AuthDataRepositoryImpl,
+    private val repository: AuthRepository,
 ) : ViewModel() {
-
     private val _authState = MutableStateFlow<UiState<User>>(UiState.Empty)
     val authState: StateFlow<UiState<User>> = _authState
+
+    // PERBAIKAN: Tambahkan Channel untuk mengirim event satu kali.
+    private val _authEvent = Channel<AuthEvent>()
+    val authEvent = _authEvent.receiveAsFlow()
 
 //
 //    fun checkLoginStatus() {

@@ -11,10 +11,17 @@ class LibPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "com.android.library")
             apply(plugin = "org.jetbrains.kotlin.android")
+            apply(plugin = "base.lint")
 
             extensions.configure<LibraryExtension> {
                 configAndroid(this)
                 defaultConfig.targetSdk = MAX_SDK_VERSION
+                testOptions.animationsDisabled = true
+
+
+                resourcePrefix =
+                    path.split("""\W""".toRegex()).drop(1).distinct().joinToString(separator = "_")
+                        .lowercase() + "_"
             }
         }
     }

@@ -1,8 +1,10 @@
 import org.gradle.initialization.DependenciesAccessors
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     `kotlin-dsl`
+    alias(libs.plugins.android.lint)
 }
 
 group = "com.banyumas.wisata.buildlogic"
@@ -14,7 +16,7 @@ java {
 
 kotlin {
     compilerOptions {
-        optIn.add("kotlin.RequiresOptIn")
+        jvmTarget = JvmTarget.JVM_17
     }
 }
 
@@ -64,6 +66,14 @@ gradlePlugin {
         register("androidFirebase") {
             id = libs.plugins.base.firebase.get().pluginId
             implementationClass = "FirebasePlugin"
+        }
+        register("androidLint") {
+            id = libs.plugins.base.lint.get().pluginId
+            implementationClass = "LintPlugin"
+        }
+        register("jvmLibrary") {
+            id = libs.plugins.base.jvm.get().pluginId
+            implementationClass = "JvmLibPlugin"
         }
     }
 }

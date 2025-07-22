@@ -23,8 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.data.viewModel.UserViewModel
 import com.banyumas.wisata.core.designsystem.components.CustomButton
 import com.banyumas.wisata.core.designsystem.components.EmailInputField
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
@@ -32,7 +34,7 @@ import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 @Composable
 fun ResetPasswordScreen(
     onSignInClick: () -> Unit,
-    viewModel: UserViewModel,
+    viewModel: UserViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }

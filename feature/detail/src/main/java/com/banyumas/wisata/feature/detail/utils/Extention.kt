@@ -1,4 +1,4 @@
-package com.banyumas.wisata.utils
+package com.banyumas.wisata.feature.detail.utils
 
 import android.content.Context
 import android.content.Intent

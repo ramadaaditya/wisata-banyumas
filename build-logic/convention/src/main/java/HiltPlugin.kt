@@ -13,11 +13,16 @@ class HiltPlugin : Plugin<Project> {
                 "ksp"(libs.findLibrary("hilt.android.compiler").get())
             }
 
+            pluginManager.withPlugin("org.jetbrains.kotlin.jvm"){
+                dependencies{
+                    "implementation"(libs.findLibrary("hilt.core").get())
+                }
+            }
+
             pluginManager.withPlugin("com.android.base") {
                 apply(plugin = "dagger.hilt.android.plugin")
                 dependencies {
                     "implementation"(libs.findLibrary("hilt.android").get())
-                    "implementation"(libs.findLibrary("androidx.hilt.navigation.compose").get())
                 }
             }
         }

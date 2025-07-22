@@ -26,5 +26,6 @@ class MainActivityViewModel @Inject constructor(
 
 sealed interface MainActivityUiState {
     data object Loading : MainActivityUiState
+    data object Error  : MainActivityUiState
     data class Success(val user: User?) : MainActivityUiState
 }

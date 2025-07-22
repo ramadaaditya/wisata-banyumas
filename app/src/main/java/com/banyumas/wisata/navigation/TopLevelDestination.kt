@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.banyumas.wisata.core.designsystem.icon.WbIcons
 import com.banyumas.wisata.feature.bookmarks.navigation.BookmarksRoute
-import com.banyumas.wisata.feature.dashboard.navigation.DashboardBaseRoute
+import com.banyumas.wisata.feature.dashboard.navigation.DashboardGraphRoute
 import com.banyumas.wisata.feature.dashboard.navigation.DashboardRoute
 import com.banyumas.wisata.feature.profile.navigation.ProfileRoute
 import kotlin.reflect.KClass
@@ -26,7 +26,7 @@ enum class TopLevelDestination(
         iconTextId = dashR.string.feature_profile_title,
         titleTextId = dashR.string.feature_profile_title,
         route = DashboardRoute::class,
-        baseRoute = DashboardBaseRoute::class
+        baseRoute = DashboardGraphRoute::class
     ),
     BOOKMARKS(
         selectedIcon = WbIcons.Bookmarks,

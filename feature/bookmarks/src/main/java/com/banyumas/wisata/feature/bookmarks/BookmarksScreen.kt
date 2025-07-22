@@ -9,21 +9,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.data.viewModel.UserViewModel
 import com.banyumas.wisata.core.designsystem.components.DestinationCard
 import com.banyumas.wisata.core.designsystem.components.EmptyState
 import com.banyumas.wisata.core.designsystem.components.ErrorState
 import com.banyumas.wisata.core.designsystem.components.LoadingState
 import com.banyumas.wisata.core.model.Destination
 import com.banyumas.wisata.core.model.UiDestination
-import com.banyumas.wisata.feature.auth.UserViewModel
 
 @Composable
 fun BookmarksScreen(
     navigateToDetail: (String) -> Unit,
-    viewmodel: BookmarksViewModel,
-    userViewModel: UserViewModel,
+    viewmodel: BookmarksViewModel = hiltViewModel(),
+    userViewModel: UserViewModel = hiltViewModel(),
 ) {
     val favoriteState by viewmodel.favoriteDestination.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()

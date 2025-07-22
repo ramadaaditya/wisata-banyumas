@@ -4,7 +4,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.banyumas.wisata.DummyDestination
 import com.banyumas.wisata.R
 import com.banyumas.wisata.core.data.repository.DestinationDataRepository
-import com.banyumas.wisata.ui.DetailViewModel
+import com.banyumas.wisata.feature.detail.DetailViewModel
 import com.banyumas.wisata.utils.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -30,7 +30,7 @@ class DetailViewModelTest {
 
     @Mock
     private lateinit var repository: DestinationDataRepository
-    private lateinit var destinationViewModel: DetailViewModel
+    private lateinit var destinationViewModel: com.banyumas.wisata.feature.detail.DetailViewModel
     private val dummyDestination = DummyDestination.generateDummyDestination()
     private val dummyUiDestination = DummyDestination.generateDummyUiDestination()
     private val dummyListDestination = DummyDestination.generateListDummyDestination()
@@ -39,7 +39,7 @@ class DetailViewModelTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        destinationViewModel = DetailViewModel(repository)
+        destinationViewModel = com.banyumas.wisata.feature.detail.DetailViewModel(repository)
     }
 
     @get:Rule

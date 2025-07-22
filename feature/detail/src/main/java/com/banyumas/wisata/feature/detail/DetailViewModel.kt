@@ -1,4 +1,4 @@
-package com.banyumas.wisata.ui
+package com.banyumas.wisata.feature.detail
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel

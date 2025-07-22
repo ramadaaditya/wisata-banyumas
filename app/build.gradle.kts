@@ -3,8 +3,9 @@ plugins {
     alias(libs.plugins.base.application.compose)
     alias(libs.plugins.base.firebase)
     alias(libs.plugins.base.hilt)
-    id("com.google.gms.google-services")
     alias(libs.plugins.kotlin.serialization)
+    id("com.google.gms.google-services")
+
 }
 
 android {
@@ -38,8 +39,12 @@ dependencies {
     implementation(project(":feature:profile"))
     implementation(project(":feature:bookmarks"))
     implementation(project(":feature:auth"))
+    implementation(project(":feature:detail"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.core.splashscreen)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 }

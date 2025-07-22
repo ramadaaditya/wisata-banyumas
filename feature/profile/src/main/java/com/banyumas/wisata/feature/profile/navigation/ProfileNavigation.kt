@@ -16,10 +16,5 @@ fun NavGraphBuilder.profileScreen(
     onLogout: () -> Unit,
     onDelete: () -> Unit
 ) {
-    composable<ProfileRoute> {
-        ProfileScreen(
-            onDelete = {},
-            onLogout = {}
-        )
-    }
+
 }

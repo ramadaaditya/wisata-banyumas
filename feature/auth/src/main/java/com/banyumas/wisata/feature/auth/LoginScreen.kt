@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.data.viewModel.AuthEvent
+import com.banyumas.wisata.core.data.viewModel.UserViewModel
 import com.banyumas.wisata.core.designsystem.components.CustomButton
 import com.banyumas.wisata.core.designsystem.components.EmailInputField
 import com.banyumas.wisata.core.designsystem.components.PasswordInputField
@@ -42,12 +44,13 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    navigateToHome: (User) -> Unit,
+    navigateToHome: () -> Unit,
     onForgotPasswordClick: () -> Unit,
     onSignupClick: () -> Unit,
-    viewModel: UserViewModel
+    viewModel: UserViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    // authState tetap diamati untuk mengetahui state loading.
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -55,22 +58,24 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(authState) {
-        when (val state = authState) {
-            is UiState.Success -> {
-                focusManager.clearFocus()
-                navigateToHome(state.data)
-            }
-
-            is UiState.Error -> {
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = state.message.asString(context)
-                    )
+    // PERBAIKAN: LaunchedEffect sekarang mendengarkan 'authEvent', bukan 'authState'.
+    // Ini memastikan navigasi hanya terjadi SATU KALI per aksi login.
+    LaunchedEffect(Unit) {
+        viewModel.authEvent.collect { event ->
+            when (event) {
+                is AuthEvent.LoginSuccess -> {
+                    // Aksi berhasil, panggil navigasi.
+                    navigateToHome()
+                }
+                is AuthEvent.ActionFailed -> {
+                    // Aksi gagal, tampilkan pesan di Snackbar.
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = event.message.asString(context)
+                        )
+                    }
                 }
             }
-
-            else -> {}
         }
     }
     LoginContent(

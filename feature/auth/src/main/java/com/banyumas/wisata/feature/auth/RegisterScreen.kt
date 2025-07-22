@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.banyumas.wisata.core.common.UiState
+import com.banyumas.wisata.core.data.viewModel.UserViewModel
 import com.banyumas.wisata.core.designsystem.components.CustomButton
 import com.banyumas.wisata.core.designsystem.components.EmailInputField
 import com.banyumas.wisata.core.designsystem.components.PasswordInputField
@@ -35,7 +36,7 @@ import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 @Composable
 fun RegisterScreen(
     onSignInClick: () -> Unit,
-    viewModel: UserViewModel
+    viewModel: UserViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val authState by viewModel.authState.collectAsState()

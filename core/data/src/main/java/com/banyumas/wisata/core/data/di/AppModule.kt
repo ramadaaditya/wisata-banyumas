@@ -4,6 +4,7 @@ import com.banyumas.wisata.core.data.BuildConfig
 import com.banyumas.wisata.core.data.retrofit.ApiService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,7 +40,6 @@ object AppModule {
             .build()
             .create(ApiService::class.java)
     }
-
 
     @Provides
     @Singleton
