@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <style name="Theme.WisataBanyumas" parent="android:Theme.Material.Light.NoActionBar"/>
-
-    <style name="Theme.SplashScreenApp" parent="android:Theme.Material.Light.NoActionBar">
-        <!-- Untuk Android 11 ke bawah -->
-        <item name="android:windowBackground">@drawable/splash_background</item>
-        <item name="android:statusBarColor">@color/primary</item>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.WisataBanyumas" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Wb" parent="Theme.WisataBanyumas">
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
+    </style>
+    <style name="NightAdjusted.Theme.WB" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.Wb</item>
     </style>
 </resources>

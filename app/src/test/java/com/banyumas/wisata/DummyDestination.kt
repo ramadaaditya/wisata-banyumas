@@ -1,14 +1,14 @@
 package com.banyumas.wisata
 
-import com.banyumas.wisata.model.Destination
-import com.banyumas.wisata.model.Facility
-import com.banyumas.wisata.model.Photo
-import com.banyumas.wisata.model.Review
-import com.banyumas.wisata.model.UiDestination
+import com.banyumas.wisata.core.model.Destination
+import com.banyumas.wisata.core.model.Facility
+import com.banyumas.wisata.core.model.Photo
+import com.banyumas.wisata.core.model.Review
+import com.banyumas.wisata.core.model.UiDestination
 
 object DummyDestination {
-    fun generateDummyDestination(): Destination {
-        return Destination(
+    fun generateDummyDestination(): com.banyumas.wisata.core.model.Destination {
+        return com.banyumas.wisata.core.model.Destination(
             id = "destinasi1",
             name = "Curug",
             address = "Jl. Wisata No. 123, Banyumas",
@@ -18,33 +18,43 @@ object DummyDestination {
             rating = 4.3f,
             userRatingsTotal = 124,
             photos = listOf(
-                Photo("https://example.com/photo1.jpg"),
-                Photo("https://example.com/photo2.jpg")
+                com.banyumas.wisata.core.model.Photo("https://example.com/photo1.jpg"),
+                com.banyumas.wisata.core.model.Photo("https://example.com/photo2.jpg")
             ),
             openingHours = "08:00 - 17:00",
             phoneNumber = "08123456789",
             tags = listOf("air terjun", "alam", "sejuk"),
             reviews = listOf(
-                Review("Alice", 5, "Tempatnya sangat indah!", 1678900000L),
-                Review("Bob", 4, "Recommended untuk liburan", 1678910000L)
+                com.banyumas.wisata.core.model.Review(
+                    "Alice",
+                    5,
+                    "Tempatnya sangat indah!",
+                    1678900000L
+                ),
+                com.banyumas.wisata.core.model.Review(
+                    "Bob",
+                    4,
+                    "Recommended untuk liburan",
+                    1678910000L
+                )
             ),
             facilities = listOf(
-                Facility.BATHROOM,
-                Facility.PARKING,
-                Facility.REST_AREA,
-                Facility.GOOD_ACCESS
+                com.banyumas.wisata.core.model.Facility.BATHROOM,
+                com.banyumas.wisata.core.model.Facility.PARKING,
+                com.banyumas.wisata.core.model.Facility.REST_AREA,
+                com.banyumas.wisata.core.model.Facility.GOOD_ACCESS
             )
         )
     }
 
-    fun generateDummyUiDestination(): UiDestination {
-        return UiDestination(
+    fun generateDummyUiDestination(): com.banyumas.wisata.core.model.UiDestination {
+        return com.banyumas.wisata.core.model.UiDestination(
             destination = generateDummyDestination(),
             isFavorite = true
         )
     }
 
-    fun generateListDummyDestination(): List<Destination> {
+    fun generateListDummyDestination(): List<com.banyumas.wisata.core.model.Destination> {
         return List(5) { index ->
             generateDummyDestination().copy(
                 id = "dest_$index",
@@ -65,9 +75,9 @@ object DummyDestination {
 //        }
 //    }
 
-    fun generateListDummyUiDestination(): List<UiDestination> {
+    fun generateListDummyUiDestination(): List<com.banyumas.wisata.core.model.UiDestination> {
         return listOf(
-            UiDestination(
+            com.banyumas.wisata.core.model.UiDestination(
                 destination = generateDummyDestination().copy(
                     id = "dest_1",
                     name = "Curug Cipendok",
@@ -75,7 +85,7 @@ object DummyDestination {
                 ),
                 isFavorite = true
             ),
-            UiDestination(
+            com.banyumas.wisata.core.model.UiDestination(
                 destination = generateDummyDestination().copy(
                     id = "dest_2",
                     name = "Curug Gomblang",
@@ -83,7 +93,7 @@ object DummyDestination {
                 ),
                 isFavorite = false
             ),
-            UiDestination(
+            com.banyumas.wisata.core.model.UiDestination(
                 destination = generateDummyDestination().copy(
                     id = "dest_3",
                     name = "Taman Rekreasi",
