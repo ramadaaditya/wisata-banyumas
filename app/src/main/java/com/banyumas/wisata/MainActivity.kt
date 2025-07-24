@@ -2,7 +2,6 @@ package com.banyumas.wisata
 
 import android.content.ContentValues.TAG
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,7 +12,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.LocalUser
-import com.banyumas.wisata.ui.AppNavigation
+import com.banyumas.wisata.ui.WbApp
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -25,7 +24,6 @@ class MainActivity : ComponentActivity() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
-
 
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -39,16 +37,18 @@ class MainActivity : ComponentActivity() {
             Timber.tag(TAG).d("Status pengguna : $uiState")
             WisataBanyumasTheme {
                 when (val state = uiState) {
-                    is MainActivityUiState.Loading -> {}
+                    is MainActivityUiState.Loading -> {
+//                        TODO("Fill with Loading Screen")
+                    }
                     is MainActivityUiState.Success -> {
                         CompositionLocalProvider(LocalUser provides state.user) {
-                            AppNavigation()
+                            WbApp()
                         }
                     }
 
                     MainActivityUiState.Error -> {
                         CompositionLocalProvider(LocalUser provides null) {
-                            AppNavigation()
+                            WbApp()
                         }
                     }
                 }

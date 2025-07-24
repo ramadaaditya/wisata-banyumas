@@ -37,7 +37,6 @@ import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.Destination
 import com.banyumas.wisata.core.model.UiDestination
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DestinationCard(
     destination: UiDestination,

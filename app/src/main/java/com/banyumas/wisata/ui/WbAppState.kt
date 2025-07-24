@@ -2,22 +2,24 @@ package com.banyumas.wisata.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.util.trace
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import com.banyumas.wisata.feature.auth.AuthGraphRoute
 import com.banyumas.wisata.feature.auth.LoginRoute
 import com.banyumas.wisata.feature.auth.RegisterRoute
 import com.banyumas.wisata.feature.auth.ResetPasswordRoute
-import com.banyumas.wisata.feature.bookmarks.navigation.BookmarksRoute
+import com.banyumas.wisata.feature.bookmarks.navigation.navigateToBookmarks
 import com.banyumas.wisata.feature.dashboard.navigation.DashboardGraphRoute
-import com.banyumas.wisata.feature.profile.navigation.ProfileRoute
+import com.banyumas.wisata.feature.dashboard.navigation.navigateToDashboard
+import com.banyumas.wisata.feature.profile.navigation.navigateToProfile
 import com.banyumas.wisata.navigation.TopLevelDestination
 
 
@@ -35,17 +37,24 @@ class WbAppState(
     val navController: NavHostController
 ) {
     private val previousDestination = mutableStateOf<NavDestination?>(null)
+
     val currentDestination: NavDestination?
-        @Composable get() = navController.currentBackStackEntryAsState().value?.destination
+        @Composable get() {
+            val currentEntry =
+                navController.currentBackStackEntryFlow.collectAsState(initial = null)
+
+            return currentEntry.value?.destination.also { destination ->
+                if (destination != null) {
+                    previousDestination.value = destination
+                }
+            } ?: previousDestination.value
+        }
 
     val currentTopLevelDestination: TopLevelDestination?
-        @Composable get() = when (currentDestination?.route) {
-            // PERBAIKAN: Gunakan perbandingan nama kelas yang andal
-            // Ini memastikan kita tahu graph mana yang sedang aktif
-            DashboardGraphRoute::class.qualifiedName -> TopLevelDestination.DASHBOARD
-            BookmarksRoute::class.qualifiedName -> TopLevelDestination.BOOKMARKS
-            ProfileRoute::class.qualifiedName -> TopLevelDestination.PROFILE
-            else -> null
+        @Composable get() {
+            return TopLevelDestination.entries.firstOrNull { topLevelDestination ->
+                currentDestination?.hasRoute(route = topLevelDestination.route) == true
+            }
         }
 
     fun navigateToTopLevelDestination(topLevelDestination: TopLevelDestination) {
@@ -58,7 +67,17 @@ class WbAppState(
                 restoreState = true
             }
 
-            navController.navigate(topLevelDestination.route, topLevelNavOptions)
+            when (topLevelDestination) {
+                TopLevelDestination.DASHBOARD -> navController.navigateToDashboard(
+                    topLevelNavOptions
+                )
+
+                TopLevelDestination.BOOKMARKS -> navController.navigateToBookmarks(
+                    topLevelNavOptions
+                )
+
+                TopLevelDestination.PROFILE -> navController.navigateToProfile(topLevelNavOptions)
+            }
         }
     }
 

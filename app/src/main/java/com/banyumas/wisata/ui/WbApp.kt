@@ -6,6 +6,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
@@ -21,27 +22,60 @@ import com.banyumas.wisata.feature.detail.navigation.detailScreen
 import com.banyumas.wisata.feature.detail.navigation.navigateToDetail
 import com.banyumas.wisata.feature.profile.navigation.profileScreen
 import com.banyumas.wisata.navigation.TopLevelDestination
+import timber.log.Timber
 
 @Composable
-fun AppNavigation() {
+fun WbApp() {
     val appState = rememberWbAppState()
-    //Ganti localUser dengan state dari viewModel
     val currentUser = LocalUser.current
 
+    LaunchedEffect(currentUser) {
+        Timber.d("WbApp: currentUser changed to $currentUser")
+
+        if (currentUser != null) {
+            val currentRoute = appState.navController.currentDestination?.route
+            if (currentRoute?.contains("auth") == true || currentRoute == null) {
+                Timber.d("WbApp: Navigating to dashboard")
+                appState.navController.navigate(DashboardGraphRoute) {
+                    // Clear auth stack
+                    popUpTo(AuthGraphRoute) { inclusive = true }
+                }
+            }
+        } else {
+            val currentRoute = appState.navController.currentDestination?.route
+            if (currentRoute?.contains("auth") != true) {
+                Timber.d("WbApp: Navigating to auth")
+                appState.navController.navigate(AuthGraphRoute) {
+                    // Clear main app stack
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        }
+    }
+
+    // Determine start destination
+    val startDestination = if (currentUser != null) DashboardGraphRoute else AuthGraphRoute
+
+    // Conditional UI based on user state
     if (currentUser != null) {
+        // Authenticated user - show main app with bottom navigation
         MainAppScaffold(
             appState = appState,
+            startDestination = startDestination
         )
     } else {
-        AuthNavHost(
+        // Unauthenticated user - show auth screens only
+        AuthOnlyNavHost(
             appState = appState,
+            startDestination = startDestination
         )
     }
 }
 
 @Composable
-fun MainAppScaffold(
+private fun MainAppScaffold(
     appState: WbAppState,
+    startDestination: Any
 ) {
     Scaffold(
         bottomBar = {
@@ -69,52 +103,76 @@ fun MainAppScaffold(
             }
         },
     ) { innerPadding ->
-        NavHost(
-            navController = appState.navController,
-            startDestination = DashboardGraphRoute,
+        UnifiedNavHost(
+            appState = appState,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
-        ) {
-            dashboardGraph(
-                onDestinationClick = { destinationId ->
-                    appState.navController.navigateToDetail(destinationId)
-                },
-                navController = appState.navController
-            )
-            bookmarksScreen(
-                onDestinationClick = { destinationId ->
-                    appState.navController.navigateToDetail(destinationId)
-                }
-            )
-            profileScreen(
-                onLogout = { appState.navigateToLogin() },
-                onDelete = {}
-            )
-            detailScreen(
-                onBackClick = { appState.navigateUp() },
-                onEditClick = { destinationId ->
-//                    appState.navController.navigateToManageDestination(destinationId)
-                }
-            )
-        }
+        )
     }
 }
 
+@Composable
+private fun AuthOnlyNavHost(
+    appState: WbAppState,
+    startDestination: Any
+) {
+    UnifiedNavHost(
+        appState = appState,
+        startDestination = startDestination,
+        modifier = Modifier.fillMaxSize()
+    )
+}
 
 @Composable
-fun AuthNavHost(
+private fun UnifiedNavHost(
     appState: WbAppState,
+    startDestination: Any,
+    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = appState.navController,
-        modifier = Modifier.fillMaxSize(),
-        startDestination = AuthGraphRoute
+        startDestination = startDestination,
+        modifier = modifier
     ) {
+        // AUTH GRAPH - Always available
         authGraph(
             navController = appState.navController,
-            onLoginSuccess = appState::navigateToHome,
+            onLoginSuccess = {
+                // Don't manually navigate - let LaunchedEffect handle it
+                Timber.d("AuthGraph: Login success, LocalUser should update automatically")
+            },
             onNavigateToRegister = appState::navigateToRegister,
             onNavigateToResetPassword = appState::navigateToResetPassword,
             onBackToLogin = appState::navigateUp,
+        )
+
+        // MAIN APP GRAPHS - Only accessible when authenticated
+        dashboardGraph(
+            onDestinationClick = { destinationId ->
+                appState.navController.navigateToDetail(destinationId)
+            },
+            navController = appState.navController
+        )
+
+        bookmarksScreen(
+            onDestinationClick = { destinationId ->
+                appState.navController.navigateToDetail(destinationId)
+            }
+        )
+
+        profileScreen(
+            onLogout = {
+                // Don't manually navigate - let LaunchedEffect handle it
+                Timber.d("ProfileScreen: Logout triggered, LocalUser should update automatically")
+            },
+            onDelete = {}
+        )
+
+        detailScreen(
+            onBackClick = { appState.navigateUp() },
+            onEditClick = { destinationId ->
+                // appState.navController.navigateToManageDestination(destinationId)
+            }
         )
     }
 }

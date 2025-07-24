@@ -1,7 +1,6 @@
 package com.banyumas.wisata.feature.dashboard
 
 import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,14 +10,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,49 +53,72 @@ fun DashboardScreen(
     userViewModel: UserViewModel = hiltViewModel(),
     dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
-    val uiState by dashboardViewModel.uiDestinations.collectAsStateWithLifecycle()
+    val uiState by dashboardViewModel.uiState.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
     val currentUser = (authState as? UiState.Success)?.data
-    val userRole = currentUser?.role ?: Role.USER
-    val userId = currentUser?.id
+
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     var selectedCategory by rememberSaveable { mutableStateOf("All") }
     var destinationToDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
-    val focusManager = LocalFocusManager.current
 
-    Log.d(TAG, "DashboardScreen: $currentUser")
+    val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+
+    Timber.tag(TAG).d("Status user : $currentUser")
+            Timber.tag(TAG).d("Cek data destinasi $uiState")
+
+    LaunchedEffect(currentUser) {
+        currentUser?.id?.let {
+            dashboardViewModel.setUserId(it)
+
+        }
+    }
+
+    // 3. LaunchedEffect untuk menangani event satu kali (Snackbar)
+    LaunchedEffect(Unit) {
+        dashboardViewModel.eventFlow.collect { event ->
+            when (event) {
+                is DashboardViewModel.DestinationEvent.ShowMessage -> {
+                    snackbarHostState.showSnackbar(message = event.message.asString(context))
+                }
+
+                is DashboardViewModel.DestinationEvent.DeletionSuccess -> {
+                    snackbarHostState.showSnackbar(message = "Destinasi berhasil dihapus.")
+                }
+            }
+        }
+    }
+
 
     DashboardContent(
         modifier = Modifier.pointerInput(Unit) {
             detectTapGestures(onTap = { focusManager.clearFocus() })
         },
         uiState = uiState,
-        userRole = userRole,
+        userRole = currentUser?.role ?: Role.USER,
         query = query,
         navigateToDetail = onDestinationClick,
         onLongPress = { destinationId ->
-            if (userRole == Role.ADMIN) {
+            if (currentUser?.role == Role.ADMIN) {
                 destinationToDeleteId = destinationId
             }
         },
         onLogoutClick = { showLogoutDialog = true },
-        onSearchQueryChange = {
-            query = it
-            dashboardViewModel.searchDestinations(it, selectedCategory)
+        onSearchQueryChange = { newQuery ->
+            query = newQuery
+            dashboardViewModel.searchDestinations(newQuery)
         },
         onCategorySelected = { category ->
             selectedCategory = category
-            dashboardViewModel.searchDestinations(query, category)
+            dashboardViewModel.selectCategory(category)
         },
         onFavoriteClick = { destination ->
-            userId?.let {
-                dashboardViewModel.toggleFavorite(
-                    userId = it,
-                    destination.destination.id,
-                    destination.isFavorite
-                )
-            }
+            dashboardViewModel.toggleFavorite(
+                destination.destination.id,
+                destination.isFavorite
+            )
         },
         onAddClick = navigateToAddDestination,
         selectedCategory = selectedCategory,
