@@ -30,12 +30,12 @@ import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 fun CategoryRow(
     categories: List<String>,
     selectedCategory: String,
-    onCategorySelected: (String) -> Unit
+    onCategorySelected: (String) -> Unit,
+    modifier : Modifier = Modifier
 ) {
     LazyRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = modifier
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(categories) { category ->

@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.data.viewModel.UserViewModel
+import com.banyumas.wisata.core.designsystem.R.drawable
 import com.banyumas.wisata.core.designsystem.components.EditIcon
 import com.banyumas.wisata.core.designsystem.components.EmptyState
 import com.banyumas.wisata.core.designsystem.components.ErrorState
@@ -172,7 +174,9 @@ fun DetailContent(
                     model = destination.destination.photos.firstOrNull()?.photoUrl,
                     contentDescription = "Image of ${destination.destination.name}",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    error = painterResource(drawable.waterfall),
+                    placeholder = painterResource(drawable.error_image) // Tambahkan error placeholder
                 )
                 Box(
                     modifier = Modifier
@@ -210,7 +214,6 @@ fun DetailContent(
             }
         }
 
-        // --- Bagian 4: Header "Ulasan" yang menempel (sticky) ---
         stickyHeader {
             Surface(modifier = Modifier.fillMaxWidth(), shadowElevation = 2.dp) {
                 Row(
@@ -281,7 +284,7 @@ fun DetailInfoSection(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = name,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.weight(1f)
             )
             Icon(
@@ -304,7 +307,7 @@ fun DetailInfoSection(
 @Preview(showBackground = true, device = Devices.PIXEL_4)
 @Composable
 private fun DetailContentPreview() {
-    WisataBanyumasTheme {
+    WisataBanyumasTheme(dynamicColor = false) {
         DetailContent(
             destination = UiDestination(
                 destination = Destination(

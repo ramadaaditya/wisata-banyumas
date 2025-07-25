@@ -3,12 +3,14 @@ package com.banyumas.wisata.feature.dashboard
 import android.content.ContentValues.TAG
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -40,9 +42,7 @@ import com.banyumas.wisata.core.designsystem.components.ConfirmationDialog
 import com.banyumas.wisata.core.designsystem.components.DestinationCard
 import com.banyumas.wisata.core.designsystem.components.EmptyState
 import com.banyumas.wisata.core.designsystem.components.ErrorState
-import com.banyumas.wisata.core.designsystem.components.FlexibleSearchBar
 import com.banyumas.wisata.core.designsystem.components.LoadingState
-import com.banyumas.wisata.core.designsystem.components.MapsIcon
 import com.banyumas.wisata.core.designsystem.components.SimpleSearchBar
 import com.banyumas.wisata.core.designsystem.theme.BanyumasTheme
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
@@ -198,45 +198,91 @@ fun DashboardContent(
             .padding(horizontal = 16.dp)
             .fillMaxSize()
     ) {
+
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Have a Good Day,",
+            style = BanyumasTheme.typography.headlineLarge
+        )
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Ramada Aditya ",
+            style = BanyumasTheme.typography.headlineLarge
+        )
+
+        SimpleSearchBar(
+            textFieldState = searchTextFieldState,
+            searchResults = searchResults,
+            onSearch = onSearch,
+            // KOREKSI 5: Pindahkan ikon-ikon ke dalam SearchBar
+//            trailingIcon = {
+//                Row {
+//                    if (userRole == Role.ADMIN) {
+//                        AddIcon(onClick = onAddClick)
+//                    }
+//                    LogoutIcon(onClick = onLogoutClick)
+//                }
+//            }
+        )
+
+        Spacer(Modifier.height(8.dp))
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            modifier = modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            MapsIcon(onClick = {})
-            Column {
-                Text(text = "Location", style = BanyumasTheme.typography.titleLarge)
-                Text(text = "Banyumas", style = BanyumasTheme.typography.titleSmall)
-            }
+            Text(text = "Explore by category", style = BanyumasTheme.typography.titleMedium)
+            Text(text = "See All", style = BanyumasTheme.typography.titleSmall)
+
         }
-
-
-//        SimpleSearchBar(
-//            textFieldState = searchTextFieldState,
-//            searchResults = searchResults,
-//            onSearch = onSearch,
-//            // KOREKSI 5: Pindahkan ikon-ikon ke dalam SearchBar
-////            trailingIcon = {
-////                Row {
-////                    if (userRole == Role.ADMIN) {
-////                        AddIcon(onClick = onAddClick)
-////                    }
-////                    LogoutIcon(onClick = onLogoutClick)
-////                }
-////            }
-//        )
 
         CategoryRow(
             categories = categories,
             selectedCategory = selectedCategory,
             onCategorySelected = onCategorySelected,
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
         when (uiState) {
             is UiState.Loading -> LoadingState()
             is UiState.Success -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(uiState.data, key = { it.destination.id }) { destination ->
+                        DestinationCard(
+                            destination = destination,
+                            onFavoriteClick = { onFavoriteClick(destination) },
+                            onClick = { navigateToDetail(destination.destination.id) },
+                            showFavoriteIcon = userRole == Role.USER,
+                            onLongPress = { onLongPress(destination.destination.id) }
+                        )
+                    }
+                }
+            }
+
+            is UiState.Error -> ErrorState(message = uiState.message)
+            is UiState.Empty -> EmptyState(message = "Tidak ada destinasi yang ditemukan")
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            Text(text = "Nearby destination", style = BanyumasTheme.typography.titleMedium)
+            Text(text = "See All", style = BanyumasTheme.typography.titleSmall)
+        }
+
+        when (uiState) {
+            is UiState.Loading -> LoadingState()
+            is UiState.Success -> {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(uiState.data, key = { it.destination.id }) { destination ->
                         DestinationCard(
@@ -258,7 +304,7 @@ fun DashboardContent(
 
 }
 
-@Preview(showBackground = true, device = Devices.PIXEL, name = "Admin Role", showSystemUi = true)
+@Preview(showBackground = true, device = Devices.PIXEL_4, name = "Admin Role")
 @Composable
 fun DashboardContentPreview() {
     val searchTextFieldState = rememberTextFieldState()

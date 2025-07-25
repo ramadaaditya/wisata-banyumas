@@ -108,7 +108,7 @@ fun WisataBanyumasTheme(
 
     MaterialTheme(
         colorScheme = colors,
-        typography = AppTypography,
+        typography = WbTypography,
         content = content,
         shapes = Shapes
     )

@@ -14,26 +14,20 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object DashboardRoute
 
-@Serializable
-data object DashboardGraphRoute
-
 fun NavController.navigateToDashboard(navOptions: NavOptions) =
     navigate(route = DashboardRoute, navOptions)
 
 fun NavGraphBuilder.dashboardGraph(
     onDestinationClick: (destinationId: String) -> Unit,
-    navController: NavController
 ) {
-    navigation<DashboardGraphRoute>(startDestination = DashboardRoute) {
-        composable<DashboardRoute> {
-            val userViewModel = hiltViewModel<UserViewModel>()
-            val dashboardViewModel = hiltViewModel<DashboardViewModel>()
-            DashboardScreen(
-                onDestinationClick = onDestinationClick,
-                navigateToAddDestination = {},
-                userViewModel = userViewModel,
-                dashboardViewModel = dashboardViewModel
-            )
-        }
+    composable<DashboardRoute> {
+        val userViewModel = hiltViewModel<UserViewModel>()
+        val dashboardViewModel = hiltViewModel<DashboardViewModel>()
+        DashboardScreen(
+            onDestinationClick = onDestinationClick,
+            navigateToAddDestination = {},
+            userViewModel = userViewModel,
+            dashboardViewModel = dashboardViewModel
+        )
     }
 }

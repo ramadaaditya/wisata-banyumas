@@ -16,7 +16,7 @@ import com.banyumas.wisata.core.model.LocalUser
 import com.banyumas.wisata.feature.auth.AuthGraphRoute
 import com.banyumas.wisata.feature.auth.authGraph
 import com.banyumas.wisata.feature.bookmarks.navigation.bookmarksScreen
-import com.banyumas.wisata.feature.dashboard.navigation.DashboardGraphRoute
+import com.banyumas.wisata.feature.dashboard.navigation.DashboardRoute
 import com.banyumas.wisata.feature.dashboard.navigation.dashboardGraph
 import com.banyumas.wisata.feature.detail.navigation.detailScreen
 import com.banyumas.wisata.feature.detail.navigation.navigateToDetail
@@ -36,7 +36,7 @@ fun WbApp() {
             val currentRoute = appState.navController.currentDestination?.route
             if (currentRoute?.contains("auth") == true || currentRoute == null) {
                 Timber.d("WbApp: Navigating to dashboard")
-                appState.navController.navigate(DashboardGraphRoute) {
+                appState.navController.navigate(DashboardRoute) {
                     // Clear auth stack
                     popUpTo(AuthGraphRoute) { inclusive = true }
                 }
@@ -54,7 +54,7 @@ fun WbApp() {
     }
 
     // Determine start destination
-    val startDestination = if (currentUser != null) DashboardGraphRoute else AuthGraphRoute
+    val startDestination = if (currentUser != null) DashboardRoute else AuthGraphRoute
 
     // Conditional UI based on user state
     if (currentUser != null) {
@@ -151,7 +151,7 @@ private fun UnifiedNavHost(
             onDestinationClick = { destinationId ->
                 appState.navController.navigateToDetail(destinationId)
             },
-            navController = appState.navController
+//            navController = appState.navController
         )
 
         bookmarksScreen(

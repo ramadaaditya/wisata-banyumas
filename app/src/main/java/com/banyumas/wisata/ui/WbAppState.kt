@@ -17,7 +17,7 @@ import com.banyumas.wisata.feature.auth.LoginRoute
 import com.banyumas.wisata.feature.auth.RegisterRoute
 import com.banyumas.wisata.feature.auth.ResetPasswordRoute
 import com.banyumas.wisata.feature.bookmarks.navigation.navigateToBookmarks
-import com.banyumas.wisata.feature.dashboard.navigation.DashboardGraphRoute
+import com.banyumas.wisata.feature.dashboard.navigation.DashboardRoute
 import com.banyumas.wisata.feature.dashboard.navigation.navigateToDashboard
 import com.banyumas.wisata.feature.profile.navigation.navigateToProfile
 import com.banyumas.wisata.navigation.TopLevelDestination
@@ -96,7 +96,7 @@ class WbAppState(
     }
 
     fun navigateToHome() {
-        navController.navigate(DashboardGraphRoute) {
+        navController.navigate(DashboardRoute) {
             popUpTo(AuthGraphRoute) {
                 inclusive = true
             }
