@@ -1,21 +1,29 @@
 package com.wisata.banyumas.buidlogic.convention
 
 object ConstantLibs {
-    val resourceExcludes = listOf(
+    // Alternatif: Resource excludes khusus untuk release build
+    val releaseResourceExcludes = listOf(
         "META-INF/DEPENDENCIES",
         "META-INF/LICENSE",
         "META-INF/LICENSE.txt",
         "META-INF/NOTICE",
         "META-INF/NOTICE.txt",
-        "META-INF/*.kotlin_module", // Mengeluarkan file metadata Kotlin yang mungkin tidak diperlukan
+        "META-INF/*.kotlin_module",
         "META-INF/*.version",
-        "META-INF/*.txt",
-        "**/*.properties", // Contoh: mengeluarkan semua file .properties
-        // Pola untuk menghindari konflik di library tertentu
-        "META-INF/AL2.0", // Apache License 2.0
-        "META-INF/LGPL2.1", // GNU Lesser General Public License
+        "META-INF/AL2.0",
+        "META-INF/LGPL2.1",
+        "**/*.properties",
         "*.txt",
         "*.md"
+    )
+
+    // Debug build tanpa exclude yang agresif
+    val debugResourceExcludes = listOf(
+        "META-INF/DEPENDENCIES",
+        "META-INF/LICENSE",
+        "META-INF/LICENSE.txt",
+        "META-INF/NOTICE",
+        "META-INF/NOTICE.txt"
     )
     const val BASE_NAME = "com.banyumas.wisata"
     const val MIN_SDK_VERSION = 26

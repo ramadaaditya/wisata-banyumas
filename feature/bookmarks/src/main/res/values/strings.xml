@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="feature_profile_title">Profile</string>
+    <string name="feature_bookmarks_title">Bookmarks</string>
     <string name="feature_profile_loading">Loading profile…</string>
     <string name="feature_profile_empty_error">No profile updates</string>
     <string name="feature_profile_empty_description">Updates you save will be stored here\nto read later</string>

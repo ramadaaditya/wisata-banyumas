@@ -1,6 +1,7 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.wisata.banyumas.buidlogic.convention.ConstantLibs.MAX_SDK_VERSION
-import com.wisata.banyumas.buidlogic.convention.ConstantLibs.resourceExcludes
+import com.wisata.banyumas.buidlogic.convention.ConstantLibs.debugResourceExcludes
+import com.wisata.banyumas.buidlogic.convention.ConstantLibs.releaseResourceExcludes
 import com.wisata.banyumas.buidlogic.convention.configAndroid
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -18,13 +19,34 @@ class AppPlugin : Plugin<Project> {
                 configAndroid(this)
                 defaultConfig.targetSdk = MAX_SDK_VERSION
                 testOptions.animationsDisabled = true
-
+//
                 packaging {
                     resources {
-                        resourceExcludes.forEach { excludes += it }
+                        excludes.add("/META-INF/{AL2.0,LGPL2.1}")
                     }
                 }
+//                // Konfigurasi build types
+//                buildTypes {
+//                    getByName("debug") {
+////                        // Untuk debug build, gunakan exclude yang minimal
+////                        packaging {
+////                            resources {
+////                                debugResourceExcludes.forEach { excludes += it }
+////                            }
+////                        }
+//                    }
+//
+//                    getByName("release") {
+//                        // Untuk release build, gunakan exclude yang lebih agresif
+//                        packaging {
+//                            resources {
+//                                releaseResourceExcludes.forEach { excludes += it }
+//                            }
+//                        }
+//                    }
+//                }
             }
+
         }
     }
 }

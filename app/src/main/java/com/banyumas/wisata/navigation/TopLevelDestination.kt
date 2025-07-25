@@ -23,16 +23,16 @@ enum class TopLevelDestination(
     DASHBOARD(
         selectedIcon = WbIcons.Dashboard,
         unselectedIcon = WbIcons.DashboardOutline,
-        iconTextId = dashR.string.feature_profile_title,
-        titleTextId = dashR.string.feature_profile_title,
+        iconTextId = dashR.string.feature_dashboard_title,
+        titleTextId = dashR.string.feature_dashboard_title,
         route = DashboardRoute::class,
         baseRoute = DashboardGraphRoute::class
     ),
     BOOKMARKS(
         selectedIcon = WbIcons.Bookmarks,
         unselectedIcon = WbIcons.BookmarksBorder,
-        iconTextId = bookR.string.feature_profile_title,
-        titleTextId = bookR.string.feature_profile_title,
+        iconTextId = bookR.string.feature_bookmarks_title,
+        titleTextId = bookR.string.feature_bookmarks_title,
         route = BookmarksRoute::class,
     ),
     PROFILE(

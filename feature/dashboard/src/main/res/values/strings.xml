@@ -8,6 +8,16 @@
     <string name="feature_profile_undo">UNDO</string>
 
 
+    <string name="feature_dashboard_title">Dashboard</string>
+
+
+
+    <string name="feature_dashboard_bookmarks_title">Bookmarks</string>
+
+
+
+
+
     <string name="app_name">Wisata Banyumas</string>
     <string name="category_alam">Alam</string>
     <string name="category_kuliner">Kuliner</string>
