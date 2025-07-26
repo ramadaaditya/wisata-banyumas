@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -39,7 +38,6 @@ import com.banyumas.wisata.core.designsystem.components.CustomButton
 import com.banyumas.wisata.core.designsystem.components.EmailInputField
 import com.banyumas.wisata.core.designsystem.components.PasswordInputField
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
-import com.banyumas.wisata.core.model.User
 import kotlinx.coroutines.launch
 
 @Composable
@@ -50,7 +48,6 @@ fun LoginScreen(
     viewModel: UserViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    // authState tetap diamati untuk mengetahui state loading.
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -58,17 +55,14 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // PERBAIKAN: LaunchedEffect sekarang mendengarkan 'authEvent', bukan 'authState'.
-    // Ini memastikan navigasi hanya terjadi SATU KALI per aksi login.
     LaunchedEffect(Unit) {
         viewModel.authEvent.collect { event ->
             when (event) {
                 is AuthEvent.LoginSuccess -> {
-                    // Aksi berhasil, panggil navigasi.
                     navigateToHome()
                 }
+
                 is AuthEvent.ActionFailed -> {
-                    // Aksi gagal, tampilkan pesan di Snackbar.
                     scope.launch {
                         snackbarHostState.showSnackbar(
                             message = event.message.asString(context)
@@ -85,7 +79,7 @@ fun LoginScreen(
         onEmailChange = { email = it },
         onPasswordChange = { password = it },
         onSignInClick = {
-            focusManager.clearFocus() // Sembunyikan keyboard saat tombol ditekan
+            focusManager.clearFocus()
             viewModel.loginUser(email, password)
         },
         onSignupClick = onSignupClick,
@@ -188,7 +182,7 @@ private fun LoginContentLoadingPreview() {
             snackbarHostState = remember { SnackbarHostState() },
             onPasswordChange = {},
             onForgotPasswordClick = {},
-            isLoading = true, // <-- State loading
+            isLoading = true,
             onEmailChange = {},
             onSignInClick = {},
             onSignupClick = {},

@@ -7,6 +7,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun WbNavigationBar(
@@ -15,8 +16,8 @@ fun WbNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier,
-        contentColor = WBNavigationDefaults.navigationContentColor(),
-        content = content
+        content = content,
+        containerColor = WBNavigationDefaults.navigationBarContainerColor()
     )
 }
 
@@ -41,21 +42,29 @@ fun RowScope.WbNavigationBarItem(
         alwaysShowLabel = alwaysShowLabel,
         colors = NavigationBarItemDefaults.colors(
             selectedIconColor = WBNavigationDefaults.navigationSelectedItemColor(),
-            unselectedIconColor = WBNavigationDefaults.navigationContentColor(),
             selectedTextColor = WBNavigationDefaults.navigationSelectedItemColor(),
+            unselectedIconColor = WBNavigationDefaults.navigationContentColor(),
             unselectedTextColor = WBNavigationDefaults.navigationContentColor(),
+            indicatorColor = WBNavigationDefaults.navigationIndicatorColor()
         )
     )
 }
 
 
 object WBNavigationDefaults {
+    /** Warna latar belakang untuk NavigationBar. Netral dan halus. */
+    @Composable
+    fun navigationBarContainerColor() = MaterialTheme.colorScheme.surfaceContainer
+
+    /** Warna untuk ikon & teks pada item yang TIDAK TERPILIH. Penekanan medium. */
     @Composable
     fun navigationContentColor() = MaterialTheme.colorScheme.onSurfaceVariant
 
+    /** Warna untuk ikon & teks pada item yang TERPILIH. Penekanan tinggi. */
     @Composable
     fun navigationSelectedItemColor() = MaterialTheme.colorScheme.onPrimaryContainer
 
+    /** Warna untuk latar belakang 'pil' indikator pada item yang TERPILIH. */
     @Composable
     fun navigationIndicatorColor() = MaterialTheme.colorScheme.primaryContainer
 }

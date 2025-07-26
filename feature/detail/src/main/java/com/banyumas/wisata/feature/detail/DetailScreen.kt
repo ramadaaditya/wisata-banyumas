@@ -22,10 +22,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.data.viewModel.UserViewModel
+import com.banyumas.wisata.core.designsystem.R
 import com.banyumas.wisata.core.designsystem.components.EditIcon
 import com.banyumas.wisata.core.designsystem.components.EmptyState
 import com.banyumas.wisata.core.designsystem.components.ErrorState
@@ -60,52 +58,38 @@ import com.banyumas.wisata.core.model.Review
 import com.banyumas.wisata.core.model.Role
 import com.banyumas.wisata.core.model.UiDestination
 import com.banyumas.wisata.feature.detail.utils.openGoogleMaps
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-
+import timber.log.Timber
 
 @Composable
-fun DetailRoute(
+fun DetailRouteScreen(
     onBackClick: () -> Unit,
     onEditClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
     detailViewModel: DetailViewModel = hiltViewModel(),
     userViewModel: UserViewModel = hiltViewModel()
 ) {
     val detailUiState by detailViewModel.destinationState.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
-
-
     val currentUser = (authState as? UiState.Success)?.data
     val isAdmin = currentUser?.role == Role.ADMIN
     val currentUserId = currentUser?.id
 
-    DetailScreen(
-        uiState = detailUiState,
-        isAdmin = isAdmin,
-        onBackClick = onBackClick,
-        onEditClick = { destinationId -> onEditClick(destinationId) },
-        onFavoriteClick = { currentUserId?.let { detailViewModel.toggleFavorite(it) } },
-        eventFlow = detailViewModel.eventFlow
-    )
-}
-
-@Composable
-fun DetailScreen(
-    uiState: UiState<UiDestination>,
-    isAdmin: Boolean,
-    onFavoriteClick: () -> Unit,
-    onBackClick: () -> Unit,
-    onEditClick: (String) -> Unit,
-    eventFlow: Flow<DetailViewModel.DetailScreenEvent>
-) {
-
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    LaunchedEffect(eventFlow) {
-        eventFlow.collectLatest { event ->
+    LaunchedEffect(currentUser?.id) {
+        if (currentUser?.id != null) {
+            detailViewModel.loadDestinationDetail(currentUser.id)
+        } else {
+            Timber.d("DetailRoute: Menunggu user ID tersedia...")
+        }
+    }
+
+    LaunchedEffect(detailViewModel.eventFlow) {
+        detailViewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is DetailViewModel.DetailScreenEvent.ShowMessage -> {
                     scope.launch {
@@ -116,153 +100,83 @@ fun DetailScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        content = { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                when (val state = uiState) {
-                    is UiState.Loading -> LoadingState()
-                    is UiState.Success -> {
-                        val destination = state.data
-                        DetailContent(
-                            destination = destination,
-                            isAdmin = isAdmin,
-                            onMapClick = { lat, long -> openGoogleMaps(context, lat, long) },
-                            onFavoriteClick = onFavoriteClick,
-                            onEditClick = { onEditClick(destination.destination.id) }
-                        )
-                    }
-
-                    is UiState.Error -> ErrorState(message = state.message)
-                    is UiState.Empty -> EmptyState(message = "Destinasi tidak ditemukan.")
-                }
-                // Tombol back selalu ada di atas konten
-                IconButton(onClick = onBackClick, modifier = Modifier.padding(8.dp)) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Kembali",
-                        tint = Color.White
-                    )
-                }
-            }
-        }
+    DetailContent(
+        uiState = detailUiState,
+        isAdmin = isAdmin,
+        onBackClick = onBackClick,
+        onEditClick = onEditClick,
+        onFavoriteClick = { currentUserId?.let { detailViewModel.toggleFavorite(it) } },
+        onMapClick = { lat, long -> openGoogleMaps(context, lat, long) },
+        modifier = modifier
     )
 }
 
 @Composable
-fun DetailContent(
-    destination: UiDestination,
+private fun DetailContent(
+    uiState: UiState<UiDestination>,
     isAdmin: Boolean,
-    onMapClick: (Double, Double) -> Unit,
+    onBackClick: () -> Unit,
+    onEditClick: (String) -> Unit,
     onFavoriteClick: () -> Unit,
-    onEditClick: () -> Unit
+    onMapClick: (Double, Double) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-            ) {
-                AsyncImage(
-                    model = destination.destination.photos.firstOrNull()?.photoUrl,
-                    contentDescription = "Image of ${destination.destination.name}",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                ) {
-                    if (isAdmin) {
-                        EditIcon(onClick = onEditClick)
-                    } else {
-                        FavoriteIcon(onClick = onFavoriteClick, isFavorite = destination.isFavorite)
-                    }
-                }
-            }
-        }
-
-        // --- Bagian 2: Info Utama (Nama, Rating, Alamat) ---
-        item {
-            DetailInfoSection(
-                name = destination.destination.name,
-                rating = destination.destination.rating,
-                reviewCount = destination.destination.reviews.size,
-                address = destination.destination.address,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-
-        // --- Bagian 3: Carousel Foto ---
-        if (destination.destination.photos.isNotEmpty()) {
-            item {
-                PhotoCarouselViewer(
-                    photos = destination.destination.photos,
-                    onRemovePhoto = {},
-                    showRemoveIcon = false
-                )
-            }
-        }
-
-        // --- Bagian 4: Header "Ulasan" yang menempel (sticky) ---
-        stickyHeader {
-            Surface(modifier = Modifier.fillMaxWidth(), shadowElevation = 2.dp) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        "Ulasan",
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f)
+    Box(modifier = modifier.fillMaxSize()) {
+        Column {
+            when (uiState) {
+                is UiState.Loading -> LoadingState()
+                is UiState.Success -> {
+                    val destination = uiState.data
+                    HeaderImage(
+                        photoUrl = destination.destination.photos.firstOrNull()?.photoUrl,
+                        destinationName = destination.destination.name,
+                        isFavorite = destination.isFavorite,
+                        isAdmin = isAdmin,
+                        onFavoriteClick = onFavoriteClick,
+                        onEditClick = { onEditClick(destination.destination.id) },
+                        onBackClick = onBackClick
                     )
-                    if (!isAdmin) {
-                        TextButton(onClick = { /* TODO: Buka layar tambah ulasan */ }) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Tambah Ulasan",
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text("Tambah")
+
+                    DetailInfoSection(
+                        name = destination.destination.name,
+                        rating = destination.destination.rating,
+                        reviewCount = destination.destination.reviews.size,
+                        address = destination.destination.address,
+                    )
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (destination.destination.photos.isNotEmpty()) {
+                            item {
+                                PhotoCarouselViewer(
+                                    photos = destination.destination.photos,
+                                    onRemovePhoto = {})
+                            }
+                        }
+                        item { ReviewsHeader(isAdmin) }
+                        items(destination.destination.reviews) { review ->
+                            ReviewCard(review)
+                        }
+
+                        if (destination.destination.latitude != null && destination.destination.longitude != null) {
+                            item {
+                                MapButton(onClick = {
+                                    onMapClick(
+                                        destination.destination.latitude!!,
+                                        destination.destination.longitude!!
+                                    )
+                                }
+                                )
+                            }
                         }
                     }
                 }
-            }
-        }
 
-        // --- Bagian 5: Daftar Ulasan ---
-        items(destination.destination.reviews) { review ->
-            ReviewCard(
-                review = review,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-        }
-
-        // --- Bagian 6: Tombol Navigasi Peta (jika ada koordinat) ---
-        if (destination.destination.latitude != null && destination.destination.longitude != null) {
-            item {
-                ExtendedFloatingActionButton(
-                    text = { Text("Navigasi ke Lokasi") },
-                    icon = { Icon(Icons.Default.Map, contentDescription = null) },
-                    onClick = {
-                        onMapClick(
-                            destination.destination.latitude!!,
-                            destination.destination.longitude!!
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                )
+                is UiState.Error -> ErrorState(message = uiState.message)
+                is UiState.Empty -> EmptyState(message = "Destinasi tidak ditemukan.")
             }
         }
     }
@@ -270,26 +184,65 @@ fun DetailContent(
 
 
 @Composable
-fun DetailInfoSection(
+private fun HeaderImage(
+    photoUrl: String?,
+    destinationName: String,
+    isFavorite: Boolean,
+    isAdmin: Boolean,
+    onFavoriteClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onBackClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(16f / 9f)
+    ) {
+        AsyncImage(
+            model = photoUrl,
+            contentDescription = "Image of $destinationName",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+            error = painterResource(R.drawable.waterfall),
+            placeholder = painterResource(R.drawable.error_image)
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+        ) {
+            if (isAdmin) EditIcon(onClick = onEditClick)
+            else FavoriteIcon(onClick = onFavoriteClick, isFavorite = isFavorite)
+        }
+
+
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+                .size(32.dp)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali", tint = Color.White)
+        }
+    }
+}
+
+@Composable
+private fun DetailInfoSection(
     name: String,
     rating: Float,
     reviewCount: Int,
     address: String,
-    modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(modifier = Modifier.padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = name,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.weight(1f)
             )
-            Icon(
-                Icons.Default.Star,
-                contentDescription = "Rating",
-                tint = Color.Yellow,
-                modifier = Modifier.size(18.dp)
-            )
+            Icon(Icons.Default.Star, "Rating", tint = Color.Yellow, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(4.dp))
             Text("$rating ($reviewCount ulasan)", style = MaterialTheme.typography.bodyMedium)
         }
@@ -301,33 +254,59 @@ fun DetailInfoSection(
     }
 }
 
-@Preview(showBackground = true, device = Devices.PIXEL_4)
 @Composable
-private fun DetailContentPreview() {
-    WisataBanyumasTheme {
+private fun ReviewsHeader(isAdmin: Boolean) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Text("Ulasan", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+        if (!isAdmin) {
+            TextButton(onClick = { /* TODO */ }) {
+                Icon(Icons.Default.Add, "Tambah Ulasan", modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Tambah")
+            }
+        }
+    }
+}
+
+@Composable
+private fun MapButton(onClick: () -> Unit) {
+    ExtendedFloatingActionButton(
+        text = { Text("Navigasi ke Lokasi") },
+        icon = { Icon(Icons.Default.Map, null) },
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DetailScreenPreview() {
+    val destination = UiDestination(
+        destination = Destination(
+            name = "Curug Baturraden",
+            address = "Jl. Baturraden, Purwokerto Utara",
+            reviews = listOf(Review(authorName = "Pengunjung", rating = 5, text = "Bagus!")),
+            rating = 4.5f,
+            photos = listOf(Photo("")),
+            latitude = -7.318,
+            longitude = 109.226
+        ),
+        isFavorite = true
+    )
+    WisataBanyumasTheme(dynamicColor = false) {
         DetailContent(
-            destination = UiDestination(
-                destination = Destination(
-                    name = "Curug Baturraden",
-                    address = "Jl. Baturraden, Purwokerto Utara, Kabupaten Banyumas",
-                    reviews = List(3) {
-                        Review(
-                            authorName = "Pengunjung ${it + 1}",
-                            rating = (5 - it),
-                            text = "Tempatnya bagus dan sejuk, cocok untuk liburan keluarga."
-                        )
-                    },
-                    rating = 4.5f,
-                    photos = List(5) { Photo("https://placehold.co/600x400?text=Foto+${it + 1}") },
-                    latitude = -7.318,
-                    longitude = 109.226
-                ),
-                isFavorite = true
-            ),
+            uiState = UiState.Success(destination),
             isAdmin = false,
-            onMapClick = { _, _ -> },
+            onBackClick = {},
+            onEditClick = {},
             onFavoriteClick = {},
-            onEditClick = {}
+            onMapClick = { _, _ -> },
         )
     }
 }

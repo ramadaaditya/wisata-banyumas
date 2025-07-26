@@ -4,6 +4,7 @@ import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.model.Destination
 import com.banyumas.wisata.core.model.SearchResultItem
 import com.banyumas.wisata.core.model.UiDestination
+import kotlinx.coroutines.flow.Flow
 
 interface DestinationRepository {
 
@@ -11,7 +12,7 @@ interface DestinationRepository {
 
     suspend fun searchDestinationByName(placeName: String): UiState<List<SearchResultItem>>
 
-    suspend fun getAllDestinations(userId: String): UiState<List<UiDestination>>
+    fun getAllDestinations(userId: String): Flow<UiState<List<UiDestination>>>
 
     suspend fun getDestinationById(destinationId: String, userId: String): UiState<UiDestination>
 

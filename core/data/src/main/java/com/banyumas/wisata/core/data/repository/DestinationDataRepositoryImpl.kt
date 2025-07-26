@@ -14,8 +14,13 @@ import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.snapshots
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import java.util.UUID
@@ -65,21 +70,44 @@ class DestinationDataRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun getAllDestinations(userId: String): UiState<List<UiDestination>> =
-        safeCall(
-            errorMessage = UiText.StringResource(R.string.error_fetch_place)
-        ) {
-            val userDoc = firestore.collection(USERS_COLLECTION).document(userId).get().await()
-            val favoriteIds = userDoc.toObject(User::class.java)?.favoriteDestinations.orEmpty()
-            val snapshot = firestore.collection(DESTINATIONS_COLLECTION).get().await()
+    override fun getAllDestinations(userId: String): Flow<UiState<List<UiDestination>>> {
+        // 1. Buat Flow untuk mendengarkan perubahan pada koleksi 'destinations'
+        val allDestinationsFlow: Flow<List<Destination>> =
+            firestore.collection(DESTINATIONS_COLLECTION)
+                .snapshots() // Ini adalah real-time listener yang diubah jadi Flow
+                .map { snapshot -> snapshot.toObjects(Destination::class.java) }
 
-            val destinations = snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Destination::class.java)?.let {
-                    UiDestination(destination = it, isFavorite = favoriteIds.contains(doc.id))
+        // 2. Buat Flow untuk mendengarkan perubahan pada data favorit user
+        val favoriteIdsFlow: Flow<List<String>> =
+            firestore.collection(USERS_COLLECTION).document(userId)
+                .snapshots() // Real-time listener juga untuk dokumen user
+                .map { snapshot ->
+                    snapshot.toObject(User::class.java)?.favoriteDestinations.orEmpty()
                 }
+
+        // 3. Gabungkan (combine) kedua flow tersebut
+        return combine(allDestinationsFlow, favoriteIdsFlow) { destinations, favoriteIds ->
+            // Blok combine ini akan dieksekusi setiap kali salah satu flow (destinasi atau favorit) memancarkan data baru.
+            val favoriteIdSet = favoriteIds.toSet()
+            val uiDestinations = destinations.map { destination ->
+                UiDestination(
+                    destination = destination,
+                    isFavorite = destination.id in favoriteIdSet
+                )
             }
-            if (destinations.isEmpty()) UiState.Empty else UiState.Success(destinations)
+
+            // Ubah hasil kombinasi menjadi UiState
+            if (uiDestinations.isEmpty()) {
+                UiState.Empty as UiState<List<UiDestination>> // Cast agar tipe data sesuai
+            } else {
+                UiState.Success(uiDestinations)
+            }
+        }.catch { e ->
+            // Tangani error jika salah satu flow gagal
+            Timber.tag(TAG).e(e)
+            emit(UiState.Error(UiText.StringResource(R.string.error_fetch_place), e))
         }
+    }
 
     override suspend fun getDestinationById(
         destinationId: String,

@@ -11,6 +11,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +32,7 @@ fun IconAction(
     contentDescription: String,
     onClick: () -> Unit,
     iconSize: Int = 24,
-    backgroundColor: Color = MaterialTheme.colorScheme.surface.copy(
+    backgroundColor: Color = MaterialTheme.colorScheme.background.copy(
         0.7f
     ),
     iconTint: Color = MaterialTheme.colorScheme.secondary,
@@ -63,6 +65,20 @@ fun FavoriteIcon(
         onClick = onClick,
         contentDescription = "Toggle Favorite",
         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
+    )
+}
+
+
+@Composable
+fun MapsIcon(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    IconAction(
+        modifier = modifier,
+        onClick = onClick,
+        contentDescription = "Maps Icon",
+        imageVector = Icons.Outlined.LocationOn
     )
 }
 
@@ -125,6 +141,14 @@ fun LogoutIcon(
 private fun BackIconPreview() {
     WisataBanyumasTheme {
         BackIcon(onClick = {})
+    }
+}
+
+@Preview
+@Composable
+private fun MapsIconPreview() {
+    WisataBanyumasTheme {
+        MapsIcon(onClick = {})
     }
 }
 

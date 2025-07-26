@@ -24,7 +24,7 @@ import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.Review
 
 @Composable
-fun ReviewCard(review: Review, modifier: Modifier) {
+fun ReviewCard(review: Review, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
         border = BorderStroke(
@@ -43,7 +43,7 @@ fun ReviewCard(review: Review, modifier: Modifier) {
             ) {
                 Text(
                     text = review.authorName,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.weight(1f)
                 )
                 Rating(rating = review.rating)

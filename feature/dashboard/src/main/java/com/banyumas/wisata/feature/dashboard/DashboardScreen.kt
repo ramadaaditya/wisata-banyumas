@@ -1,24 +1,35 @@
 package com.banyumas.wisata.feature.dashboard
 
 import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,15 +38,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.common.UiState
 import com.banyumas.wisata.core.data.viewModel.UserViewModel
-import com.banyumas.wisata.core.designsystem.components.AddIcon
-import com.banyumas.wisata.core.designsystem.components.AppSearchBar
 import com.banyumas.wisata.core.designsystem.components.CategoryRow
 import com.banyumas.wisata.core.designsystem.components.ConfirmationDialog
 import com.banyumas.wisata.core.designsystem.components.DestinationCard
 import com.banyumas.wisata.core.designsystem.components.EmptyState
 import com.banyumas.wisata.core.designsystem.components.ErrorState
 import com.banyumas.wisata.core.designsystem.components.LoadingState
-import com.banyumas.wisata.core.designsystem.components.LogoutIcon
+import com.banyumas.wisata.core.designsystem.components.SimpleSearchBar
+import com.banyumas.wisata.core.designsystem.theme.BanyumasTheme
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
 import com.banyumas.wisata.core.model.Category
 import com.banyumas.wisata.core.model.Destination
@@ -50,53 +60,78 @@ fun DashboardScreen(
     userViewModel: UserViewModel = hiltViewModel(),
     dashboardViewModel: DashboardViewModel = hiltViewModel()
 ) {
-    val uiState by dashboardViewModel.uiDestinations.collectAsStateWithLifecycle()
+    val uiState by dashboardViewModel.uiState.collectAsStateWithLifecycle()
     val authState by userViewModel.authState.collectAsStateWithLifecycle()
     val currentUser = (authState as? UiState.Success)?.data
-    val userRole = currentUser?.role ?: Role.USER
-    val userId = currentUser?.id
-    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
+
     var query by rememberSaveable { mutableStateOf("") }
+    var active by rememberSaveable { mutableStateOf(false) }
+
+    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
+    val searchTextFieldState = rememberTextFieldState()
     var selectedCategory by rememberSaveable { mutableStateOf("All") }
     var destinationToDeleteId by rememberSaveable { mutableStateOf<String?>(null) }
-    val focusManager = LocalFocusManager.current
 
-    Log.d(TAG, "DashboardScreen: $currentUser")
+    val snackbarHostState = remember { SnackbarHostState() }
+    val focusManager = LocalFocusManager.current
+    val context = LocalContext.current
+
+    Timber.tag(TAG).d("Status user : $currentUser")
+    Timber.tag(TAG).d("Cek data destinasi $uiState")
+
+    LaunchedEffect(currentUser) {
+        currentUser?.id?.let {
+            dashboardViewModel.setUserId(it)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        dashboardViewModel.eventFlow.collect { event ->
+            when (event) {
+                is DashboardViewModel.DestinationEvent.ShowMessage -> {
+                    snackbarHostState.showSnackbar(message = event.message.asString(context))
+                }
+
+                is DashboardViewModel.DestinationEvent.DeletionSuccess -> {
+                    snackbarHostState.showSnackbar(message = "Destinasi berhasil dihapus.")
+                }
+            }
+        }
+    }
+
 
     DashboardContent(
         modifier = Modifier.pointerInput(Unit) {
             detectTapGestures(onTap = { focusManager.clearFocus() })
         },
         uiState = uiState,
-        userRole = userRole,
-        query = query,
+        userRole = currentUser?.role ?: Role.USER,
+        onSearch = { query ->
+            dashboardViewModel.searchDestinations(query)
+        },
         navigateToDetail = onDestinationClick,
         onLongPress = { destinationId ->
-            if (userRole == Role.ADMIN) {
+            if (currentUser?.role == Role.ADMIN) {
                 destinationToDeleteId = destinationId
             }
         },
         onLogoutClick = { showLogoutDialog = true },
-        onSearchQueryChange = {
-            query = it
-            dashboardViewModel.searchDestinations(it, selectedCategory)
-        },
         onCategorySelected = { category ->
             selectedCategory = category
-            dashboardViewModel.searchDestinations(query, category)
+            dashboardViewModel.selectCategory(category)
         },
         onFavoriteClick = { destination ->
-            userId?.let {
-                dashboardViewModel.toggleFavorite(
-                    userId = it,
-                    destination.destination.id,
-                    destination.isFavorite
-                )
-            }
+            dashboardViewModel.toggleFavorite(
+                destination.destination.id,
+                destination.isFavorite
+            )
         },
         onAddClick = navigateToAddDestination,
         selectedCategory = selectedCategory,
-        categories = Category.list
+        categories = Category.list,
+        searchTextFieldState = searchTextFieldState,
+        query = query,
+        active = active
     )
 
 
@@ -131,157 +166,277 @@ fun DashboardContent(
     modifier: Modifier = Modifier,
     uiState: UiState<List<UiDestination>>,
     userRole: Role,
+    searchTextFieldState: TextFieldState,
     onFavoriteClick: (UiDestination) -> Unit,
     navigateToDetail: (String) -> Unit,
     onLongPress: (String) -> Unit,
     onLogoutClick: () -> Unit,
     onAddClick: () -> Unit,
-    onCategorySelected: (String) -> Unit,
-    onSearchQueryChange: (String) -> Unit,
     query: String,
+    active: Boolean,
+    onCategorySelected: (String) -> Unit,
+    onSearch: (String) -> Unit,
     selectedCategory: String,
     categories: List<String>,
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            AppSearchBar(
-                query = query,
-                onQueryChange = onSearchQueryChange,
-                onSearch = {},
-                modifier = Modifier.weight(1f)
-            )
-            if (userRole == Role.ADMIN) {
-                AddIcon(onClick = onAddClick)
+    val searchResults by remember(uiState) {
+        derivedStateOf {
+            val searchText = searchTextFieldState.text.toString()
+            if (searchText.isBlank() || uiState !is UiState.Success) {
+                emptyList()
+            } else {
+                uiState.data
+                    .map { it.destination.name }
+                    .filter { it.contains(searchText, ignoreCase = true) }
+                    .distinct()
             }
-            LogoutIcon(onClick = onLogoutClick)
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxSize()
+    ) {
+
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Have a Good Day,",
+            style = BanyumasTheme.typography.headlineLarge
+        )
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Ramada Aditya ",
+            style = BanyumasTheme.typography.headlineLarge
+        )
+
+        SimpleSearchBar(
+            textFieldState = searchTextFieldState,
+            searchResults = searchResults,
+            onSearch = onSearch,
+            // KOREKSI 5: Pindahkan ikon-ikon ke dalam SearchBar
+//            trailingIcon = {
+//                Row {
+//                    if (userRole == Role.ADMIN) {
+//                        AddIcon(onClick = onAddClick)
+//                    }
+//                    LogoutIcon(onClick = onLogoutClick)
+//                }
+//            }
+        )
+
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = "Explore by category", style = BanyumasTheme.typography.titleMedium)
+            Text(text = "See All", style = BanyumasTheme.typography.titleSmall)
+
         }
 
         CategoryRow(
             categories = categories,
             selectedCategory = selectedCategory,
             onCategorySelected = onCategorySelected,
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
-        when (uiState) {
-            is UiState.Loading -> LoadingState()
-            is UiState.Success -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    items(uiState.data, key = { it.destination.id }) { destination ->
-                        DestinationCard(
-                            destination = destination,
-                            onFavoriteClick = { onFavoriteClick(destination) },
-                            onClick = { navigateToDetail(destination.destination.id) },
-                            showFavoriteIcon = userRole == Role.USER,
-                            onLongPress = { onLongPress(destination.destination.id) }
-                        )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                when (uiState) {
+                    is UiState.Loading -> LoadingState()
+                    is UiState.Success -> {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.data, key = { it.destination.id }) { destination ->
+                                DestinationCard(
+                                    destination = destination,
+                                    onFavoriteClick = { onFavoriteClick(destination) },
+                                    onClick = { navigateToDetail(destination.destination.id) },
+                                    showFavoriteIcon = userRole == Role.USER,
+                                    onLongPress = { onLongPress(destination.destination.id) }
+                                )
+                            }
+                        }
                     }
+
+                    is UiState.Error -> ErrorState(message = uiState.message)
+                    is UiState.Empty -> EmptyState(message = "Tidak ada destinasi yang ditemukan")
                 }
             }
 
-            is UiState.Error -> ErrorState(message = uiState.message)
-            is UiState.Empty -> EmptyState(message = "Tidak ada destinasi yang ditemukan")
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+
+                    Text(text = "Nearby destination", style = BanyumasTheme.typography.titleMedium)
+                    Text(text = "See All", style = BanyumasTheme.typography.titleSmall)
+                }
+            }
+
+            item {
+                when (uiState) {
+                    is UiState.Loading -> LoadingState()
+                    is UiState.Success -> {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.data, key = { it.destination.id }) { destination ->
+                                DestinationCard(
+                                    destination = destination,
+                                    onFavoriteClick = { onFavoriteClick(destination) },
+                                    onClick = { navigateToDetail(destination.destination.id) },
+                                    showFavoriteIcon = userRole == Role.USER,
+                                    onLongPress = { onLongPress(destination.destination.id) }
+                                )
+                            }
+                        }
+                    }
+
+                    is UiState.Error -> ErrorState(message = uiState.message)
+                    is UiState.Empty -> EmptyState(message = "Tidak ada destinasi yang ditemukan")
+                }
+            }
         }
     }
 }
 
-@Preview(showBackground = true, device = Devices.PIXEL, name = "Admin Role")
+@Preview(showBackground = true, device = Devices.PIXEL_4, name = "Admin Role")
 @Composable
 fun DashboardContentPreview() {
+    val searchTextFieldState = rememberTextFieldState()
+
     WisataBanyumasTheme(dynamicColor = false) {
-        DashboardContent(
-            uiState = UiState.Success(generateDummyDestinations()),
-            userRole = Role.ADMIN, // <-- Lihat sebagai Admin
-            query = "",
-            selectedCategory = "Semua",
-            categories = Category.list,
-            onSearchQueryChange = {},
-            onCategorySelected = {},
-            onFavoriteClick = {},
-            onAddClick = {},
-            onLogoutClick = {},
-            onLongPress = {},
-            navigateToDetail = {}
-        )
+        // Bungkus dengan Scaffold untuk mensimulasikan UI nyata
+        Scaffold(
+            bottomBar = { /* BottomBar tiruan untuk menghasilkan innerPadding */ }
+        ) { innerPadding ->
+            DashboardContent(
+                modifier = Modifier.padding(innerPadding), // Terapkan innerPadding
+                uiState = UiState.Success(generateDummyDestinations()),
+                userRole = Role.ADMIN,
+                searchTextFieldState = searchTextFieldState,
+                onSearch = {},
+                selectedCategory = "Semua",
+                categories = Category.list,
+                onCategorySelected = {},
+                onFavoriteClick = {},
+                onAddClick = {},
+                onLogoutClick = {},
+                onLongPress = {},
+                navigateToDetail = {},
+                query = "",
+                active = false
+            )
+        }
     }
 }
 
 @Preview(showBackground = true, device = Devices.PIXEL_4, name = "User Role")
 @Composable
 private fun DashboardContentUserPreview() {
+    var selectedCategory by remember { mutableStateOf("Kuliner") }
+    val searchTextFieldState = rememberTextFieldState("Baturraden")
+
     WisataBanyumasTheme(dynamicColor = false) {
-        DashboardContent(
-            uiState = UiState.Success(generateDummyDestinations(true)), // <-- User punya favorit
-            userRole = Role.USER, // <-- Lihat sebagai User
-            query = "Baturraden",
-            selectedCategory = "Alam",
-            categories = Category.list,
-            onSearchQueryChange = {},
-            onCategorySelected = {},
-            onFavoriteClick = {},
-            onAddClick = {},
-            onLogoutClick = {},
-            onLongPress = {},
-            navigateToDetail = {}
-        )
+        Scaffold(
+            bottomBar = { /* BottomBar tiruan */ }
+        ) { innerPadding ->
+            DashboardContent(
+                modifier = Modifier.padding(innerPadding),
+                uiState = UiState.Success(generateDummyDestinations(true)),
+                userRole = Role.USER,
+                searchTextFieldState = searchTextFieldState,
+                onSearch = {},
+                selectedCategory = selectedCategory,
+                categories = Category.list,
+                onCategorySelected = { newCategory ->
+                    selectedCategory = newCategory
+                },
+                onFavoriteClick = {},
+                onAddClick = {},
+                onLogoutClick = {},
+                onLongPress = {},
+                navigateToDetail = {},
+                query = "",
+                active = false
+            )
+        }
     }
 }
 
 @Preview(showBackground = true, name = "Empty State")
 @Composable
 private fun DashboardContentEmptyPreview() {
+    val searchTextFieldState = rememberTextFieldState()
+
     WisataBanyumasTheme(dynamicColor = false) {
-        DashboardContent(
-            uiState = UiState.Empty, // <-- Kondisi kosong
-            userRole = Role.USER,
-            query = "",
-            selectedCategory = "Semua",
-            categories = Category.list,
-            onSearchQueryChange = {},
-            onCategorySelected = {},
-            onFavoriteClick = {},
-            onAddClick = {},
-            onLogoutClick = {},
-            onLongPress = {},
-            navigateToDetail = {}
-        )
+        Scaffold(
+            bottomBar = { /* BottomBar tiruan */ }
+        ) { innerPadding ->
+            DashboardContent(
+                modifier = Modifier.padding(innerPadding),
+                uiState = UiState.Empty,
+                userRole = Role.USER,
+                searchTextFieldState = searchTextFieldState,
+                onSearch = {},
+                selectedCategory = "Semua",
+                categories = Category.list,
+                onCategorySelected = {},
+                onFavoriteClick = {},
+                onAddClick = {},
+                onLogoutClick = {},
+                onLongPress = {},
+                navigateToDetail = {},
+                query = "",
+                active = false
+            )
+        }
     }
 }
 
 @Preview(showBackground = true, name = "Loading State")
 @Composable
 private fun DashboardContentLoadingPreview() {
+    val searchTextFieldState = rememberTextFieldState()
+
     WisataBanyumasTheme(dynamicColor = false) {
-        DashboardContent(
-            uiState = UiState.Loading,
-            userRole = Role.USER,
-            query = "",
-            selectedCategory = "Semua",
-            categories = Category.list,
-            onSearchQueryChange = {},
-            onCategorySelected = {},
-            onFavoriteClick = {},
-            onAddClick = {},
-            onLogoutClick = {},
-            onLongPress = {},
-            navigateToDetail = {}
-        )
+        Scaffold(
+            bottomBar = { /* BottomBar tiruan */ }
+        ) { innerPadding ->
+            DashboardContent(
+                modifier = Modifier.padding(innerPadding),
+                uiState = UiState.Loading,
+                userRole = Role.USER,
+                searchTextFieldState = searchTextFieldState,
+                onSearch = {},
+                selectedCategory = "Semua",
+                categories = Category.list,
+                onCategorySelected = {},
+                onFavoriteClick = {},
+                onAddClick = {},
+                onLogoutClick = {},
+                onLongPress = {},
+                navigateToDetail = {},
+                query = "",
+                active = false
+            )
+        }
     }
 }
 
+// ... fungsi generateDummyDestinations tidak berubah
 private fun generateDummyDestinations(isUser: Boolean = false): List<UiDestination> {
     return List(5) { index ->
         UiDestination(
