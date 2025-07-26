@@ -25,7 +25,10 @@ class DetailViewModel @Inject constructor(
     private val _destinationState = MutableStateFlow<UiState<UiDestination>>(UiState.Empty)
     val destinationState: StateFlow<UiState<UiDestination>> = _destinationState.asStateFlow()
 
-    private val destinationId: String = savedStateHandle.get<String>("destinationId")!!
+    // Gunakan requireNotNull untuk validasi yang aman dan pesan error yang jelas
+    private val destinationId: String = requireNotNull(savedStateHandle["destinationId"]) {
+        "Argumen 'destinationId' tidak ditemukan. Periksa pemanggilan navigasi."
+    }
 
     private val _eventFlow = MutableSharedFlow<DetailScreenEvent>()
     val eventFlow = _eventFlow.asSharedFlow()

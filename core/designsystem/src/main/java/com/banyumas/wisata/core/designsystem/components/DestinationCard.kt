@@ -55,8 +55,8 @@ fun DestinationCard(
             defaultElevation = 4.dp
         ),
         modifier = modifier
-            .width(400.dp)
-            .height(300.dp)
+            .width(300.dp)
+            .height(200.dp)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongPress
@@ -96,8 +96,7 @@ fun DestinationCard(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
             ) {
                 Text(
                     text = destination.destination.name,

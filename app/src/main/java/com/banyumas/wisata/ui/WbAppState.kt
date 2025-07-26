@@ -83,6 +83,9 @@ class WbAppState(
 
 //    fun navigateToSearch() = navController.navigateToSearch()
 
+    val shouldShowBottomBar: Boolean
+        @Composable get() = currentTopLevelDestination != null
+
     fun navigateToLogin() {
         navController.navigate(LoginRoute)
     }

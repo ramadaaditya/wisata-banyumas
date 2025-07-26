@@ -79,29 +79,31 @@ private fun MainAppScaffold(
 ) {
     Scaffold(
         bottomBar = {
-            WbNavigationBar {
-                TopLevelDestination.entries.forEach { destination ->
-                    val isSelected = appState.currentTopLevelDestination == destination
-                    WbNavigationBarItem(
-                        selected = isSelected,
-                        onClick = { appState.navigateToTopLevelDestination(destination) },
-                        icon = {
-                            Icon(
-                                imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
-                                contentDescription = null
-                            )
-                        },
-                        selectedIcon = {
-                            Icon(
-                                imageVector = destination.selectedIcon,
-                                contentDescription = null
-                            )
-                        },
-                        label = { Text(stringResource(id = destination.iconTextId)) },
-                    )
+            if (appState.shouldShowBottomBar) {
+                WbNavigationBar {
+                    TopLevelDestination.entries.forEach { destination ->
+                        val isSelected = appState.currentTopLevelDestination == destination
+                        WbNavigationBarItem(
+                            selected = isSelected,
+                            onClick = { appState.navigateToTopLevelDestination(destination) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
+                                    contentDescription = null
+                                )
+                            },
+                            selectedIcon = {
+                                Icon(
+                                    imageVector = destination.selectedIcon,
+                                    contentDescription = null
+                                )
+                            },
+                            label = { Text(stringResource(id = destination.iconTextId)) },
+                        )
+                    }
                 }
             }
-        },
+        }
     ) { innerPadding ->
         UnifiedNavHost(
             appState = appState,
@@ -146,12 +148,10 @@ private fun UnifiedNavHost(
             onBackToLogin = appState::navigateUp,
         )
 
-        // MAIN APP GRAPHS - Only accessible when authenticated
         dashboardGraph(
             onDestinationClick = { destinationId ->
                 appState.navController.navigateToDetail(destinationId)
             },
-//            navController = appState.navController
         )
 
         bookmarksScreen(

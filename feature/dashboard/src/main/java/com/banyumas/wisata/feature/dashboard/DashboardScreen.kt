@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
@@ -81,7 +82,6 @@ fun DashboardScreen(
     LaunchedEffect(currentUser) {
         currentUser?.id?.let {
             dashboardViewModel.setUserId(it)
-
         }
     }
 
@@ -243,65 +243,73 @@ fun DashboardContent(
             modifier = Modifier.padding(vertical = 8.dp)
         )
 
-        when (uiState) {
-            is UiState.Loading -> LoadingState()
-            is UiState.Success -> {
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(uiState.data, key = { it.destination.id }) { destination ->
-                        DestinationCard(
-                            destination = destination,
-                            onFavoriteClick = { onFavoriteClick(destination) },
-                            onClick = { navigateToDetail(destination.destination.id) },
-                            showFavoriteIcon = userRole == Role.USER,
-                            onLongPress = { onLongPress(destination.destination.id) }
-                        )
-                    }
-                }
-            }
-
-            is UiState.Error -> ErrorState(message = uiState.message)
-            is UiState.Empty -> EmptyState(message = "Tidak ada destinasi yang ditemukan")
-        }
-
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            Text(text = "Nearby destination", style = BanyumasTheme.typography.titleMedium)
-            Text(text = "See All", style = BanyumasTheme.typography.titleSmall)
-        }
-
-        when (uiState) {
-            is UiState.Loading -> LoadingState()
-            is UiState.Success -> {
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(uiState.data, key = { it.destination.id }) { destination ->
-                        DestinationCard(
-                            destination = destination,
-                            onFavoriteClick = { onFavoriteClick(destination) },
-                            onClick = { navigateToDetail(destination.destination.id) },
-                            showFavoriteIcon = userRole == Role.USER,
-                            onLongPress = { onLongPress(destination.destination.id) }
-                        )
+            item {
+                when (uiState) {
+                    is UiState.Loading -> LoadingState()
+                    is UiState.Success -> {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.data, key = { it.destination.id }) { destination ->
+                                DestinationCard(
+                                    destination = destination,
+                                    onFavoriteClick = { onFavoriteClick(destination) },
+                                    onClick = { navigateToDetail(destination.destination.id) },
+                                    showFavoriteIcon = userRole == Role.USER,
+                                    onLongPress = { onLongPress(destination.destination.id) }
+                                )
+                            }
+                        }
                     }
+
+                    is UiState.Error -> ErrorState(message = uiState.message)
+                    is UiState.Empty -> EmptyState(message = "Tidak ada destinasi yang ditemukan")
                 }
             }
 
-            is UiState.Error -> ErrorState(message = uiState.message)
-            is UiState.Empty -> EmptyState(message = "Tidak ada destinasi yang ditemukan")
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+
+                    Text(text = "Nearby destination", style = BanyumasTheme.typography.titleMedium)
+                    Text(text = "See All", style = BanyumasTheme.typography.titleSmall)
+                }
+            }
+
+            item {
+                when (uiState) {
+                    is UiState.Loading -> LoadingState()
+                    is UiState.Success -> {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.data, key = { it.destination.id }) { destination ->
+                                DestinationCard(
+                                    destination = destination,
+                                    onFavoriteClick = { onFavoriteClick(destination) },
+                                    onClick = { navigateToDetail(destination.destination.id) },
+                                    showFavoriteIcon = userRole == Role.USER,
+                                    onLongPress = { onLongPress(destination.destination.id) }
+                                )
+                            }
+                        }
+                    }
+
+                    is UiState.Error -> ErrorState(message = uiState.message)
+                    is UiState.Empty -> EmptyState(message = "Tidak ada destinasi yang ditemukan")
+                }
+            }
         }
     }
-
-
 }
 
 @Preview(showBackground = true, device = Devices.PIXEL_4, name = "Admin Role")
