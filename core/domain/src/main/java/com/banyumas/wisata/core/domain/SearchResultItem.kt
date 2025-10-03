@@ -1,4 +1,4 @@
-package com.banyumas.wisata.core.model
+package com.banyumas.wisata.core.domain
 
 data class SearchResultItem(
     val name: String,

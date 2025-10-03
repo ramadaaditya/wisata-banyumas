@@ -5,9 +5,8 @@ import org.gradle.kotlin.dsl.apply
 
 class JvmLibraryPlugin : Plugin<Project> {
     override fun apply(target: Project) {
-        with(target){
+        with(target) {
             apply(plugin = "org.jetbrains.kotlin.jvm")
-            apply(plugin = "base.lint")
             configureKotlinJvm()
         }
     }

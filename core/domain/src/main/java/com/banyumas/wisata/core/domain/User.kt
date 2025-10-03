@@ -1,4 +1,4 @@
-package com.banyumas.wisata.core.model
+package com.banyumas.wisata.core.domain
 
 data class User(
     val id: String = "",

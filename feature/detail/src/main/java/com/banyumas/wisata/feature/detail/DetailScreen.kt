@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -58,8 +57,6 @@ import com.banyumas.wisata.core.model.Review
 import com.banyumas.wisata.core.model.Role
 import com.banyumas.wisata.core.model.UiDestination
 import com.banyumas.wisata.feature.detail.utils.openGoogleMaps
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Composable
@@ -88,17 +85,17 @@ fun DetailRouteScreen(
         }
     }
 
-    LaunchedEffect(detailViewModel.eventFlow) {
-        detailViewModel.eventFlow.collectLatest { event ->
-            when (event) {
-                is DetailViewModel.DetailScreenEvent.ShowMessage -> {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(event.message.asString(context))
-                    }
-                }
-            }
-        }
-    }
+//    LaunchedEffect(detailViewModel.eventFlow) {
+//        detailViewModel.eventFlow.collectLatest { event ->
+//            when (event) {
+//                is DetailViewModel.DetailScreenEvent.ShowMessage -> {
+//                    scope.launch {
+//                        snackbarHostState.showSnackbar(event.message.asString(context))
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     DetailContent(
         uiState = detailUiState,

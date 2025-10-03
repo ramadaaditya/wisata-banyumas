@@ -9,4 +9,5 @@ plugins {
     alias(libs.plugins.gms) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.secret) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
 }

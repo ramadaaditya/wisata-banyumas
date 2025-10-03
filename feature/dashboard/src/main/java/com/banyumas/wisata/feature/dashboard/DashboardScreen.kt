@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Scaffold
@@ -100,10 +99,12 @@ fun DashboardScreen(
     }
 
 
+
     DashboardContent(
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures(onTap = { focusManager.clearFocus() })
-        },
+        modifier = Modifier
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { focusManager.clearFocus() })
+            },
         uiState = uiState,
         userRole = currentUser?.role ?: Role.USER,
         onSearch = { query ->
@@ -133,6 +134,7 @@ fun DashboardScreen(
         query = query,
         active = active
     )
+
 
 
     if (showLogoutDialog) {

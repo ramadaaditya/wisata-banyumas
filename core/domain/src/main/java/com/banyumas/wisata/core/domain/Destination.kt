@@ -1,4 +1,4 @@
-package com.banyumas.wisata.core.model
+package com.banyumas.wisata.core.domain
 
 enum class Facility {
     BATHROOM,

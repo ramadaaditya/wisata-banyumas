@@ -67,10 +67,7 @@ gradlePlugin {
             id = libs.plugins.base.firebase.get().pluginId
             implementationClass = "FirebasePlugin"
         }
-        register("androidLint") {
-            id = libs.plugins.base.lint.get().pluginId
-            implementationClass = "LintPlugin"
-        }
+
         register("jvmLibrary") {
             id = libs.plugins.base.jvm.get().pluginId
             implementationClass = "JvmLibPlugin"

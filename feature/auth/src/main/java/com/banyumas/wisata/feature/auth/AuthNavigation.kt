@@ -1,5 +1,7 @@
 package com.banyumas.wisata.feature.auth
 
+import android.annotation.SuppressLint
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -22,8 +24,15 @@ object RegisterRoute
 @Serializable
 object ResetPasswordRoute
 
-fun NavController.navigateToAuthGraph(navOptions: NavOptions? = null) {
-    navigate(AuthGraphRoute, navOptions)
+@SuppressLint("UnrememberedGetBackStackEntry")
+@Composable
+private fun rememberSharedAuthViewModel(navController: NavController): UserViewModel {
+    // Dapatkan back stack entry dari parent navigation graph
+    val parentEntry = remember {
+        navController.getBackStackEntry(AuthGraphRoute)
+    }
+    // Buat/dapatkan ViewModel yang terikat pada parent entry tersebut
+    return hiltViewModel(parentEntry)
 }
 
 fun NavGraphBuilder.authGraph(
@@ -31,41 +40,37 @@ fun NavGraphBuilder.authGraph(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToResetPassword: () -> Unit,
-    onBackToLogin: () -> Unit
+    onBackToLogin: () -> Unit,
 ) {
     navigation<AuthGraphRoute>(
-        startDestination = LoginRoute
+        startDestination = LoginRoute,
     ) {
-        composable<LoginRoute> { backStackEntry ->
-            val parentEntry =
-                remember(backStackEntry) { navController.getBackStackEntry(AuthGraphRoute) }
-            val authViewModel: UserViewModel = hiltViewModel(parentEntry)
-
+        composable<LoginRoute> {
+            // Cukup panggil helper function kita
+            val authViewModel = rememberSharedAuthViewModel(navController)
             LoginScreen(
                 navigateToHome = onLoginSuccess,
                 onForgotPasswordClick = onNavigateToResetPassword,
                 onSignupClick = onNavigateToRegister,
-                viewModel = authViewModel
+                viewModel = authViewModel,
             )
         }
 
         composable<RegisterRoute> {
-            val parentEntry = navController.getBackStackEntry(AuthGraphRoute)
-            val authViewModel: UserViewModel = hiltViewModel(parentEntry)
-
+            // Gunakan helper yang sama
+            val authViewModel = rememberSharedAuthViewModel(navController)
             RegisterScreen(
                 onSignInClick = onBackToLogin,
-                viewModel = authViewModel
+                viewModel = authViewModel,
             )
         }
 
         composable<ResetPasswordRoute> {
-            val parentEntry = navController.getBackStackEntry(AuthGraphRoute)
-            val authViewModel: UserViewModel = hiltViewModel(parentEntry)
-
+            // Gunakan helper yang sama
+            val authViewModel = rememberSharedAuthViewModel(navController)
             ResetPasswordScreen(
                 viewModel = authViewModel,
-                onSignInClick = onBackToLogin
+                onSignInClick = onBackToLogin,
             )
         }
     }

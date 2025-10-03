@@ -10,6 +10,7 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import com.banyumas.wisata.feature.auth.AuthGraphRoute
@@ -36,19 +37,9 @@ fun rememberWbAppState(
 class WbAppState(
     val navController: NavHostController
 ) {
-    private val previousDestination = mutableStateOf<NavDestination?>(null)
-
     val currentDestination: NavDestination?
-        @Composable get() {
-            val currentEntry =
-                navController.currentBackStackEntryFlow.collectAsState(initial = null)
+        @Composable get() = navController.currentBackStackEntryAsState().value?.destination
 
-            return currentEntry.value?.destination.also { destination ->
-                if (destination != null) {
-                    previousDestination.value = destination
-                }
-            } ?: previousDestination.value
-        }
 
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() {

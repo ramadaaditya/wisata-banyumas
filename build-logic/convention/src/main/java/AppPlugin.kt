@@ -1,7 +1,5 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.wisata.banyumas.buidlogic.convention.ConstantLibs.MAX_SDK_VERSION
-import com.wisata.banyumas.buidlogic.convention.ConstantLibs.debugResourceExcludes
-import com.wisata.banyumas.buidlogic.convention.ConstantLibs.releaseResourceExcludes
 import com.wisata.banyumas.buidlogic.convention.configAndroid
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -13,13 +11,11 @@ class AppPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "com.android.application")
             apply(plugin = "org.jetbrains.kotlin.android")
-            apply(plugin = "base.lint")
 
             extensions.configure<ApplicationExtension> {
                 configAndroid(this)
                 defaultConfig.targetSdk = MAX_SDK_VERSION
                 testOptions.animationsDisabled = true
-//
                 packaging {
                     resources {
                         excludes.add("/META-INF/{AL2.0,LGPL2.1}")

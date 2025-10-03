@@ -6,8 +6,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core:model"))
-    implementation(project(":core:common"))
+//    implementation(projects.core.model)
+    implementation(projects.core.common)
     api(libs.timber)
 
     implementation(libs.okhttp.interceptor)
