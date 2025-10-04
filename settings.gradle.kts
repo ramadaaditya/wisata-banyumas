@@ -26,7 +26,8 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Wisata Banyumas"
+rootProject.name = "wisatabanyumas"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(":feature:auth")
 include(":feature:profile")
@@ -37,8 +38,9 @@ include(":feature:bookmarks")
 include(":app")
 include(":core:data")
 include(":core:designsystem")
-include(":core:model")
-include(":core:common")
 
-include(":core:network")
 include(":feature:detail")
+include(":core:domain")
+include(":core:model")
+include(":core:ui")
+include(":core:common")

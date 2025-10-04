@@ -1,6 +1,7 @@
 plugins {
-    alias(libs.plugins.base.library)
+    alias(libs.plugins.base.jvm)
 }
-dependencies {
-    api(libs.androidx.annotation.jvm)
+
+dependencies{
+    implementation(libs.kotlinx.coroutines.core)
 }

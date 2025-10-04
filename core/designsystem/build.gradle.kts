@@ -4,10 +4,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":core:model"))
-    api(project(":core:common"))
-    implementation(libs.androidx.ui.text.google.fonts)
-
+    api(projects.core.common)
     api(libs.androidx.material3)
     api(libs.androidx.material.icons.extended)
     api(libs.androidx.ui)
@@ -16,6 +13,7 @@ dependencies {
     api(libs.androidx.ui.tooling.debug)
 
 
+    implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.coil.compose)
     implementation(libs.coil.network)
 

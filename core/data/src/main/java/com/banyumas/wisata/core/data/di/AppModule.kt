@@ -1,7 +1,7 @@
 package com.banyumas.wisata.core.data.di
 
 import com.banyumas.wisata.core.data.BuildConfig
-import com.banyumas.wisata.core.data.retrofit.ApiService
+import com.banyumas.wisata.core.data.auth.source.remote.ApiService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 

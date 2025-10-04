@@ -16,6 +16,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+sealed class DetailScreenEvent {
+    data class ShowMessage(val message: UiText) : DetailScreenEvent()
+}
+
 @HiltViewModel
 class DetailViewModel @Inject constructor(
     private val repository: DestinationRepository,
@@ -55,10 +60,5 @@ class DetailViewModel @Inject constructor(
                 _eventFlow.emit(DetailScreenEvent.ShowMessage(result.message))
             }
         }
-    }
-
-
-    sealed class DetailScreenEvent {
-        data class ShowMessage(val message: UiText) : DetailScreenEvent()
     }
 }

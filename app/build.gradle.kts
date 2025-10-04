@@ -28,18 +28,18 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:data"))
-    implementation(project(":core:designsystem"))
-    implementation(project(":core:common"))
-    implementation(project(":core:model"))
+    implementation(projects.core.data)
+    implementation(projects.core.designsystem)
+    implementation(projects.core.common)
+    implementation(projects.core.model)
 
-    implementation(project(":feature:dashboard"))
-    implementation(project(":feature:admin"))
-    implementation(project(":feature:search"))
-    implementation(project(":feature:profile"))
-    implementation(project(":feature:bookmarks"))
-    implementation(project(":feature:auth"))
-    implementation(project(":feature:detail"))
+    implementation(projects.feature.dashboard)
+    implementation(projects.feature.admin)
+    implementation(projects.feature.search)
+    implementation(projects.feature.bookmarks)
+    implementation(projects.feature.profile)
+    implementation(projects.feature.auth)
+    implementation(projects.feature.detail)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
