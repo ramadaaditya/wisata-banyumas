@@ -14,9 +14,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import com.banyumas.wisata.core.designsystem.components.WbNavigationBar
 import com.banyumas.wisata.core.designsystem.components.WbNavigationBarItem
-import com.banyumas.wisata.core.model.LocalUser
-import com.banyumas.wisata.feature.auth.AuthGraphRoute
-import com.banyumas.wisata.feature.auth.authGraph
+import com.banyumas.wisata.LocalUser
+import com.banyumas.wisata.feature.auth.navigation.AuthGraphRoute
+import com.banyumas.wisata.feature.auth.navigation.authGraph
 import com.banyumas.wisata.feature.bookmarks.navigation.bookmarksScreen
 import com.banyumas.wisata.feature.dashboard.navigation.DashboardRoute
 import com.banyumas.wisata.feature.dashboard.navigation.dashboardGraph

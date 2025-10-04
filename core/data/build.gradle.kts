@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
 //    implementation(projects.core.model)
-    implementation(projects.core.common)
+//    implementation(projects.core.common)
     api(libs.timber)
 
     implementation(libs.okhttp.interceptor)

@@ -1,7 +1,7 @@
 package com.banyumas.wisata.core.data.utils
 
-import com.banyumas.wisata.core.data.retrofit.DetailResponse
-import com.banyumas.wisata.core.data.retrofit.SearchResponse
+import com.banyumas.wisata.core.data.auth.source.remote.DetailResponse
+import com.banyumas.wisata.core.data.auth.source.remote.SearchResponse
 import com.banyumas.wisata.core.model.Destination
 import com.banyumas.wisata.core.model.Photo
 import com.banyumas.wisata.core.model.Review

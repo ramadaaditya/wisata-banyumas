@@ -3,7 +3,7 @@ package com.banyumas.wisata.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.banyumas.wisata.DummyUser
 import com.banyumas.wisata.R
-import com.banyumas.wisata.core.data.repository.AuthDataRepositoryImpl
+import com.banyumas.wisata.core.data.auth.repository.AuthDataRepositoryImpl
 import com.banyumas.wisata.utils.MainDispatcherRule
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue

@@ -2,8 +2,6 @@ package com.banyumas.wisata.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.util.trace
 import androidx.navigation.NavDestination
@@ -13,10 +11,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
-import com.banyumas.wisata.feature.auth.AuthGraphRoute
-import com.banyumas.wisata.feature.auth.LoginRoute
-import com.banyumas.wisata.feature.auth.RegisterRoute
-import com.banyumas.wisata.feature.auth.ResetPasswordRoute
+import com.banyumas.wisata.feature.auth.navigation.AuthGraphRoute
+import com.banyumas.wisata.feature.auth.navigation.LoginRoute
+import com.banyumas.wisata.feature.auth.navigation.RegisterRoute
+import com.banyumas.wisata.feature.auth.navigation.ResetPasswordRoute
 import com.banyumas.wisata.feature.bookmarks.navigation.navigateToBookmarks
 import com.banyumas.wisata.feature.dashboard.navigation.DashboardRoute
 import com.banyumas.wisata.feature.dashboard.navigation.navigateToDashboard

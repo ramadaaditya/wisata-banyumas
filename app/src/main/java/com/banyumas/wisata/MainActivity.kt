@@ -13,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.banyumas.wisata.core.designsystem.theme.WisataBanyumasTheme
-import com.banyumas.wisata.core.model.LocalUser
 import com.banyumas.wisata.ui.WbApp
 import com.banyumas.wisata.ui.rememberWbAppState
 import dagger.hilt.android.AndroidEntryPoint

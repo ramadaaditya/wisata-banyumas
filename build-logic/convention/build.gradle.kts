@@ -70,7 +70,7 @@ gradlePlugin {
 
         register("jvmLibrary") {
             id = libs.plugins.base.jvm.get().pluginId
-            implementationClass = "JvmLibPlugin"
+            implementationClass = "JvmLibraryPlugin"
         }
     }
 }

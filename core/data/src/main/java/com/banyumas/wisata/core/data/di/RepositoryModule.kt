@@ -1,8 +1,8 @@
 package com.banyumas.wisata.core.data.di
 
-import com.banyumas.wisata.core.data.repository.AuthDataRepositoryImpl
+import com.banyumas.wisata.core.data.auth.repository.AuthDataRepositoryImpl
 import com.banyumas.wisata.core.data.repository.AuthRepository
-import com.banyumas.wisata.core.data.repository.DestinationDataRepositoryImpl
+import com.banyumas.wisata.core.data.auth.repository.DestinationDataRepositoryImpl
 import com.banyumas.wisata.core.data.repository.DestinationRepository
 import dagger.Binds
 import dagger.Module
